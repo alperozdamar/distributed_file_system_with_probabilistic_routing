@@ -1,0 +1,19 @@
+# Output binaries
+*.class
+/target
+
+# IDE files
+/.project
+/.classpath
+/.settings
+/.build
+
+# javadoc-generated documentation
+/docs/api
+
+# Mac OS File Attributes
+.DS_Store
+
+# virtual machine crash logs
+hs_err_pid*
+
