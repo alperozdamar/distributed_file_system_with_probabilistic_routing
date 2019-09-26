@@ -11,9 +11,16 @@ message RetrieveFile {
     string fileName = 1;
 }
 
+message HeartBeat {
+    int32 totalFreeSpaceInBytes=1;
+    int32 numOfStorageMessage=2;
+    int32 numOfRetrievelRequest=3;
+}
+
 message StorageMessageWrapper {
     oneof msg {
         StoreChunk storeChunkMsg = 1;
         RetrieveFile retrieveFileMsg = 2;
+        HeartBeat heartBeatMsg = 3;
     }
 }

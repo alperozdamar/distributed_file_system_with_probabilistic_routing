@@ -1,0 +1,1 @@
+d:\protoc-3.9.2-win64\bin\protoc.exe storage_messages.proto --java_out ..\src\main\java
