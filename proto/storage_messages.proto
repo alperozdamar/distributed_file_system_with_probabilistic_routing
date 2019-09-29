@@ -7,8 +7,12 @@ message StoreChunk {
     bytes data = 3;
 }
 
-message RetrieveFile {
-    string fileName = 1;
+message StoreChunkLocation {
+    repeated StorageNodeInfo snInfo=1;
+}
+
+message StoreChunkesponse{
+	bool status=1;
 }
 
 message HeartBeat {
@@ -17,10 +21,43 @@ message HeartBeat {
     int32 numOfRetrievelRequest=3;
 }
 
+message List{
+
+
+}
+
+message ListResponse{
+	repeated StorageNodeInfo snInfo=1;
+}
+
+message RetrieveFile {
+    string fileName = 1;
+}
+
+message RetrieveFileResponse{
+	  StorageNodeInfo snInfoOfChunkZero=1;
+}
+
+message StorageNodeInfo{
+	int32 snId = 1;
+	string snIp =2;
+    int32 snPort=3;
+	int32 totalFreeSpaceInBytes=4;
+    int32 numOfStorageMessage=5;
+    int32 numOfRetrievelRequest=6;
+}
+
 message StorageMessageWrapper {
     oneof msg {
         StoreChunk storeChunkMsg = 1;
         RetrieveFile retrieveFileMsg = 2;
         HeartBeat heartBeatMsg = 3;
+        List list = 4;
+        ListResponse listResponse = 5;
+        StoreChunkLocation storeChunkLocation=6;
+        StoreChunkesponse storeChunkResponse=7;
+        RetrieveFile retrieveFile=8;
+        RetrieveFileResponse retrieveFileResponse=9;
+        
     }
 }
