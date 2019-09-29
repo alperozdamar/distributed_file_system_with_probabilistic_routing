@@ -8,21 +8,16 @@ import java.util.Properties;
  * Singleton Configuration Manager for Project1.
  * 
  */
-public class ConfigurationManager {
+public class ConfigurationManagerController {
 
-    private static final String         PROJECT_1_CLIENT_CONFIG_FILE = "config" + File.separator
-            + "project1_client.properties";
+    public static final String                    PROJECT_1_CONTROLLER_CONFIG_FILE = "config"
+            + File.separator + "project1_controller.properties";
+    private static ConfigurationManagerController instance;
+    private final static Object                   classLock                        = new Object();
+    private String                                controllerIp                     = "";
+    private int                                   controllerPort                   = 9090;
 
-    private static ConfigurationManager instance;
-    private final static Object         classLock                    = new Object();
-
-    private String                      controllerIp                 = "";
-
-    private int                         controllerPort               = 9090;
-
-    private long                        chunkSizeInBytes;
-
-    private ConfigurationManager() {
+    private ConfigurationManagerController() {
         readClientConfigFile();
     }
 
@@ -31,10 +26,10 @@ public class ConfigurationManager {
      *  
      * @return
      */
-    public static ConfigurationManager getInstance() {
+    public static ConfigurationManagerController getInstance() {
         synchronized (classLock) {
             if (instance == null) {
-                instance = new ConfigurationManager();
+                instance = new ConfigurationManagerController();
             }
             return instance;
         }
@@ -44,7 +39,7 @@ public class ConfigurationManager {
 
         Properties props = new Properties();
         try {
-            props.load(new FileInputStream(PROJECT_1_CLIENT_CONFIG_FILE));
+            props.load(new FileInputStream(PROJECT_1_CONTROLLER_CONFIG_FILE));
 
             controllerIp = props.getProperty("controllerIp");
             if (controllerIp == null) {
@@ -62,27 +57,12 @@ public class ConfigurationManager {
                 e.printStackTrace();
             }
 
-            try {
-                String chunkSizeInBytesString = props.getProperty("chunkSizeInBytes").trim();
-                chunkSizeInBytes = (chunkSizeInBytesString == null) ? 1024
-                        : Long.parseLong(chunkSizeInBytesString);
-            } catch (Exception e) {
-                chunkSizeInBytes = 1024;
-                e.printStackTrace();
-            }
-
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
-                    + PROJECT_1_CLIENT_CONFIG_FILE);
+                    + PROJECT_1_CONTROLLER_CONFIG_FILE);
             // e.printStackTrace(); //professor doesn't want stackTrace.
             e.getMessage();
         }
-    }
-
-    @Override
-    public String toString() {
-        return "ConfigurationManager [controllerIp=" + controllerIp + ", controllerPort="
-                + controllerPort + ", chunkSizeInBytes=" + chunkSizeInBytes + "]";
     }
 
     public String getControllerIp() {
@@ -101,12 +81,10 @@ public class ConfigurationManager {
         this.controllerPort = controllerPort;
     }
 
-    public long getChunkSizeInBytes() {
-        return chunkSizeInBytes;
-    }
-
-    public void setChunkSizeInBytes(long chunkSizeInBytes) {
-        this.chunkSizeInBytes = chunkSizeInBytes;
+    @Override
+    public String toString() {
+        return "ConfigurationManagerController [controllerIp=" + controllerIp + ", controllerPort="
+                + controllerPort + "]";
     }
 
 }

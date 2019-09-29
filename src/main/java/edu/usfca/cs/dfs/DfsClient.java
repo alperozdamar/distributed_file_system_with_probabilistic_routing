@@ -2,20 +2,27 @@ package edu.usfca.cs.dfs;
 
 import java.io.IOException;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import edu.usfca.cs.dfs.config.ConfigurationManager;
+import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
 import edu.usfca.cs.dfs.config.Constants;
 
 public class DfsClient {
+
+    /**
+     * Every Client request will be sent by a seperate Thread.
+     */
+    private static ExecutorService threadPoolForClientRequests = Executors.newFixedThreadPool(30);
 
     public DfsClient() {
     }
 
     public static void main(String[] args) throws IOException {
 
-        ConfigurationManager.getInstance();
+        ConfigurationManagerClient.getInstance();
         System.out.println("Client is started with these parameters: "
-                + ConfigurationManager.getInstance().toString());
+                + ConfigurationManagerClient.getInstance().toString());
 
         while (true) {
             // create a scanner so we can read the command-line input
@@ -29,8 +36,8 @@ public class DfsClient {
 
             if (command.equalsIgnoreCase(Constants.CONNECT)) {
                 System.out.println("Client will be connected to Controller<"
-                        + ConfigurationManager.getInstance().getControllerIp() + ":"
-                        + ConfigurationManager.getInstance().getControllerPort() + ">");
+                        + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
+                        + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
 
                 /**
                  * TODO:
