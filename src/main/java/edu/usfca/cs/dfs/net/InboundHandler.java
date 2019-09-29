@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.protobuf.ByteString;
+
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
 import io.netty.channel.ChannelHandler;
@@ -38,12 +40,21 @@ public class InboundHandler
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-
+        System.out.println("Received sth!");
         if (msg.hasStoreChunkMsg()) {
             System.out.println("This is Store Chunk Message...");
 
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
             System.out.println("Storing file name: " + storeChunkMsg.getFileName());
+            
+            ByteString data = ByteString.copyFromUtf8("Hello World!");
+            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder()
+                    .setFileName("my_file.txt").setChunkId(3).setData(data).build();
+
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
+                    .setStoreChunkMsg(responseMsg).build();
+            System.out.println("Send back message");
+            ctx.write(msgWrapper);
         } else if (msg.hasHeartBeatMsg()) {
 
             /**
@@ -76,6 +87,12 @@ public class InboundHandler
 
         }
 
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) {
+        System.out.println("Flush ctx");
+        ctx.flush();
     }
 
     @Override

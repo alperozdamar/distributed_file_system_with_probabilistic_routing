@@ -20,40 +20,41 @@ public class Client {
 
     }
 
-    public static void main(String[] args)
-    throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         MessagePipeline pipeline = new MessagePipeline();
+        try {
+            Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                    .option(ChannelOption.TCP_NODELAY, true).handler(pipeline);
 
-        Bootstrap bootstrap = new Bootstrap()
-            .group(workerGroup)
-            .channel(NioSocketChannel.class)
-            .option(ChannelOption.SO_KEEPALIVE, true)
-            .handler(pipeline);
+            ChannelFuture cf = bootstrap.connect("localhost", 7777);
+            cf.syncUninterruptibly();
 
-        ChannelFuture cf = bootstrap.connect("localhost", 7777);
-        cf.syncUninterruptibly();
+            ByteString data = ByteString.copyFromUtf8("Hello World!");
+            StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
+                    .setFileName("my_file.txt").setChunkId(3).setData(data).build();
 
-        ByteString data = ByteString.copyFromUtf8("Hello World!");
-        StorageMessages.StoreChunk storeChunkMsg
-            = StorageMessages.StoreChunk.newBuilder()
-                .setFileName("my_file.txt")
-                .setChunkId(3)
-                .setData(data)
-                .build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
+                    .setStoreChunkMsg(storeChunkMsg).build();
 
-        StorageMessages.StorageMessageWrapper msgWrapper =
-            StorageMessages.StorageMessageWrapper.newBuilder()
-                .setStoreChunkMsg(storeChunkMsg)
-                .build();
+            Channel chan = cf.channel();
+            // ChannelFuture write = chan.write(msgWrapper);
 
-        Channel chan = cf.channel();
-        ChannelFuture write = chan.write(msgWrapper);
-        chan.flush();
-        write.syncUninterruptibly();
+            chan.writeAndFlush(msgWrapper);
+            chan.closeFuture().sync();
 
-        /* Don't quit until we've disconnected: */
-        System.out.println("Shutting down");
-        workerGroup.shutdownGracefully();
+            // write.syncUninterruptibly();
+
+            // try {
+            //     write.channel().closeFuture().sync();
+            // } catch (InterruptedException e) {
+            //     // TODO Auto-generated catch block
+            //     e.printStackTrace();
+            // }
+        } finally {
+            /* Don't quit until we've disconnected: */
+            System.out.println("Shutting down");
+            workerGroup.shutdownGracefully();
+        }
     }
 }
