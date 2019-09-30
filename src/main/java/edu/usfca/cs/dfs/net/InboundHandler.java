@@ -8,6 +8,9 @@ import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -46,15 +49,18 @@ public class InboundHandler
 
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
             System.out.println("Storing file name: " + storeChunkMsg.getFileName());
-            
-            ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder()
-                    .setFileName("my_file.txt").setChunkId(3).setData(data).build();
 
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
-                    .setStoreChunkMsg(responseMsg).build();
+            ByteString data = ByteString.copyFromUtf8("Hello World!");
+            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
+
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
             System.out.println("Send back message");
-            ctx.write(msgWrapper);
+
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
+
         } else if (msg.hasHeartBeatMsg()) {
 
             /**
