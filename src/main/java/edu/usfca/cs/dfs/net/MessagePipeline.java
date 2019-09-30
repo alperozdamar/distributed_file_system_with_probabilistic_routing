@@ -1,7 +1,7 @@
 package edu.usfca.cs.dfs.net;
 
 import edu.usfca.cs.dfs.StorageMessages;
-
+import edu.usfca.cs.dfs.config.Constants;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -14,8 +14,17 @@ public class MessagePipeline extends ChannelInitializer<SocketChannel> {
 
     private InboundHandler inboundHandler;
 
-    public MessagePipeline() {
-        inboundHandler = new InboundHandler();
+    public MessagePipeline(String mode) {
+
+        if (mode.equalsIgnoreCase(Constants.CLIENT)) {
+            inboundHandler = new ClientInboundHandler();
+        } else if (mode.equalsIgnoreCase(Constants.STORAGENODE)) {
+            inboundHandler = new ClientInboundHandler();
+        } else if (mode.equalsIgnoreCase(Constants.CONTROLLER)) {
+            inboundHandler = new ControllerInboundHandler();
+        } else {
+            inboundHandler = new InboundHandler();
+        }
     }
 
     @Override
@@ -29,11 +38,8 @@ public class MessagePipeline extends ChannelInitializer<SocketChannel> {
          * chunk size of 100 MB, we'll use 128 MB here. We use a 4-byte length
          * field to give us 32 bits' worth of frame length, which should be
          * plenty for the future... */
-        pipeline.addLast(
-                new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
-        pipeline.addLast(
-                new ProtobufDecoder(
-                    StorageMessages.StorageMessageWrapper.getDefaultInstance()));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
+        pipeline.addLast(new ProtobufDecoder(StorageMessages.StorageMessageWrapper.getDefaultInstance()));
         pipeline.addLast(inboundHandler);
 
         /* Outbound: */

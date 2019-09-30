@@ -41,13 +41,6 @@ public class ConfigurationManagerController {
         try {
             props.load(new FileInputStream(PROJECT_1_CONTROLLER_CONFIG_FILE));
 
-            controllerIp = props.getProperty("controllerIp");
-            if (controllerIp == null) {
-                System.out.println("controllerIp property is Null! Please Check configuration file.");
-            } else {
-                controllerIp = controllerIp.trim();
-            }
-
             try {
                 String controllerPortString = props.getProperty("controllerPort").trim();
                 controllerPort = (controllerPortString == null) ? 8080

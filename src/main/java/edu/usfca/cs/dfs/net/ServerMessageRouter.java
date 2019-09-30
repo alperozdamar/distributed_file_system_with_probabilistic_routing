@@ -13,30 +13,28 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class ServerMessageRouter {
 
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
-    private ServerBootstrap bootstrap;
-    private MessagePipeline pipeline;
+    private EventLoopGroup              bossGroup;
+    private EventLoopGroup              workerGroup;
+    private ServerBootstrap             bootstrap;
+    private MessagePipeline             pipeline;
 
     private Map<Integer, ChannelFuture> ports = new HashMap<>();
 
-    public ServerMessageRouter() {
+    public ServerMessageRouter(String mode) {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup(4);
 
-        pipeline = new MessagePipeline();
+        pipeline = new MessagePipeline(mode);
 
-        bootstrap = new ServerBootstrap()
-            .group(bossGroup, workerGroup)
-            .channel(NioServerSocketChannel.class)
-            .childHandler(pipeline)
-            .option(ChannelOption.SO_BACKLOG, 128)
-            .childOption(ChannelOption.SO_KEEPALIVE, true);
+        bootstrap = new ServerBootstrap().group(bossGroup,
+                                                workerGroup).channel(NioServerSocketChannel.class).childHandler(pipeline).option(ChannelOption.SO_BACKLOG,
+                                                                                                                                 128).childOption(ChannelOption.SO_KEEPALIVE,
+                                                                                                                                                  true);
     }
 
-    public ServerMessageRouter(int readBufferSize, int maxWriteQueueSize) {
+    public ServerMessageRouter(int readBufferSize, int maxWriteQueueSize, String mode) {
         /* Ignoring parameters ... */
-        this();
+        this(mode);
     }
 
     /**

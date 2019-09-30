@@ -23,7 +23,6 @@ message HeartBeat {
 
 message List{
 
-
 }
 
 message ListResponse{

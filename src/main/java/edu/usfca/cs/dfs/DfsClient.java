@@ -40,7 +40,7 @@ public class DfsClient {
          * Else thrown an error
          */
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        MessagePipeline pipeline = new MessagePipeline();
+        MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
 
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE,
                                                                                                         true).handler(pipeline);

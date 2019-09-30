@@ -13,13 +13,11 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 
 @ChannelHandler.Sharable
-public class InboundHandler
-        extends SimpleChannelInboundHandler<StorageMessages.StorageMessageWrapper> {
+public class ClientInboundHandler extends InboundHandler {
 
-    public InboundHandler() {
+    public ClientInboundHandler() {
     }
 
     @Override
@@ -43,61 +41,48 @@ public class InboundHandler
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("Received sth!");
+        System.out.println("[Client]Received sth!");
         if (msg.hasStoreChunkMsg()) {
-            System.out.println("This is Store Chunk Message...");
-
+            System.out.println("[Client]This is Store Chunk Message...");
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
-            System.out.println("Storing file name: " + storeChunkMsg.getFileName());
-
+            System.out.println("[Client]Storing file name: " + storeChunkMsg.getFileName());
             ByteString data = ByteString.copyFromUtf8("Hello World!");
             StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
-
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
-            System.out.println("Send back message");
-
+            System.out.println("[Client]Send back message");
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
-
         } else if (msg.hasHeartBeatMsg()) {
-
             /**
              * I am Controller.
              */
 
         } else if (msg.hasRetrieveFileMsg()) {
-
             /**
              * I am Controller
              */
 
         } else if (msg.hasStoreChunkResponse()) {
-
             /**
              * I am Controller
              */
 
         } else if (msg.hasListResponse()) {
-
             List<StorageMessages.StorageNodeInfo> snInfoList = msg.getListResponse().getSnInfoList();
-
             for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
                 StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
-
-                System.out.println("Sn.id:" + storageNodeInfo.getSnId());
-                System.out.println("Sn.ip:" + storageNodeInfo.getSnIp());
-
+                System.out.println("[Client]Sn.id:" + storageNodeInfo.getSnId());
+                System.out.println("[Client]Sn.ip:" + storageNodeInfo.getSnIp());
             }
-
         }
 
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        System.out.println("Flush ctx");
+        System.out.println("[Client]Flush ctx");
         ctx.flush();
     }
 

@@ -13,27 +13,25 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 
 @ChannelHandler.Sharable
-public class InboundHandler
-        extends SimpleChannelInboundHandler<StorageMessages.StorageMessageWrapper> {
+public class StorageNodeInboundHandler extends InboundHandler {
 
-    public InboundHandler() {
+    public StorageNodeInboundHandler() {
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         /* A connection has been established */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("Connection established: " + addr);
+        System.out.println("[SN]Connection established: " + addr);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("Connection lost: " + addr);
+        System.out.println("[SN]Connection lost: " + addr);
     }
 
     @Override
@@ -43,18 +41,18 @@ public class InboundHandler
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("Received sth!");
+        System.out.println("[SN]Received sth!");
         if (msg.hasStoreChunkMsg()) {
-            System.out.println("This is Store Chunk Message...");
+            System.out.println("[SN]This is Store Chunk Message...");
 
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
-            System.out.println("Storing file name: " + storeChunkMsg.getFileName());
+            System.out.println("[SN]Storing file name: " + storeChunkMsg.getFileName());
 
             ByteString data = ByteString.copyFromUtf8("Hello World!");
             StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
 
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
-            System.out.println("Send back message");
+            System.out.println("[SN]Send back message");
 
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
@@ -86,8 +84,8 @@ public class InboundHandler
             for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
                 StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
 
-                System.out.println("Sn.id:" + storageNodeInfo.getSnId());
-                System.out.println("Sn.ip:" + storageNodeInfo.getSnIp());
+                System.out.println("[SN]Sn.id:" + storageNodeInfo.getSnId());
+                System.out.println("[SN]Sn.ip:" + storageNodeInfo.getSnIp());
 
             }
 
@@ -97,7 +95,7 @@ public class InboundHandler
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        System.out.println("Flush ctx");
+        System.out.println("[SN]Flush ctx");
         ctx.flush();
     }
 
