@@ -67,6 +67,11 @@ public class DfsClient {
             } else if (command.equalsIgnoreCase(Constants.RETRIEVE)) {
 
             } else if (command.equalsIgnoreCase(Constants.STORE)) {
+
+                //  prompt for command.
+                System.out.print("Enter your fileName and folder:");
+                command = scanner.next();
+
                 ByteString data = ByteString.copyFromUtf8("Hello World!");
                 StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(88).setData(data).build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
