@@ -1,4 +1,4 @@
-package cs601.project4.db;
+package edu.usfca.cs.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cs601.project4.db.model.StorageNode;
+import edu.usfca.cs.db.model.StorageNode;
 
 /**
  * SqlManager is for querying,inserting or updating sql tables. Main class for all SQL operations.
@@ -191,6 +191,52 @@ public class SqlManager {
             insertStatement.setInt(1, snId);
             insertStatement.setInt(2, replicaId);
             insertStatement.setInt(3, backupId);
+            insertStatement.execute();
+            result = true;
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (insertStatement != null)
+                    insertStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public synchronized boolean insertSN(int snId, String snIp, int snPort, long totalFreeSpace,
+                                         long totalStorageReq, long totalRetrievelReq) {
+        boolean result = false;
+        Connection connection = null;
+        if (logger.isDebugEnabled()) {
+            logger.debug("snId:" + snId);
+            logger.debug("snIp:" + snIp);
+            logger.debug("snPort:" + snPort);
+            logger.debug("totalFreeSpace:" + totalFreeSpace);
+            logger.debug("totalStorageReq:" + totalStorageReq);
+            logger.debug("totalRetrievelReq:" + totalRetrievelReq);
+        }
+        String sql = SqlConstants.INSERT_SN;
+        PreparedStatement insertStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            insertStatement = connection.prepareStatement(sql);
+            insertStatement.setInt(1, snId);
+            insertStatement.setString(2, snIp);
+            insertStatement.setInt(3, snPort);
+            insertStatement.setLong(4, totalFreeSpace);
+            insertStatement.setLong(5, totalStorageReq);
+            insertStatement.setLong(6, totalRetrievelReq);
             insertStatement.execute();
             result = true;
         } catch (SQLException e) {

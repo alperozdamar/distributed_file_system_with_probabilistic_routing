@@ -1,4 +1,4 @@
-package cs601.project4.db;
+package edu.usfca.cs.db;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,7 +9,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cs601.project4.db.model.StorageNode;
+import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 
 /**

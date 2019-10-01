@@ -1,4 +1,4 @@
-package cs601.project4.db.model;
+package edu.usfca.cs.db.model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
