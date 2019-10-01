@@ -16,6 +16,9 @@ public class ConfigurationManagerController {
     private final static Object                   classLock                        = new Object();
     private String                                controllerIp                     = "";
     private int                                   controllerPort                   = 9090;
+    private int                                   filterLength;
+    private int                                   hashTime;
+    private long                                  seed;
 
     private ConfigurationManagerController() {
         readClientConfigFile();
@@ -50,6 +53,28 @@ public class ConfigurationManagerController {
                 e.printStackTrace();
             }
 
+            try {
+                String filterLengthString = props.getProperty("BLOOM_FILTER_LENGTH").trim();
+                filterLength = (filterLengthString == null) ? 8080
+                        : Integer.parseInt(filterLengthString);
+            } catch (Exception e) {
+                filterLength = 8800;
+                e.printStackTrace();
+            }
+            try {
+                String hashTimeString = props.getProperty("HASH_TIME").trim();
+                hashTime = (hashTimeString == null) ? 8080 : Integer.parseInt(hashTimeString);
+            } catch (Exception e) {
+                hashTime = 8800;
+                e.printStackTrace();
+            }
+            try {
+                String seedString = props.getProperty("HASH_SEED").trim();
+                seed = (seedString == null) ? 8080 : Integer.parseInt(seedString);
+            } catch (Exception e) {
+                seed = 8800;
+                e.printStackTrace();
+            }
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_CONTROLLER_CONFIG_FILE);
@@ -78,6 +103,30 @@ public class ConfigurationManagerController {
     public String toString() {
         return "ConfigurationManagerController [controllerIp=" + controllerIp + ", controllerPort="
                 + controllerPort + "]";
+    }
+
+    public int getFilterLength() {
+        return filterLength;
+    }
+
+    public void setFilterLength(int filterLength) {
+        this.filterLength = filterLength;
+    }
+
+    public int getHashTime() {
+        return hashTime;
+    }
+
+    public void setHashTime(int hashTime) {
+        this.hashTime = hashTime;
+    }
+
+    public long getSeed() {
+        return seed;
+    }
+
+    public void setSeed(long seed) {
+        this.seed = seed;
     }
 
 }

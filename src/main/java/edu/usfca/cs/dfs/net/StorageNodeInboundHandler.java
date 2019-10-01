@@ -1,13 +1,10 @@
 package edu.usfca.cs.dfs.net;
 
 import java.net.InetSocketAddress;
-import java.util.Iterator;
-import java.util.List;
 
 import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.dfs.StorageMessages;
-import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -59,35 +56,23 @@ public class StorageNodeInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
 
-        } else if (msg.hasHeartBeatMsg()) {
+        } else if (msg.hasHeartBeatResponse()) {
+            StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
+            System.out.println("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
+                    + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
 
-            /**
-             * I am Controller.
-             */
+            if (heartBeatResponse.getStatus()) {
+                System.out.println("[SN] Perfect!");
+            } else {
+                /**
+                 * TODO: 
+                 * PROBLEM
+                 */
+            }
 
         } else if (msg.hasRetrieveFileMsg()) {
 
-            /**
-             * I am Controller
-             */
-
         } else if (msg.hasStoreChunkResponse()) {
-
-            /**
-             * I am Controller
-             */
-
-        } else if (msg.hasListResponse()) {
-
-            List<StorageMessages.StorageNodeInfo> snInfoList = msg.getListResponse().getSnInfoList();
-
-            for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
-                StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
-
-                System.out.println("[SN]Sn.id:" + storageNodeInfo.getSnId());
-                System.out.println("[SN]Sn.ip:" + storageNodeInfo.getSnIp());
-
-            }
 
         }
 

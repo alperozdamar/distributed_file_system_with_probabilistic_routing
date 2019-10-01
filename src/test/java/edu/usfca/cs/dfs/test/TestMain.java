@@ -1,5 +1,7 @@
 package edu.usfca.cs.dfs.test;
 
+import java.io.File;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,16 +12,29 @@ import edu.usfca.cs.db.model.StorageNode;
 public class TestMain {
 
     public static void main(String[] args) {
-        long fileSize = 118;
-        long chunkSize = 2048;
-        System.out.format("The size of the file: %d bytes", fileSize);
-        System.out.format("\nThe size of chunks: %d bytes", chunkSize);
-        long numOfChunks = (long) Math.ceil((float) fileSize / (float) chunkSize);
-        System.out.format("\nNumber Of Chunks is %d for file size:%d bytes", numOfChunks, fileSize);
-        long lastChunkByteSize = fileSize % chunkSize;
-        System.out.format("\nlastChunkByteSize is %d for file size:%d bytes",
-                          lastChunkByteSize,
-                          fileSize);
+        //        long fileSize = 118;
+        //        long chunkSize = 2048;
+        //        System.out.format("The size of the file: %d bytes", fileSize);
+        //        System.out.format("\nThe size of chunks: %d bytes", chunkSize);
+        //        long numOfChunks = (long) Math.ceil((float) fileSize / (float) chunkSize);
+        //        System.out.format("\nNumber Of Chunks is %d for file size:%d bytes", numOfChunks, fileSize);
+        //        long lastChunkByteSize = fileSize % chunkSize;
+        //        System.out.format("\nlastChunkByteSize is %d for file size:%d bytes",
+        //                          lastChunkByteSize,
+        //                          fileSize);
+
+        long memoryFreeSpace = new File("/").getFreeSpace();
+
+        System.out.println("Disk Free Space:" + memoryFreeSpace);
+    }
+
+    @Test
+    public void testGetFreeSpaceInFileSystem() {
+
+        long freeSpace = new File("/").getFreeSpace();
+
+        System.out.println("Disk Free Space:" + freeSpace);
+
     }
 
     @Test

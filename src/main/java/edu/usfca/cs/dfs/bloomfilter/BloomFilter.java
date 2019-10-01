@@ -6,6 +6,12 @@ import com.sangupta.murmur.Murmur3;
 
 public class BloomFilter {
 
+    private int    filterLength;
+    private int    hashTime;
+    private long   seed;
+    private long   numberOfItems = 0;
+    private BitSet bloomFilter;
+
     public int getFilterLength() {
         return filterLength;
     }
@@ -45,12 +51,6 @@ public class BloomFilter {
     public void setBloomFilter(BitSet bloomFilter) {
         this.bloomFilter = bloomFilter;
     }
-
-    private int filterLength;
-    private int hashTime;
-    private long seed;
-    private long numberOfItems = 0;
-    private BitSet bloomFilter;
 
     /**
      * Create a BloomFilter with required parameters
@@ -108,7 +108,8 @@ public class BloomFilter {
 
     public float falsePositive() {
         //p = pow(1 - exp(-hashTime / (filterLength / numberOfItems)), hashTime)
-        double exp = Math.exp((double) - this.hashTime / (double) (this.filterLength / this.numberOfItems));
+        double exp = Math.exp((double) -this.hashTime
+                / (double) (this.filterLength / this.numberOfItems));
 
         double p = Math.pow(1 - exp, this.hashTime);
         return (float) p;

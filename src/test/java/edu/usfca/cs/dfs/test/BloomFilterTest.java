@@ -1,21 +1,21 @@
 package edu.usfca.cs.dfs.test;
+
 import java.util.Random;
 
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 import org.junit.Assert;
 import org.junit.Test;
 
 import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
+import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 
 public class BloomFilterTest {
 
     @Test
     public void testPutsAndGets() {
         System.out.println("******************* TEST #1 **************B*");
-        BloomFilter bf = new BloomFilter(
-                ConfigurationManagerController.getInstance().getBloomFilterLength(),
-                ConfigurationManagerController.getInstance().getHashTime(),
-                ConfigurationManagerController.getInstance().getHashSeed());
+        BloomFilter bf = new BloomFilter(ConfigurationManagerController.getInstance().getFilterLength(),
+                                         ConfigurationManagerController.getInstance().getHashTime(),
+                                         ConfigurationManagerController.getInstance().getSeed());
         String randomString = generateRandomString();
         for (int i = 0; i < 100; i++) {
             bf.put(randomString.getBytes());
@@ -51,10 +51,9 @@ public class BloomFilterTest {
 
     @Test
     public void testFalsePositiveFunction() {
-        BloomFilter bf = new BloomFilter(
-                ConfigurationManagerController.getInstance().getBloomFilterLength(),
-                ConfigurationManagerController.getInstance().getHashTime(),
-                ConfigurationManagerController.getInstance().getHashSeed());
+        BloomFilter bf = new BloomFilter(ConfigurationManagerController.getInstance().getFilterLength(),
+                                         ConfigurationManagerController.getInstance().getHashTime(),
+                                         ConfigurationManagerController.getInstance().getSeed());
         System.out.println("******************* TEST #2 ****************");
         String randomString = generateRandomString();
         for (int i = 0; i < 100; i++) {

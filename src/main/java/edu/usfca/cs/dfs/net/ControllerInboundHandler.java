@@ -42,6 +42,10 @@ public class ControllerInboundHandler extends InboundHandler {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         System.out.println("[Controller]Received sth!");
+
+        /***
+         * STORE
+         */
         if (msg.hasStoreChunkMsg()) {
             System.out.println("[Controller]This is Store Chunk Message...");
 
@@ -51,7 +55,6 @@ public class ControllerInboundHandler extends InboundHandler {
             ByteString data = ByteString.copyFromUtf8("Hello World!");
 
             StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse.newBuilder().setStatus(true).setChunkId(storeChunkMsg.getChunkId()).build();
-
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkResponse(responseMsg).build();
             System.out.println("[Controller]Send responseMsg back to Client for chunkId:"
                     + storeChunkMsg.getChunkId());
@@ -61,11 +64,24 @@ public class ControllerInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
 
-        } else if (msg.hasHeartBeatMsg()) {
+        }
+        /***
+         * HEART-BEAT
+         *************/
+        else if (msg.hasHeartBeatMsg()) {
+            StorageMessages.HeartBeat heartBeat = msg.getHeartBeatMsg();
+            System.out.println("[Controller] HEARTBEAT Msg came from:" + heartBeat.getSnId());
 
-            /**
-             * I am Controller.
-             */
+            StorageMessages.HeartBeatResponse response = StorageMessages.HeartBeatResponse.newBuilder().setStatus(true).setSnId(heartBeat.getSnId()).build();
+
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setHeartBeatResponse(response).build();
+            System.out.println("[Controller]Sending HEARTBEAT RESPONSE back to SN-Id:"
+                    + response.getSnId());
+
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
 
         } else if (msg.hasRetrieveFileMsg()) {
 

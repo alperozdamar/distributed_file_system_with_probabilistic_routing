@@ -19,7 +19,7 @@ public class MessagePipeline extends ChannelInitializer<SocketChannel> {
         if (mode.equalsIgnoreCase(Constants.CLIENT)) {
             inboundHandler = new ClientInboundHandler();
         } else if (mode.equalsIgnoreCase(Constants.STORAGENODE)) {
-            inboundHandler = new ClientInboundHandler();
+            inboundHandler = new StorageNodeInboundHandler();
         } else if (mode.equalsIgnoreCase(Constants.CONTROLLER)) {
             inboundHandler = new ControllerInboundHandler();
         } else {

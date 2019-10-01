@@ -17,9 +17,15 @@ message StoreChunkResponse{
 }
 
 message HeartBeat {
-    int32 totalFreeSpaceInBytes=1;
-    int32 numOfStorageMessage=2;
-    int32 numOfRetrievelRequest=3;
+	int32 snId = 1;
+    int64 totalFreeSpaceInBytes=2;
+    int32 numOfStorageMessage=3;
+    int32 numOfRetrievelRequest=4;
+}
+
+message HeartBeatResponse {
+	int32 snId = 1;
+	bool status=2;
 }
 
 message List{
@@ -42,7 +48,7 @@ message StorageNodeInfo{
 	int32 snId = 1;
 	string snIp =2;
     int32 snPort=3;
-	int32 totalFreeSpaceInBytes=4;
+	int64 totalFreeSpaceInBytes=4;
     int32 numOfStorageMessage=5;
     int32 numOfRetrievelRequest=6;
 }
@@ -52,12 +58,13 @@ message StorageMessageWrapper {
         StoreChunk storeChunkMsg = 1;
         RetrieveFile retrieveFileMsg = 2;
         HeartBeat heartBeatMsg = 3;
-        List list = 4;
-        ListResponse listResponse = 5;
-        StoreChunkLocation storeChunkLocation=6;
-        StoreChunkResponse storeChunkResponse=7;
-        RetrieveFile retrieveFile=8;
-        RetrieveFileResponse retrieveFileResponse=9;
+        HeartBeatResponse HeartBeatResponse = 4;
+        List list = 5;
+        ListResponse listResponse = 6;
+        StoreChunkLocation storeChunkLocation=7;
+        StoreChunkResponse storeChunkResponse=8;
+        RetrieveFile retrieveFile=9;
+        RetrieveFileResponse retrieveFileResponse=10;
         
     }
 }

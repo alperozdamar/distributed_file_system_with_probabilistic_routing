@@ -54,10 +54,6 @@ public class ClientInboundHandler extends InboundHandler {
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
-        } else if (msg.hasHeartBeatMsg()) {
-
-        } else if (msg.hasRetrieveFileMsg()) {
-
         } else if (msg.hasStoreChunkResponse()) {
 
             /**

@@ -39,7 +39,7 @@ public class SqlManager {
      * @return
      */
     public StorageNode getSNReplication(int snId) {
-        StorageNode storageNode = new StorageNode();
+        StorageNode storageNode = null;
         ArrayList<Integer> replicateSnIdList = null;
         ArrayList<Integer> backupIdSnList = null;
         Connection connection = null;
