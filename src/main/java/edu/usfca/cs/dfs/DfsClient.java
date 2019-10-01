@@ -1,5 +1,6 @@
 package edu.usfca.cs.dfs;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -67,13 +68,32 @@ public class DfsClient {
             } else if (command.equalsIgnoreCase(Constants.RETRIEVE)) {
 
             } else if (command.equalsIgnoreCase(Constants.STORE)) {
-
                 //  prompt for command.
                 System.out.print("Enter your fileName and folder:");
-                command = scanner.next();
+                String fileInfo = scanner.next().trim();
+                /** 
+                 * TODO: 
+                 * Find the specified file and divide into chunks...
+                 *  
+                 */
+                File file = new File(fileInfo);
+                long chunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+                long fileSize = file.length();
+                System.out.format("The size of the file: %d bytes", fileSize);
+                System.out.format("\nThe size of chunks: %d bytes", chunkSize);
+                long numOfChunks = (long) Math.ceil((float) fileSize / (float) chunkSize);
+                System.out.format("\nNumber Of Chunks is %d for file size:%d bytes",
+                                  numOfChunks,
+                                  fileSize);
+                long lastChunkByteSize = fileSize % chunkSize;
+                System.out.format("\nlastChunkByteSize is %d for file size:%d bytes",
+                                  lastChunkByteSize,
+                                  fileSize);
+
+                System.out.println("FileName:" + file.getName());
 
                 ByteString data = ByteString.copyFromUtf8("Hello World!");
-                StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(88).setData(data).build();
+                StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName(file.getName()).setChunkId(88).setData(data).build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
                 Channel chan = cf.channel();
                 ChannelFuture write = chan.write(msgWrapper);
