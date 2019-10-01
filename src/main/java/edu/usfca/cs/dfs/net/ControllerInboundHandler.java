@@ -49,10 +49,12 @@ public class ControllerInboundHandler extends InboundHandler {
             System.out.println("[Controller]Storing file name: " + storeChunkMsg.getFileName());
 
             ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
 
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
-            System.out.println("[Controller]Send back message");
+            StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse.newBuilder().setStatus(true).setChunkId(storeChunkMsg.getChunkId()).build();
+
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkResponse(responseMsg).build();
+            System.out.println("[Controller]Send responseMsg back to Client for chunkId:"
+                    + storeChunkMsg.getChunkId());
 
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);

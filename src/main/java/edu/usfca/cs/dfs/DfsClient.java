@@ -29,7 +29,6 @@ public class DfsClient {
     }
 
     public static void main(String[] args) throws IOException {
-
         ConfigurationManagerClient.getInstance();
         System.out.println("Client is started with these parameters: "
                 + ConfigurationManagerClient.getInstance().toString());
@@ -68,15 +67,13 @@ public class DfsClient {
             } else if (command.equalsIgnoreCase(Constants.RETRIEVE)) {
 
             } else if (command.equalsIgnoreCase(Constants.STORE)) {
-
                 ByteString data = ByteString.copyFromUtf8("Hello World!");
-                StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
+                StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(88).setData(data).build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
                 Channel chan = cf.channel();
                 ChannelFuture write = chan.write(msgWrapper);
                 chan.flush();
                 write.syncUninterruptibly();
-
             } else if (command.equalsIgnoreCase(Constants.EXIT)) {
                 System.out.println("Client will be shutdown....");
                 System.exit(0);

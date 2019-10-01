@@ -11,8 +11,9 @@ message StoreChunkLocation {
     repeated StorageNodeInfo snInfo=1;
 }
 
-message StoreChunkesponse{
-	bool status=1;
+message StoreChunkResponse{
+	int32 chunkId = 1;
+	bool status=2;
 }
 
 message HeartBeat {
@@ -54,7 +55,7 @@ message StorageMessageWrapper {
         List list = 4;
         ListResponse listResponse = 5;
         StoreChunkLocation storeChunkLocation=6;
-        StoreChunkesponse storeChunkResponse=7;
+        StoreChunkResponse storeChunkResponse=7;
         RetrieveFile retrieveFile=8;
         RetrieveFileResponse retrieveFileResponse=9;
         
