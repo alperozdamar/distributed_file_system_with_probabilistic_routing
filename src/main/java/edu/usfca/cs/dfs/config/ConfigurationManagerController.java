@@ -6,27 +6,33 @@ import java.util.Properties;
 
 /**
  * Singleton Configuration Manager for Project1.
- * 
+ *
  */
 public class ConfigurationManagerController {
+
+    private final int defaultLength = 1000;
+    private final int defaultHashTime = 3;
+    private final int defaultHashSeed = 3;
+    private final int defaultControllerPort = 8080;
 
     public static final String                    PROJECT_1_CONTROLLER_CONFIG_FILE = "config"
             + File.separator + "project1_controller.properties";
     private static ConfigurationManagerController instance;
     private final static Object                   classLock                        = new Object();
     private String                                controllerIp                     = "";
-    private int                                   controllerPort                   = 9090;
-    private int                                   filterLength;
-    private int                                   hashTime;
-    private long                                  seed;
+    private int                                   controllerPort                   = defaultControllerPort;
+
+    private int bloomFilterLength = defaultLength;
+    private int hashTime = defaultHashTime;
+    private int hashSeed = defaultHashSeed;
 
     private ConfigurationManagerController() {
-        readClientConfigFile();
+        readControllerConfigFile();
     }
 
     /**
      * Singleton
-     *  
+     *
      * @return
      */
     public static ConfigurationManagerController getInstance() {
@@ -38,7 +44,7 @@ public class ConfigurationManagerController {
         }
     }
 
-    public void readClientConfigFile() {
+    public void readControllerConfigFile() {
 
         Properties props = new Properties();
         try {
@@ -46,35 +52,38 @@ public class ConfigurationManagerController {
 
             try {
                 String controllerPortString = props.getProperty("controllerPort").trim();
-                controllerPort = (controllerPortString == null) ? 8080
+                controllerPort = (controllerPortString == null) ? defaultControllerPort
                         : Integer.parseInt(controllerPortString);
             } catch (Exception e) {
-                controllerPort = 8800;
+                controllerPort = defaultControllerPort;
                 e.printStackTrace();
             }
 
             try {
-                String filterLengthString = props.getProperty("BLOOM_FILTER_LENGTH").trim();
-                filterLength = (filterLengthString == null) ? 8080
-                        : Integer.parseInt(filterLengthString);
+                String bloomFilterLengthString = props.getProperty("BLOOM_FILTER_LENGTH").trim();
+                this.bloomFilterLength = (bloomFilterLengthString == null) ? defaultLength
+                        : Integer.parseInt(bloomFilterLengthString);
             } catch (Exception e) {
-                filterLength = 8800;
+                this.bloomFilterLength = defaultLength;
                 e.printStackTrace();
             }
-            try {
+
+            try{
                 String hashTimeString = props.getProperty("HASH_TIME").trim();
-                hashTime = (hashTimeString == null) ? 8080 : Integer.parseInt(hashTimeString);
+                this.hashTime = (hashTimeString == null) ? defaultHashTime : Integer.parseInt(hashTimeString);
             } catch (Exception e) {
-                hashTime = 8800;
+                this.hashTime = defaultHashTime;
                 e.printStackTrace();
             }
-            try {
-                String seedString = props.getProperty("HASH_SEED").trim();
-                seed = (seedString == null) ? 8080 : Integer.parseInt(seedString);
-            } catch (Exception e) {
-                seed = 8800;
+
+            try{
+                String hashSeedString = props.getProperty("HASH_SEED").trim();
+                this.hashSeed = (hashSeedString == null) ? defaultHashSeed : Integer.parseInt(hashSeedString);
+            } catch (Exception e){
+                this.hashSeed = defaultHashSeed;
                 e.printStackTrace();
             }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_CONTROLLER_CONFIG_FILE);
@@ -99,18 +108,12 @@ public class ConfigurationManagerController {
         this.controllerPort = controllerPort;
     }
 
-    @Override
-    public String toString() {
-        return "ConfigurationManagerController [controllerIp=" + controllerIp + ", controllerPort="
-                + controllerPort + "]";
+    public int getBloomFilterLength() {
+        return bloomFilterLength;
     }
 
-    public int getFilterLength() {
-        return filterLength;
-    }
-
-    public void setFilterLength(int filterLength) {
-        this.filterLength = filterLength;
+    public void setBloomFilterLength(int bloomFilterLength) {
+        this.bloomFilterLength = bloomFilterLength;
     }
 
     public int getHashTime() {
@@ -121,12 +124,12 @@ public class ConfigurationManagerController {
         this.hashTime = hashTime;
     }
 
-    public long getSeed() {
-        return seed;
+    public int getHashSeed() {
+        return hashSeed;
     }
 
-    public void setSeed(long seed) {
-        this.seed = seed;
+    public void setHashSeed(int hashSeed) {
+        this.hashSeed = hashSeed;
     }
 
 }
