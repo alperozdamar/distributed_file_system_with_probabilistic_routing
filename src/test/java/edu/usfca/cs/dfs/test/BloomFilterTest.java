@@ -1,6 +1,7 @@
 package edu.usfca.cs.dfs.test;
 import java.util.Random;
 
+import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,19 +11,23 @@ public class BloomFilterTest {
 
     @Test
     public void testPutsAndGets() {
-        System.out.println("******************* TEST #1 ****************");
+        System.out.println("******************* TEST #1 **************B*");
+        BloomFilter bf = new BloomFilter(
+                ConfigurationManagerController.getInstance().getBloomFilterLength(),
+                ConfigurationManagerController.getInstance().getHashTime(),
+                ConfigurationManagerController.getInstance().getHashSeed());
         String randomString = generateRandomString();
         for (int i = 0; i < 100; i++) {
-            BloomFilter.put(randomString.getBytes());
+            bf.put(randomString.getBytes());
         }
-        BloomFilter.put("Hiep".getBytes());
-        BloomFilter.put("Nat".getBytes());
-        BloomFilter.put("Alper".getBytes());
-        BloomFilter.put("Ali".getBytes());
+        bf.put("Hiep".getBytes());
+        bf.put("Nat".getBytes());
+        bf.put("Alper".getBytes());
+        bf.put("Ali".getBytes());
 
         String searchText = "Alper";
 
-        boolean result = BloomFilter.get(searchText.getBytes());
+        boolean result = bf.get(searchText.getBytes());
 
         Assert.assertEquals(result, true);
 
@@ -33,7 +38,7 @@ public class BloomFilterTest {
         }
 
         searchText = "Hello!!!!!!";
-        result = BloomFilter.get(searchText.getBytes());
+        result = bf.get(searchText.getBytes());
         Assert.assertEquals(result, false);
         if (result) {
             System.out.println("MAY BE baby! for:" + searchText);
@@ -41,21 +46,24 @@ public class BloomFilterTest {
             System.out.println("No!!! for:" + searchText);
         }
 
-        System.out.println("False Positive:" + BloomFilter.falsePositive());
+        System.out.println("False Positive:" + bf.falsePositive());
     }
 
     @Test
     public void testFalsePositiveFunction() {
-        BloomFilter.numberOfItems = 0;
+        BloomFilter bf = new BloomFilter(
+                ConfigurationManagerController.getInstance().getBloomFilterLength(),
+                ConfigurationManagerController.getInstance().getHashTime(),
+                ConfigurationManagerController.getInstance().getHashSeed());
         System.out.println("******************* TEST #2 ****************");
         String randomString = generateRandomString();
         for (int i = 0; i < 100; i++) {
-            BloomFilter.put(randomString.getBytes());
+            bf.put(randomString.getBytes());
         }
-        System.out.println("Number of items in the filter(n):" + BloomFilter.filterLength);
-        System.out.println("Number of Hash Time(k):" + BloomFilter.hashTime);
-        System.out.println("Number of bits in the filter(m):" + BloomFilter.numberOfItems);
-        System.out.println("False Positive:" + BloomFilter.falsePositive());
+        System.out.println("Number of items in the filter(n):" + bf.getFilterLength());
+        System.out.println("Number of Hash Time(k):" + bf.getHashTime());
+        System.out.println("Number of bits in the filter(m):" + bf.getNumberOfItems());
+        System.out.println("False Positive:" + bf.falsePositive());
 
         /**
          * n = 100
@@ -63,7 +71,7 @@ public class BloomFilterTest {
             m = 100 (13B)
             k = 3
          */
-        Assert.assertEquals(BloomFilter.falsePositive(), 0.857951642, 0.0001);
+        Assert.assertEquals(bf.falsePositive(), 0.857951642, 0.0001);
 
     }
 

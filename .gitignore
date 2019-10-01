@@ -150,3 +150,14 @@ buildNumber.properties
 .flattened-pom.xml
 
 # End of https://www.gitignore.io/api/java,maven,intellij
+.factorypath
+dfs.iml
+P1.code-workspace
+.idea/$PRODUCT_WORKSPACE_FILE$
+.idea/.gitignore
+.idea/compiler.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+src/main/main.iml
