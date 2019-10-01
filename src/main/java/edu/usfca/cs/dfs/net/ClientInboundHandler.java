@@ -55,19 +55,33 @@ public class ClientInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
         } else if (msg.hasHeartBeatMsg()) {
-            /**
-             * I am Controller.
-             */
 
         } else if (msg.hasRetrieveFileMsg()) {
-            /**
-             * I am Controller
-             */
 
         } else if (msg.hasStoreChunkResponse()) {
+
             /**
-             * I am Controller
+             * TODO:
+             * For now for testing...
              */
+            System.out.println("[Client]This is Store Chunk Message Response...");
+            StorageMessages.StoreChunkResponse storeChunkesponse = msg.getStoreChunkResponse();
+
+            if (storeChunkesponse.getStatus()) {
+                System.out.println("[Client] Chunk stored successfully, chunkId:"
+                        + storeChunkesponse.getChunkId());
+            }
+
+            System.out.println("[Client]  : " + storeChunkesponse.getStatus());
+
+            ByteString data = ByteString.copyFromUtf8("Hello World!");
+            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
+            System.out.println("[Client]Send back message");
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
 
         } else if (msg.hasListResponse()) {
             List<StorageMessages.StorageNodeInfo> snInfoList = msg.getListResponse().getSnInfoList();
