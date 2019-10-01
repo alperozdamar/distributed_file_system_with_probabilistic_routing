@@ -4,11 +4,13 @@ import java.util.BitSet;
 
 import com.sangupta.murmur.Murmur3;
 
+import edu.usfca.cs.dfs.config.ConfigurationManagerBloomFilter;
+
 public class BloomFilter {
 
-    public static final int  filterLength  = 10;
-    public static final int  hashTime      = 3;
-    public static final long seed          = 3;
+    public static final int  filterLength  = ConfigurationManagerBloomFilter.getInstance().getBloomFilterLength();
+    public static final int  hashTime      = ConfigurationManagerBloomFilter.getInstance().getHashTime();
+    public static final long seed          = ConfigurationManagerBloomFilter.getInstance().getHashSeed();
 
     public static long       numberOfItems = 0;
 
@@ -20,7 +22,6 @@ public class BloomFilter {
         long hash2 = Murmur3.hash_x86_32(data, data.length, hash1);
         for (int i = 0; i < hashTime; i++) {
             results[i] = (hash1 + i * hash2) % filterLength;
-            //System.out.println(results[i]);
         }
         return results;
     }
@@ -54,47 +55,14 @@ public class BloomFilter {
         }
 
         numberOfItems++;
-
-        //        System.out.println("******");
-        //        for (int i = 0; i < bloomFilter.length; i++) {
-        //            System.out.println(bloomFilter[i]);
-        //        }
-
     }
 
     public static float falsePositive() {
 
         //p = pow(1 - exp(-hashTime / (filterLength / numberOfItems)), hashTime)
-
-        System.out.println("before:"
-                + (double) -hashTime / (double) (filterLength / numberOfItems));
         double exp = Math.exp((double) -hashTime / (double) (filterLength / numberOfItems));
-        System.out.println("Exp:" + exp);
-
-        //String formato = String.format("%.2f");
-        //System.out.printf("%.2f", exp);
 
         double p = Math.pow(1 - exp, hashTime);
-        System.out.println("p:" + p);
         return (float) p;
-    }
-
-    public static void main(String[] args) {
-        put("Hello World".getBytes());
-        put("Hiep".getBytes());
-        //put("Nat".getBytes());
-        //put("Alper".getBytes());
-
-        //        boolean result = get("Hello World".getBytes());
-        boolean result = get("Nat".getBytes());
-
-        if (result) {
-            System.out.println("MAY BE baby!");
-        } else {
-            System.out.println("No!!!");
-        }
-
-        System.out.println("False Positive:" + falsePositive());
-
     }
 }
