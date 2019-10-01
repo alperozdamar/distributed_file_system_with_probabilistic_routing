@@ -12,7 +12,7 @@ public class Server {
     }
 
     public void start() throws IOException {
-        messageRouter = new ServerMessageRouter(null);
+        messageRouter = new ServerMessageRouter("TestServer");
         messageRouter.listen(7777);
         System.out.println("Listening for connections on port 7777");
     }

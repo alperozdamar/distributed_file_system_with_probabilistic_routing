@@ -19,6 +19,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class InboundHandler
         extends SimpleChannelInboundHandler<StorageMessages.StorageMessageWrapper> {
 
+    private int i = 0;
+
     public InboundHandler() {
     }
 
@@ -43,23 +45,11 @@ public class InboundHandler
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("Received sth!");
         if (msg.hasStoreChunkMsg()) {
             System.out.println("This is Store Chunk Message...");
 
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
-            System.out.println("Storing file name: " + storeChunkMsg.getFileName());
-
-            ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
-
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
-            System.out.println("Send back message");
-
-            Channel chan = ctx.channel();
-            ChannelFuture write = chan.write(msgWrapper);
-            chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
+            System.out.println("Storing file name: " + storeChunkMsg.getFileName() + " - "+(++i));
 
         } else if (msg.hasHeartBeatMsg()) {
 

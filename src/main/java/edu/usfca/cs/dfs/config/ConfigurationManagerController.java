@@ -10,15 +10,21 @@ import java.util.Properties;
  */
 public class ConfigurationManagerController {
 
+    private final int defaultFilterLength = 1000;
+    private final int defaultHashTime = 3;
+    private final int defaultHashSeed = 3;
+    private final int defaultControllerPort = 8080;
+
+
     public static final String                    PROJECT_1_CONTROLLER_CONFIG_FILE = "config"
             + File.separator + "project1_controller.properties";
     private static ConfigurationManagerController instance;
     private final static Object                   classLock                        = new Object();
     private String                                controllerIp                     = "";
-    private int                                   controllerPort                   = 9090;
-    private int                                   filterLength;
-    private int                                   hashTime;
-    private long                                  seed;
+    private int                                   controllerPort                   = defaultControllerPort;
+    private int                                   filterLength = defaultFilterLength;
+    private int                                   hashTime = defaultHashTime;
+    private long                                  seed = defaultHashSeed;
 
     private ConfigurationManagerController() {
         readClientConfigFile();
@@ -46,33 +52,33 @@ public class ConfigurationManagerController {
 
             try {
                 String controllerPortString = props.getProperty("controllerPort").trim();
-                controllerPort = (controllerPortString == null) ? 8080
+                controllerPort = (controllerPortString == null) ? defaultControllerPort
                         : Integer.parseInt(controllerPortString);
             } catch (Exception e) {
-                controllerPort = 8800;
+                controllerPort = defaultControllerPort;
                 e.printStackTrace();
             }
 
             try {
                 String filterLengthString = props.getProperty("BLOOM_FILTER_LENGTH").trim();
-                filterLength = (filterLengthString == null) ? 8080
+                filterLength = (filterLengthString == null) ? defaultFilterLength
                         : Integer.parseInt(filterLengthString);
             } catch (Exception e) {
-                filterLength = 8800;
+                filterLength = defaultFilterLength;
                 e.printStackTrace();
             }
             try {
                 String hashTimeString = props.getProperty("HASH_TIME").trim();
-                hashTime = (hashTimeString == null) ? 8080 : Integer.parseInt(hashTimeString);
+                hashTime = (hashTimeString == null) ? defaultHashTime : Integer.parseInt(hashTimeString);
             } catch (Exception e) {
-                hashTime = 8800;
+                hashTime = defaultHashTime;
                 e.printStackTrace();
             }
             try {
                 String seedString = props.getProperty("HASH_SEED").trim();
-                seed = (seedString == null) ? 8080 : Integer.parseInt(seedString);
+                seed = (seedString == null) ? defaultHashSeed : Integer.parseInt(seedString);
             } catch (Exception e) {
-                seed = 8800;
+                seed = defaultHashSeed;
                 e.printStackTrace();
             }
         } catch (Exception e) {

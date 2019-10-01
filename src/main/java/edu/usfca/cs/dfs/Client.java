@@ -1,6 +1,8 @@
 package edu.usfca.cs.dfs;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.protobuf.ByteString;
 
@@ -15,13 +17,19 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class Client {
 
+
+    /**
+     * Every Client request will be sent by a seperate Thread.
+     */
+    private static ExecutorService threadPoolForClientRequests = Executors.newFixedThreadPool(30);
+
     public Client() {
 
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        MessagePipeline pipeline = new MessagePipeline(null);
+        MessagePipeline pipeline = new MessagePipeline("TestClient");
         try {
             Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY,
                                                                                                             true).handler(pipeline);
@@ -36,9 +44,20 @@ public class Client {
 
             Channel chan = cf.channel();
             // ChannelFuture write = chan.write(msgWrapper);
-
-            chan.writeAndFlush(msgWrapper);
-            chan.closeFuture().sync();
+            for(int i=0;i<10;){
+                System.out.println("Send thread: "+(++i));
+                threadPoolForClientRequests.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        chan.writeAndFlush(msgWrapper);
+                        try {
+                            chan.closeFuture().sync();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
 
             // write.syncUninterruptibly();
 
