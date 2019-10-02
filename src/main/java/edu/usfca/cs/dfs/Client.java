@@ -1,8 +1,11 @@
 package edu.usfca.cs.dfs;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.ByteString;
 
@@ -28,49 +31,46 @@ public class Client {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup(100);
         MessagePipeline pipeline = new MessagePipeline("TestClient");
-        try {
-            Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY,
-                                                                                                            true).handler(pipeline);
 
-            ChannelFuture cf = bootstrap.connect("localhost", 7777);
-            cf.syncUninterruptibly();
+        Bootstrap bootstrap = new Bootstrap()
+                .group(workerGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .handler(pipeline);
 
-            ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
+        int thread = 5;
+
+        Channel[] channels = new Channel[thread];
+
+        for(int i=0;i<thread;i++){
+            channels[i] = bootstrap.connect("localhost", 7777).syncUninterruptibly().channel();
+        }
+
+//        Channel chan = bootstrap.connect("localhost", 7777).syncUninterruptibly().channel();
+
+        List<ChannelFuture> writes = new ArrayList<>();
+
+        ByteString data = ByteString.copyFromUtf8("Hello World!");
+        for(int i=0;i<1000;i++) {
+            StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file_"+i+".txt").setChunkId(3).setData(data).build();
 
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
 
-            Channel chan = cf.channel();
-            // ChannelFuture write = chan.write(msgWrapper);
-            for(int i=0;i<10;){
-                System.out.println("Send thread: "+(++i));
-                threadPoolForClientRequests.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        chan.writeAndFlush(msgWrapper);
-                        try {
-                            chan.closeFuture().sync();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-
-            // write.syncUninterruptibly();
-
-            // try {
-            //     write.channel().closeFuture().sync();
-            // } catch (InterruptedException e) {
-            //     // TODO Auto-generated catch block
-            //     e.printStackTrace();
-            // }
-        } finally {
-            /* Don't quit until we've disconnected: */
-            System.out.println("Shutting down");
-            workerGroup.shutdownGracefully();
+            writes.add(channels[(i+1)%thread].write(msgWrapper));
         }
+//        chan.flush();
+
+        for(int i=0;i<thread;i++){
+            channels[i].flush();
+        }
+
+        for (ChannelFuture write : writes) {
+            write.syncUninterruptibly();
+        }
+        /* Don't quit until we've disconnected: */
+        System.out.println("Shutting down");
+        workerGroup.shutdownGracefully();
     }
 }
