@@ -16,8 +16,7 @@ public class HeartBeatSenderTimerTask implements Runnable {
     int                   timeOut;
     DfsStorageNodeStarter dfsStorageNodeStarter;
 
-    public HeartBeatSenderTimerTask(DfsStorageNodeStarter storageNodeStarter, int snId,
-                                    int timeOut) {
+    public HeartBeatSenderTimerTask(DfsStorageNodeStarter storageNodeStarter, int timeOut) {
         this.timeOut = timeOut;
         this.dfsStorageNodeStarter = storageNodeStarter;
     }

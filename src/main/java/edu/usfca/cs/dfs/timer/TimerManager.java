@@ -32,7 +32,8 @@ public class TimerManager {
     }
 
     @SuppressWarnings("unchecked")
-    public void scheduleKeepAliveCheckTimer(DfsControllerStarter dfsControllerStarter, int snId, int timeout) {
+    public void scheduleKeepAliveCheckTimer(DfsControllerStarter dfsControllerStarter, int snId,
+                                            int timeout) {
         ScheduledFuture timerHandle = scheduler.schedule(new KeepAliveCheckTimerTask(dfsControllerStarter,
                                                                                      snId,
                                                                                      timeout),
@@ -51,9 +52,8 @@ public class TimerManager {
     }
 
     @SuppressWarnings("unchecked")
-    public void scheduleHeartBeatTimer(DfsStorageNodeStarter dfsStorageNodeStarter, int snId, int timeout) {
+    public void scheduleHeartBeatTimer(DfsStorageNodeStarter dfsStorageNodeStarter, int timeout) {
         ScheduledFuture timerHandle = scheduler.schedule(new HeartBeatSenderTimerTask(dfsStorageNodeStarter,
-                                                                                      snId,
                                                                                       timeout),
                                                          timeout,
                                                          TimeUnit.MILLISECONDS);

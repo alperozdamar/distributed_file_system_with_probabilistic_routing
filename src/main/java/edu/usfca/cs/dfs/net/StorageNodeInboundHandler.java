@@ -6,6 +6,8 @@ import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
+import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -65,12 +67,16 @@ public class StorageNodeInboundHandler extends InboundHandler {
                     + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
 
             if (heartBeatResponse.getStatus()) {
-                System.out.println("[SN] Perfect!");
+                System.out.println("[SN] Creating Timer for Heart Beats:"
+                        + heartBeatResponse.getSnId());
+
+                TimerManager.getInstance().scheduleHeartBeatTimer(DfsStorageNodeStarter.getInstance(),
+                                                                  ConfigurationManagerSn.getInstance().getHeartBeatPeriodInMilliseconds());
+
             } else {
-                /**
-                 * TODO: 
-                 * PROBLEM
-                 */
+
+                TimerManager.getInstance().cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
+
             }
 
         } else if (msg.hasRetrieveFileMsg()) {
