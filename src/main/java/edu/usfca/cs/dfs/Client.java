@@ -51,7 +51,7 @@ public class Client {
         List<ChannelFuture> writes = new ArrayList<>();
 
         ByteString data = ByteString.copyFromUtf8("Hello World!");
-        for(int i=0;i<5;i++) {
+        for(int i=0;i<100;i++) {
             StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file_"+i+".txt").setChunkId(3).setData(data).build();
 
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
@@ -61,7 +61,7 @@ public class Client {
 
         for(int i=0;i<thread;i++){
             channels[i].flush();
-            channels[i].closeFuture().syncUninterruptibly();
+            channels[i].closeFuture();
         }
 
         for (ChannelFuture write : writes) {
