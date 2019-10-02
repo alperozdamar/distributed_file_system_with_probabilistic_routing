@@ -1,18 +1,11 @@
 package edu.usfca.cs.dfs.net;
 
-import java.net.InetSocketAddress;
-import java.util.Iterator;
-import java.util.List;
-
 import com.google.protobuf.ByteString;
-
+import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.StorageMessages;
-import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.*;
+
+import java.net.InetSocketAddress;
 
 @ChannelHandler.Sharable
 public class ControllerInboundHandler extends InboundHandler {
@@ -41,7 +34,7 @@ public class ControllerInboundHandler extends InboundHandler {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("[Controller]Received sth!");
+        Utils.printHeader("[Controller]Received sth!");
 
         /***
          * STORE
@@ -95,18 +88,25 @@ public class ControllerInboundHandler extends InboundHandler {
              * I am Controller
              */
 
-        } else if (msg.hasListResponse()) {
-
-            List<StorageMessages.StorageNodeInfo> snInfoList = msg.getListResponse().getSnInfoList();
-
-            for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
-                StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
-
-                System.out.println("[Controller]Sn.id:" + storageNodeInfo.getSnId());
-                System.out.println("[Controller]Sn.ip:" + storageNodeInfo.getSnIp());
-
-            }
-
+        } else if (msg.hasList()) {
+            /**
+             * Get the list of SN from DB and return to client
+             */
+            System.out.println("[Controller]Sending back list of SNs information");
+            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
+                    .setSnId(1)
+                    .setSnIp("192.168.0.1")
+                    .setSnPort(6666)
+                    .setTotalFreeSpaceInBytes(10000)
+                    .setNumOfRetrievelRequest(10)
+                    .setNumOfStorageMessage(10).build();
+            StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder().addSnInfo(snInfo).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
+                    .setListResponse(response).build();
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
         }
 
     }
