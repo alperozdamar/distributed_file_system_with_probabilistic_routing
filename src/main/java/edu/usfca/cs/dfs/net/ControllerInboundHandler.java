@@ -1,11 +1,16 @@
 package edu.usfca.cs.dfs.net;
 
+import java.net.InetSocketAddress;
+
 import com.google.protobuf.ByteString;
+
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.StorageMessages;
-import io.netty.channel.*;
-
-import java.net.InetSocketAddress;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 
 @ChannelHandler.Sharable
 public class ControllerInboundHandler extends InboundHandler {
@@ -56,7 +61,6 @@ public class ControllerInboundHandler extends InboundHandler {
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
-
         }
         /***
          * HEART-BEAT
@@ -78,10 +82,6 @@ public class ControllerInboundHandler extends InboundHandler {
 
         } else if (msg.hasRetrieveFileMsg()) {
 
-            /**
-             * I am Controller
-             */
-
         } else if (msg.hasStoreChunkResponse()) {
 
             /**
@@ -93,16 +93,9 @@ public class ControllerInboundHandler extends InboundHandler {
              * Get the list of SN from DB and return to client
              */
             System.out.println("[Controller]Sending back list of SNs information");
-            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
-                    .setSnId(1)
-                    .setSnIp("192.168.0.1")
-                    .setSnPort(6666)
-                    .setTotalFreeSpaceInBytes(10000)
-                    .setNumOfRetrievelRequest(10)
-                    .setNumOfStorageMessage(10).build();
+            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnId(1).setSnIp("192.168.0.1").setSnPort(6666).setTotalFreeSpaceInBytes(10000).setNumOfRetrievelRequest(10).setNumOfStorageMessage(10).build();
             StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder().addSnInfo(snInfo).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
-                    .setListResponse(response).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setListResponse(response).build();
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();

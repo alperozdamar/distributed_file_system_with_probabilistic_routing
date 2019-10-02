@@ -19,14 +19,14 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-public class DfsClient {
+public class DfsClientStarter {
 
     /**
      * Every Client request will be sent by a seperate Thread.
      */
     private static ExecutorService threadPoolForClientRequests = Executors.newFixedThreadPool(30);
 
-    public DfsClient() {
+    public DfsClientStarter() {
     }
 
     private static void listStorageNode(ChannelFuture cf) throws InterruptedException {

@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import edu.usfca.cs.dfs.DfsController;
-import edu.usfca.cs.dfs.DfsStorageNode;
+import edu.usfca.cs.dfs.DfsControllerStarter;
+import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 
 public class TimerManager {
@@ -32,40 +32,40 @@ public class TimerManager {
     }
 
     @SuppressWarnings("unchecked")
-    public void scheduleKeepAliveCheckTimer(DfsController dfsController, int snId, int timeout) {
-        ScheduledFuture timerHandle = scheduler.schedule(new KeepAliveCheckTimerTask(dfsController,
+    public void scheduleKeepAliveCheckTimer(DfsControllerStarter dfsControllerStarter, int snId, int timeout) {
+        ScheduledFuture timerHandle = scheduler.schedule(new KeepAliveCheckTimerTask(dfsControllerStarter,
                                                                                      snId,
                                                                                      timeout),
                                                          timeout,
                                                          TimeUnit.MILLISECONDS);
-        dfsController.setKeepAliveCheckTimerHandle(timerHandle, snId);
+        dfsControllerStarter.setKeepAliveCheckTimerHandle(timerHandle, snId);
     }
 
     @SuppressWarnings("unchecked")
-    public void cancelKeepAliveCheckTimer(DfsController dfsController, int snId) {
-        ScheduledFuture timerHandle = dfsController.getKeepAliveCheckTimerHandle(snId);
+    public void cancelKeepAliveCheckTimer(DfsControllerStarter dfsControllerStarter, int snId) {
+        ScheduledFuture timerHandle = dfsControllerStarter.getKeepAliveCheckTimerHandle(snId);
         if (timerHandle != null) {
             timerHandle.cancel(true);
-            dfsController.setKeepAliveCheckTimerHandle(null, snId);
+            dfsControllerStarter.setKeepAliveCheckTimerHandle(null, snId);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public void scheduleHeartBeatTimer(DfsStorageNode dfsStorageNode, int snId, int timeout) {
-        ScheduledFuture timerHandle = scheduler.schedule(new HeartBeatSenderTimerTask(dfsStorageNode,
+    public void scheduleHeartBeatTimer(DfsStorageNodeStarter dfsStorageNodeStarter, int snId, int timeout) {
+        ScheduledFuture timerHandle = scheduler.schedule(new HeartBeatSenderTimerTask(dfsStorageNodeStarter,
                                                                                       snId,
                                                                                       timeout),
                                                          timeout,
                                                          TimeUnit.MILLISECONDS);
-        dfsStorageNode.setHeartBeatSenderTimerHandle(timerHandle);
+        dfsStorageNodeStarter.setHeartBeatSenderTimerHandle(timerHandle);
     }
 
     @SuppressWarnings("unchecked")
-    public void cancelHeartBeatTimer(DfsStorageNode dfsStorageNode) {
-        ScheduledFuture timerHandle = dfsStorageNode.getHeartBeatSenderTimerHandle();
+    public void cancelHeartBeatTimer(DfsStorageNodeStarter dfsStorageNodeStarter) {
+        ScheduledFuture timerHandle = dfsStorageNodeStarter.getHeartBeatSenderTimerHandle();
         if (timerHandle != null) {
             timerHandle.cancel(true);
-            dfsStorageNode.setHeartBeatSenderTimerHandle(null);
+            dfsStorageNodeStarter.setHeartBeatSenderTimerHandle(null);
         }
     }
 

@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 
 import com.google.protobuf.ByteString;
 
+import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -56,6 +57,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
 
+            DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalStorageRequest();
+
         } else if (msg.hasHeartBeatResponse()) {
             StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
             System.out.println("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
@@ -71,6 +74,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
             }
 
         } else if (msg.hasRetrieveFileMsg()) {
+
+            DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
 
         } else if (msg.hasStoreChunkResponse()) {
 

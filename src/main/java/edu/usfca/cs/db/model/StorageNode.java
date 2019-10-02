@@ -1,5 +1,6 @@
 package edu.usfca.cs.db.model;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -27,15 +28,14 @@ public class StorageNode {
     }
 
     public StorageNode(int snId, ArrayList<Integer> replicateSnIdList,
-                       ArrayList<Integer> backupIdSnList, String snIp, int snPort,
-                       long totalFreeSpace) {
+                       ArrayList<Integer> backupIdSnList, String snIp, int snPort) {
         super();
         this.snId = snId;
         this.replicateSnIdList = replicateSnIdList;
         this.backupIdSnList = backupIdSnList;
         this.snIp = snIp;
         this.snPort = snPort;
-        this.totalFreeSpace = totalFreeSpace;
+        this.totalFreeSpace = getTotalFreeSpaceInBytes();
         this.totalStorageRequest = 0;
         this.totalRetrievelRequest = 0;
     }
@@ -129,12 +129,21 @@ public class StorageNode {
         this.totalRetrievelRequest = totalRetrievelRequest;
     }
 
-    public long getTotalFreeSpace() {
+    /**
+     * This special function is setter and getter at the same time.
+     * @return
+     */
+    public long getTotalFreeSpaceInBytes() {
+        totalFreeSpace = new File("/").getFreeSpace();
         return totalFreeSpace;
     }
 
-    public void setTotalFreeSpace(long totalFreeSpace) {
-        this.totalFreeSpace = totalFreeSpace;
+    public long incrementTotalStorageRequest() {
+        return this.totalStorageRequest;
+    }
+
+    public long incrementTotalRetrievelRequest() {
+        return this.totalRetrievelRequest;
     }
 
 }

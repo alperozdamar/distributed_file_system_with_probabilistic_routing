@@ -11,19 +11,34 @@ import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
 import edu.usfca.cs.dfs.net.ServerMessageRouter;
 
-public class DfsController {
+public class DfsControllerStarter {
 
+    private static DfsControllerStarter          instance;
+    private final static Object                  classLock                    = new Object();
     ServerMessageRouter                          messageRouter;
-
     private ArrayList<StorageNode>               storageNodeList              = new ArrayList<StorageNode>();
-
     private HashMap<Integer, ScheduledFuture<?>> keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
 
-    public DfsController() {
+    private DfsControllerStarter() {
+
+    }
+
+    /**
+     * Singleton
+     *  
+     * @return
+     */
+    public static DfsControllerStarter getInstance() {
+        synchronized (classLock) {
+            if (instance == null) {
+                instance = new DfsControllerStarter();
+            }
+            return instance;
+        }
     }
 
     public static void main(String[] args) throws IOException {
-        DfsController s = new DfsController();
+        DfsControllerStarter s = new DfsControllerStarter();
         s.start();
     }
 
