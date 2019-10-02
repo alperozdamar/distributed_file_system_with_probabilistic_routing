@@ -45,11 +45,21 @@ public class InboundHandler
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
+        System.out.println("Received sth");
         if (msg.hasStoreChunkMsg()) {
             System.out.println("This is Store Chunk Message...");
 
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
-            System.out.println("Storing file name: " + storeChunkMsg.getFileName() + " - "+(++i));
+            System.out.println("Storing file name: " + storeChunkMsg.getFileName() + " - " + (++i));
+
+            ByteString data = ByteString.copyFromUtf8("Hello World!");
+            StorageMessages.StoreChunk response = StorageMessages.StoreChunk.newBuilder().setFileName("my_file_" + i + ".txt").setChunkId(3).setData(data).build();
+
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(response).build();
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
 
         } else if (msg.hasHeartBeatMsg()) {
 
@@ -73,7 +83,7 @@ public class InboundHandler
 
             List<StorageMessages.StorageNodeInfo> snInfoList = msg.getListResponse().getSnInfoList();
 
-            for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
+            for (Iterator iterator = snInfoList.iterator(); iterator.hasNext(); ) {
                 StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
 
                 System.out.println("Sn.id:" + storageNodeInfo.getSnId());

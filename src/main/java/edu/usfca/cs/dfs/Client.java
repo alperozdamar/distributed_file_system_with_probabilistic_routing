@@ -48,22 +48,20 @@ public class Client {
             channels[i] = bootstrap.connect("localhost", 7777).syncUninterruptibly().channel();
         }
 
-//        Channel chan = bootstrap.connect("localhost", 7777).syncUninterruptibly().channel();
-
         List<ChannelFuture> writes = new ArrayList<>();
 
         ByteString data = ByteString.copyFromUtf8("Hello World!");
-        for(int i=0;i<1000;i++) {
+        for(int i=0;i<5;i++) {
             StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file_"+i+".txt").setChunkId(3).setData(data).build();
 
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
 
             writes.add(channels[(i+1)%thread].write(msgWrapper));
         }
-//        chan.flush();
 
         for(int i=0;i<thread;i++){
             channels[i].flush();
+            channels[i].closeFuture().syncUninterruptibly();
         }
 
         for (ChannelFuture write : writes) {
