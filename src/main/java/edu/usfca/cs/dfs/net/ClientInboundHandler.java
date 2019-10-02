@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.google.protobuf.ByteString;
 
+import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
 import io.netty.channel.Channel;
@@ -41,7 +42,7 @@ public class ClientInboundHandler extends InboundHandler {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("[Client]Received sth!");
+        Utils.printHeader("[Client]Received sth!");
         if (msg.hasStoreChunkMsg()) {
             System.out.println("[Client]This is Store Chunk Message...");
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
