@@ -10,14 +10,15 @@ import java.util.Properties;
  */
 public class ConfigurationManagerSn {
 
-    public static final String            PROJECT_1_SN_CONFIG_FILE = "config" + File.separator
-            + "project1_sn.properties";
+    public static final String            PROJECT_1_SN_CONFIG_FILE         = "config"
+            + File.separator + "project1_sn.properties";
     private static ConfigurationManagerSn instance;
-    private final static Object           classLock                = new Object();
-    private String                        controllerIp             = "";
-    private int                           controllerPort           = 9090;
-    private int                           snId                     = 0;
-    private int                           snPort                   = 9090;
+    private final static Object           classLock                        = new Object();
+    private String                        controllerIp                     = "";
+    private int                           controllerPort                   = 9090;
+    private int                           snId                             = 0;
+    private int                           snPort                           = 9090;
+    private int                           threadNumOfScheduledPoolExecutor = 10;
 
     private ConfigurationManagerSn() {
         readConfigFile();
@@ -75,6 +76,15 @@ public class ConfigurationManagerSn {
                 e.printStackTrace();
             }
 
+            try {
+                String threadNumString = props.getProperty("threadNumOfScheduledPoolExecutor").trim();
+                threadNumOfScheduledPoolExecutor = (threadNumString == null) ? 20
+                        : Integer.parseInt(threadNumString);
+            } catch (Exception e) {
+                threadNumOfScheduledPoolExecutor = 20;
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_SN_CONFIG_FILE);
@@ -115,10 +125,19 @@ public class ConfigurationManagerSn {
         this.snPort = snPort;
     }
 
+    public int getThreadNumOfScheduledPoolExecutor() {
+        return threadNumOfScheduledPoolExecutor;
+    }
+
+    public void setThreadNumOfScheduledPoolExecutor(int threadNumOfScheduledPoolExecutor) {
+        this.threadNumOfScheduledPoolExecutor = threadNumOfScheduledPoolExecutor;
+    }
+
     @Override
     public String toString() {
         return "ConfigurationManagerSn [controllerIp=" + controllerIp + ", controllerPort="
-                + controllerPort + ", snId=" + snId + ", snPort=" + snPort + "]";
+                + controllerPort + ", snId=" + snId + ", snPort=" + snPort
+                + ", threadNumOfScheduledPoolExecutor=" + threadNumOfScheduledPoolExecutor + "]";
     }
 
 }

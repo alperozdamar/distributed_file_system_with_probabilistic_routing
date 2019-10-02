@@ -2,6 +2,7 @@ package edu.usfca.cs.dfs;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ScheduledFuture;
 
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
@@ -19,7 +20,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class DfsStorageNode {
 
-    ServerMessageRouter messageRouter;
+    ServerMessageRouter        messageRouter;
+
+    private ScheduledFuture<?> heartBeatSenderTimerHandle;
 
     public DfsStorageNode() {
     }
@@ -62,5 +65,13 @@ public class DfsStorageNode {
     public static void main(String[] args) throws IOException {
         DfsStorageNode s = new DfsStorageNode();
         s.start();
+    }
+
+    public ScheduledFuture<?> getHeartBeatSenderTimerHandle() {
+        return heartBeatSenderTimerHandle;
+    }
+
+    public void setHeartBeatSenderTimerHandle(ScheduledFuture<?> heartBeatSenderTimerHandle) {
+        this.heartBeatSenderTimerHandle = heartBeatSenderTimerHandle;
     }
 }
