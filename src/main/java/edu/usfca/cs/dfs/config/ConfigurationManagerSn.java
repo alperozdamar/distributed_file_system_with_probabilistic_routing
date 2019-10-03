@@ -19,6 +19,7 @@ public class ConfigurationManagerSn {
     private int                           snId                             = 0;
     private int                           snPort                           = 9090;
     private int                           threadNumOfScheduledPoolExecutor = 10;
+    private int                           heartBeatPeriodInMilliseconds    = 5000;
 
     private ConfigurationManagerSn() {
         readConfigFile();
@@ -85,6 +86,15 @@ public class ConfigurationManagerSn {
                 e.printStackTrace();
             }
 
+            try {
+                String heartBeatPeriodInMillisecondsString = props.getProperty("heartBeatPeriodInMilliseconds").trim();
+                heartBeatPeriodInMilliseconds = (heartBeatPeriodInMillisecondsString == null) ? 5000
+                        : Integer.parseInt(heartBeatPeriodInMillisecondsString);
+            } catch (Exception e) {
+                heartBeatPeriodInMilliseconds = 5000;
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_SN_CONFIG_FILE);
@@ -138,6 +148,14 @@ public class ConfigurationManagerSn {
         return "ConfigurationManagerSn [controllerIp=" + controllerIp + ", controllerPort="
                 + controllerPort + ", snId=" + snId + ", snPort=" + snPort
                 + ", threadNumOfScheduledPoolExecutor=" + threadNumOfScheduledPoolExecutor + "]";
+    }
+
+    public int getHeartBeatPeriodInMilliseconds() {
+        return heartBeatPeriodInMilliseconds;
+    }
+
+    public void setHeartBeatPeriodInMilliseconds(int heartBeatPeriodInMilliseconds) {
+        this.heartBeatPeriodInMilliseconds = heartBeatPeriodInMilliseconds;
     }
 
 }

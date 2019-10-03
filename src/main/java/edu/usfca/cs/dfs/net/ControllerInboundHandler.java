@@ -1,11 +1,16 @@
 package edu.usfca.cs.dfs.net;
 
+import java.net.InetSocketAddress;
+
 import com.google.protobuf.ByteString;
+
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.StorageMessages;
-import io.netty.channel.*;
-
-import java.net.InetSocketAddress;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 
 @ChannelHandler.Sharable
 public class ControllerInboundHandler extends InboundHandler {
@@ -58,7 +63,6 @@ public class ControllerInboundHandler extends InboundHandler {
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
-
         }
         /***
          * HEART-BEAT
@@ -98,8 +102,7 @@ public class ControllerInboundHandler extends InboundHandler {
                     .setNumOfRetrievelRequest(10)
                     .setNumOfStorageMessage(10).build();
             StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder().addSnInfo(snInfo).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
-                    .setListResponse(response).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setListResponse(response).build();
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();

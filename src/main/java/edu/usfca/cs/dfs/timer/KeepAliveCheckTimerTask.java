@@ -3,7 +3,7 @@ package edu.usfca.cs.dfs.timer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import edu.usfca.cs.dfs.DfsController;
+import edu.usfca.cs.dfs.DfsControllerStarter;
 
 public class KeepAliveCheckTimerTask implements Runnable {
 
@@ -12,7 +12,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
     int                   sessionId;
     int                   timeOut;
 
-    public KeepAliveCheckTimerTask(DfsController dfsController, int snId, int _timeOut) {
+    public KeepAliveCheckTimerTask(DfsControllerStarter dfsControllerStarter, int snId, int _timeOut) {
         timeOut = _timeOut;
     }
 
