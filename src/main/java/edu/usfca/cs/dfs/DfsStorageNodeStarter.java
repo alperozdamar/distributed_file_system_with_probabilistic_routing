@@ -46,36 +46,40 @@ public class DfsStorageNodeStarter {
 
     public void start() throws IOException {
 
-        storageNode = new StorageNode(ConfigurationManagerSn.getInstance().getSnId(),
-                                      null,
-                                      null,
-                                      "localhost",
-                                      ConfigurationManagerSn.getInstance().getSnPort());
+        try {
+            storageNode = new StorageNode(ConfigurationManagerSn.getInstance().getSnId(),
+                                          null,
+                                          null,
+                                          "localhost",
+                                          ConfigurationManagerSn.getInstance().getSnPort());
 
-        System.out.println(storageNode.toString());
+            System.out.println(storageNode.toString());
 
-        messageRouter = new ServerMessageRouter(Constants.STORAGENODE);
-        messageRouter.listen(ConfigurationManagerSn.getInstance().getSnPort());
-        System.out.println("[SN] Listening for connections on port :"
-                + ConfigurationManagerSn.getInstance().getSnPort());
-        MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+            messageRouter = new ServerMessageRouter(Constants.STORAGENODE);
+            messageRouter.listen(ConfigurationManagerSn.getInstance().getSnPort());
+            System.out.println("[SN] Listening for connections on port :"
+                    + ConfigurationManagerSn.getInstance().getSnPort());
+            MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
+            EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE,
-                                                                                                        true).handler(pipeline);
+            Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE,
+                                                                                                            true).handler(pipeline);
 
-        /**
-         * SN will connect to the Controller
-         */
-        channelFuture = bootstrap.connect(ConfigurationManagerClient.getInstance().getControllerIp(),
-                                          ConfigurationManagerClient.getInstance().getControllerPort());
+            /**
+             * SN will connect to the Controller
+             */
+            channelFuture = bootstrap.connect(ConfigurationManagerClient.getInstance().getControllerIp(),
+                                              ConfigurationManagerClient.getInstance().getControllerPort());
 
-        StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder().setSnId(storageNode.getSnId()).setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes()).setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
-        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setHeartBeatMsg(heartBeat).build();
-        Channel chan = channelFuture.channel();
-        ChannelFuture write = chan.write(msgWrapper);
-        chan.flush();
-        write.syncUninterruptibly();
+            StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder().setSnId(storageNode.getSnId()).setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes()).setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setHeartBeatMsg(heartBeat).build();
+            Channel chan = channelFuture.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.syncUninterruptibly();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
