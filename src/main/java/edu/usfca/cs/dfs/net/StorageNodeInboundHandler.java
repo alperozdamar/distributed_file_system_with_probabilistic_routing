@@ -1,14 +1,16 @@
 package edu.usfca.cs.dfs.net;
 
 import java.net.InetSocketAddress;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.protobuf.ByteString;
-
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
+import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
+import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -43,7 +45,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
         /* Writable status of the channel changed */
     }
 
-    private void handleStoreChunkMsg(ChannelHandlerContext ctx, StorageMessages.StoreChunk storeChunkMsg){
+    private void handleStoreChunkMsg(ChannelHandlerContext ctx,
+                                     StorageMessages.StoreChunk storeChunkMsg) {
 
         System.out.println("[SN]This is Store Chunk Message...");
         System.out.println("[SN]Storing file name: " + storeChunkMsg.getFileName());
@@ -52,8 +55,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
         //Response to client, first node only
         System.out.println("[SN]Send back message");
 
-        StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse.newBuilder()
-                .setChunkId(storeChunkMsg.getChunkId()).setStatus(true).build();
+        StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse
+                .newBuilder().setChunkId(storeChunkMsg.getChunkId()).setStatus(true).build();
 
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setStoreChunkResponse(responseMsg).build();
@@ -63,6 +66,45 @@ public class StorageNodeInboundHandler extends InboundHandler {
         write.addListener(ChannelFutureListener.CLOSE);
 
         DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalStorageRequest();
+
+        /**
+         * TODO: 
+         * Replication.
+         * Send this chunk to the other 2 replicas.
+         */
+        replicateChunk(storeChunkMsg);
+
+    }
+
+    public void replicateChunk(StorageMessages.StoreChunk storeChunkMsg) {
+        int mySnId = ConfigurationManagerSn.getInstance().getSnId();
+
+        /**
+         * TODO:
+         * I assumed that I have a list of SNs in here.
+         */
+        List<StorageMessages.StorageNodeInfo> snList = storeChunkMsg.getSnInfoList();
+
+        /**
+         * Delete for SN from this list.
+         */
+        int deletedIndex = 0;
+        for (Iterator iterator = snList.iterator(); iterator.hasNext();) {
+            StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
+            deletedIndex++;
+            if (storageNodeInfo.getSnId() == mySnId) {
+                break;
+            }
+        }
+        StorageNodeInfo deletedSN = snList.remove(deletedIndex);
+        if (logger.isDebugEnabled()) {
+            logger.debug("SN:" + deletedSN.getSnId()
+                    + " is deleted from replica SN list for chunkId:" + storeChunkMsg.getChunkId());
+        }
+
+        StorageMessages.ReplicaRequest replicaRequest = StorageMessages.ReplicaRequest.newBuilder()
+                .setStoreChunk(storeChunkMsg).setPrimarySnId(mySnId).build();
+
     }
 
     @Override

@@ -6,6 +6,7 @@ message StoreChunk {
     int32 chunkId = 2;
     int32 chunkSize = 3;
     bytes data = 4;
+    repeated StorageNodeInfo snInfo=5;
 }
 
 message StoreChunkLocation {
@@ -56,6 +57,11 @@ message StorageNodeInfo{
     int32 numOfRetrievelRequest=6;
 }
 
+message ReplicaRequest {
+    StoreChunk storeChunk=1;
+    int32 primarySnId = 2;	
+}
+
 message StorageMessageWrapper {
     oneof msg {
         StoreChunk storeChunkMsg = 1;
@@ -68,6 +74,6 @@ message StorageMessageWrapper {
         StoreChunkResponse storeChunkResponse=8;
         RetrieveFile retrieveFile=9;
         RetrieveFileResponse retrieveFileResponse=10;
-        
+        ReplicaRequest replicaRequest=11;
     }
 }
