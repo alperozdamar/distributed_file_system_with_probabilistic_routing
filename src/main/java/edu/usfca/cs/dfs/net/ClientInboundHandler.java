@@ -44,7 +44,7 @@ public class ClientInboundHandler extends InboundHandler {
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         Utils.printHeader("[Client]Received sth!");
         if (msg.hasStoreChunkLocation()) {
-            System.out.println("[Client]This is Store Chunk Message...");
+            System.out.println("[Client]This is Store Chunk Location Message...");
             StorageMessages.StoreChunkLocation storeChunkMsg = msg.getStoreChunkLocation();
             for(StorageMessages.StorageNodeInfo sn : storeChunkMsg.getSnInfoList()){
                 System.out.printf("[Client]IP : %s - Port: %d\n",sn.getSnIp(), sn.getSnPort());

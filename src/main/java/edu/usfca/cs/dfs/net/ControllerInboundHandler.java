@@ -3,6 +3,7 @@ package edu.usfca.cs.dfs.net;
 import java.net.InetSocketAddress;
 
 import edu.usfca.cs.Utils;
+import edu.usfca.cs.dfs.DfsControllerStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -35,6 +36,52 @@ public class ControllerInboundHandler extends InboundHandler {
         /* Writable status of the channel changed */
     }
 
+    private void handleStoreChunkMsg(ChannelHandlerContext ctx, StorageMessages.StoreChunk storeChunkMsg){
+        String fileName = storeChunkMsg.getFileName();
+        String chunkId = String.valueOf(storeChunkMsg.getChunkId());
+        System.out.println("[Controller]This is Store Chunk Message...");
+        System.out.println("[Controller]Storing file name: " + fileName);
+
+        //TODO: Logic code to select available SNs
+        ChannelFuture write = null;
+        for(int i=1;i<=12;i++){
+            //TODO: Check if SN have enough storage
+            if(i%3==1){
+                for(int j=i;j<i+3;j++) {
+                    DfsControllerStarter.getInstance().getBloomFilters().get(i).put((fileName+chunkId).getBytes());
+                    StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnIp("192.168.1.10").setSnPort(j).build();
+                    StorageMessages.StoreChunkLocation chunkLocationMsg = StorageMessages.StoreChunkLocation
+                            .newBuilder().addSnInfo(snInfo).build();
+                    StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                            .newBuilder().setStoreChunkLocation(chunkLocationMsg).build();
+                    Channel chan = ctx.channel();
+                    write = chan.write(msgWrapper);
+                    chan.flush().closeFuture();
+                }
+                break;
+            }
+        }
+        if(write.isDone()) {
+            write.addListener(ChannelFutureListener.CLOSE);
+        }
+    }
+
+    private void handleListMsg(ChannelHandlerContext ctx){
+        /**
+         * Get the list of SN from DB and return to client
+         */
+        System.out.println("[Controller]Sending back list of SNs information");
+        //TODO: Get information from database
+        StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnId(1).setSnIp("192.168.0.1").setSnPort(6666).setTotalFreeSpaceInBytes(10000).setNumOfRetrievelRequest(10).setNumOfStorageMessage(10).build();
+        StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder().addSnInfo(snInfo).build();
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setListResponse(response).build();
+        Channel chan = ctx.channel();
+        ChannelFuture write = chan.write(msgWrapper);
+        chan.flush();
+        write.addListener(ChannelFutureListener.CLOSE);
+
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         Utils.printHeader("[Controller]Received sth!");
@@ -43,19 +90,8 @@ public class ControllerInboundHandler extends InboundHandler {
          * STORE
          */
         if (msg.hasStoreChunkMsg()) {
-            System.out.println("[Controller]This is Store Chunk Message...");
-
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
-            System.out.println("[Controller]Storing file name: " + storeChunkMsg.getFileName());
-
-            //TODO: Logic code to select available SNs
-            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnIp("192.168.1.10").setSnPort(8888).build();
-            StorageMessages.StoreChunkLocation chunkLocationMsg = StorageMessages.StoreChunkLocation.newBuilder().addSnInfo(snInfo).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkLocation(chunkLocationMsg).build();
-            Channel chan = ctx.channel();
-            ChannelFuture write = chan.write(msgWrapper);
-            chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
+            handleStoreChunkMsg(ctx, storeChunkMsg);
         }
         /***
          * HEART-BEAT
@@ -84,18 +120,7 @@ public class ControllerInboundHandler extends InboundHandler {
              */
 
         } else if (msg.hasList()) {
-            /**
-             * Get the list of SN from DB and return to client
-             */
-            System.out.println("[Controller]Sending back list of SNs information");
-            //TODO: Get information from database
-            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnId(1).setSnIp("192.168.0.1").setSnPort(6666).setTotalFreeSpaceInBytes(10000).setNumOfRetrievelRequest(10).setNumOfStorageMessage(10).build();
-            StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder().addSnInfo(snInfo).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setListResponse(response).build();
-            Channel chan = ctx.channel();
-            ChannelFuture write = chan.write(msgWrapper);
-            chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
+            handleListMsg(ctx);
         }
 
     }
