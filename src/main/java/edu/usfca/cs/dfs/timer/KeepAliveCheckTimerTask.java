@@ -13,7 +13,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
 
     private static Logger logger = LogManager.getLogger(KeepAliveCheckTimerTask.class);
     private int           snId;
-    private int           timeOut;
+    private long          timeOut;
 
     public KeepAliveCheckTimerTask(int snId) {
         this.snId = snId;
@@ -35,17 +35,15 @@ public class KeepAliveCheckTimerTask implements Runnable {
                 System.out.println("SnId :" + snId + ",LastHeartBeatTime:"
                         + storageNode.getLastHeartBeatTime() + ",currenTime:" + currentTime
                         + ",timeout:" + timeOut);
-                System.out.println("LastHeartBeatTime+Timeout:" + storageNode.getLastHeartBeatTime()
-                        + timeOut);
+                System.out.println("(currentTime - timeOut) :" + (currentTime - timeOut));
 
                 if (logger.isDebugEnabled()) {
                     logger.debug("CurrenTime :" + currentTime);
                     logger.debug("LastHeartBeatTime:" + storageNode.getLastHeartBeatTime());
                     logger.debug("Timeout:" + timeOut);
-                    logger.debug("LastHeartBeatTime+Timeout:" + storageNode.getLastHeartBeatTime()
-                            + timeOut);
+                    logger.debug("(currentTime - timeOut) :" + (currentTime - timeOut));
                 }
-                if (storageNode.getLastHeartBeatTime() + timeOut > currentTime) {
+                if ((currentTime - timeOut) > storageNode.getLastHeartBeatTime()) {
                     logger.debug("Timeout occured for SN[" + snId + "], No heart beat since "
                             + timeOut + " milliseconds!");
                     System.out.println("Timeout occured for SN[" + snId + "], No heart beat since "

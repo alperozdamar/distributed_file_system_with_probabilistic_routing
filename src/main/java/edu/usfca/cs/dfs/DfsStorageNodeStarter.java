@@ -64,6 +64,9 @@ public class DfsStorageNodeStarter {
 
             System.out.println(storageNode.toString());
 
+            //InetAddress myLocalIp = InetAddress.getLocalHost();
+            //System.out.println("System IP Address : " + (myLocalIp.getHostAddress()).trim());
+
             messageRouter = new ServerMessageRouter(Constants.STORAGENODE);
             messageRouter.listen(ConfigurationManagerSn.getInstance().getSnPort());
             System.out.println("[SN] Listening for connections on port :"
@@ -83,6 +86,8 @@ public class DfsStorageNodeStarter {
 
             StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
                     .setSnId(storageNode.getSnId())
+                    .setSnIp(ConfigurationManagerSn.getInstance().getMyIp())
+                    .setSnPort(ConfigurationManagerSn.getInstance().getSnPort())
                     .setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes())
                     .setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
