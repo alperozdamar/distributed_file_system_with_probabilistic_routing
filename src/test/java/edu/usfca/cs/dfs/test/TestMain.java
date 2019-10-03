@@ -1,14 +1,13 @@
 package edu.usfca.cs.dfs.test;
 
 import java.io.File;
+import java.util.HashMap;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import edu.usfca.cs.db.DbManager;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.config.Constants;
 
 public class TestMain {
 
@@ -30,6 +29,18 @@ public class TestMain {
     }
 
     @Test
+    public void testGetAllOperationalSNList() {
+        System.out.println("******** TEST START GET ALL SNs *************************");
+        HashMap<Integer, StorageNode> SnMap = SqlManager.getInstance().getAllOperationalSNList();
+
+        for (StorageNode storage : SnMap.values()) {
+            System.out.println(storage.toString());
+        }
+
+        System.out.println("******** TEST END GET ALL SNs **************************");
+    }
+
+    @Test
     public void testGetFreeSpaceInFileSystem() {
 
         long freeSpace = new File("/").getFreeSpace();
@@ -43,20 +54,24 @@ public class TestMain {
         try {
             DbManager.getInstance();
             StorageNode storageNode = SqlManager.getInstance().getSNReplication(1);
-            System.out.println(storageNode.toString());
+            if (storageNode != null)
+                System.out.println(storageNode.toString());
 
             SqlManager.getInstance().insertSNReplication(13, 14, 0);
             SqlManager.getInstance().insertSNReplication(13, 15, 0);
             storageNode = SqlManager.getInstance().getSNReplication(13);
-            System.out.println(storageNode.toString());
+            if (storageNode != null)
+                System.out.println(storageNode.toString());
 
             SqlManager.getInstance().updateSNReplication(13, 14, -1);
             storageNode = SqlManager.getInstance().getSNReplication(13);
-            System.out.println(storageNode.toString());
+            if (storageNode != null)
+                System.out.println(storageNode.toString());
 
             SqlManager.getInstance().deleteSNReplication(13);
             storageNode = SqlManager.getInstance().getSNReplication(13);
-            System.out.println(storageNode.toString());
+            if (storageNode != null)
+                System.out.println(storageNode.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -65,29 +80,29 @@ public class TestMain {
 
     @Test
     public void testDBSnInfoTable() {
-        try {
-            DbManager.getInstance();
-            long totalStorageReq = 0;
-            long totalFreeSpace = 10000;
-            long totalRetrievelReq = 0;
-
-            for (int i = 1; i < 13; i++) {
-                StorageNode storageNode = new StorageNode();
-                storageNode.setSnId(i);
-                storageNode.setSnIp("192.168.1.1");
-                storageNode.setSnPort(7070);
-                storageNode.setTotalFreeSpace(totalFreeSpace + i * 1000);
-                storageNode.setStatus(Constants.STATUS_OPERATIONAL);
-                boolean result = SqlManager.getInstance().insertSN(storageNode);
-
-                Assert.assertTrue(result);
-                System.out.println("SN-" + i + " ,successfully inserted!");
-
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //        try {
+        //            DbManager.getInstance();
+        //            long totalStorageReq = 0;
+        //            long totalFreeSpace = 10000;
+        //            long totalRetrievelReq = 0;
+        //
+        //            for (int i = 1; i < 13; i++) {
+        //                StorageNode storageNode = new StorageNode();
+        //                storageNode.setSnId(i);
+        //                storageNode.setSnIp("192.168.1.1");
+        //                storageNode.setSnPort(7070);
+        //                storageNode.setTotalFreeSpace(totalFreeSpace + i * 1000);
+        //                storageNode.setStatus(Constants.STATUS_OPERATIONAL);
+        //                boolean result = SqlManager.getInstance().insertSN(storageNode);
+        //
+        //                Assert.assertTrue(result);
+        //                System.out.println("SN-" + i + " ,successfully inserted!");
+        //
+        //            }
+        //
+        //        } catch (Exception e) {
+        //            e.printStackTrace();
+        //        }
     }
 
 }

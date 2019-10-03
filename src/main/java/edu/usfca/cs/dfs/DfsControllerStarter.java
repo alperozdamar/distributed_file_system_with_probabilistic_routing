@@ -113,6 +113,12 @@ public class DfsControllerStarter {
         boolean result = SqlManager.getInstance().insertSN(storageNode);
         if (result) {
             storageNodeHashMap.put(heartBeat.getSnId(), storageNode);
+            bloomFilters
+                    .put(heartBeat.getSnId(),
+                         new BloomFilter(ConfigurationManagerController.getInstance()
+                                 .getFilterLength(),
+                                         ConfigurationManagerController.getInstance().getHashTime(),
+                                         ConfigurationManagerController.getInstance().getSeed()));
         } else {
             return false;
         }

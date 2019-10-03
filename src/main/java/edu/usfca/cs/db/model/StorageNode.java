@@ -97,6 +97,8 @@ public class StorageNode {
         stringBuffer.append(this.getSnPort());
         stringBuffer.append("|SnTotalFreeSpace:");
         stringBuffer.append(this.getTotalFreeSpace());
+        stringBuffer.append("|Status:");
+        stringBuffer.append(this.getStatus());
         stringBuffer.append("|");
         stringBuffer.append("replicationId:");
         if (this.replicateSnIdList != null) {

@@ -21,9 +21,10 @@ CREATE TABLE IF NOT EXISTS `sn_information` (
   `snId` int(11) NOT NULL,
   `snIp` varchar(50) NOT NULL,
   `snPort` int(11) NOT NULL,
-  `totalFreeSpace` int(11) NOT NULL,
-  `totalStorageReq` int(11) NOT NULL,
-  `totalRetrievelReq` int(11) NOT NULL,
+  `totalFreeSpace` bigint(40) NOT NULL,
+  `totalStorageReq` bigint(20) NOT NULL,
+  `totalRetrievelReq` bigint(20) NOT NULL,
+  `status` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`snId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

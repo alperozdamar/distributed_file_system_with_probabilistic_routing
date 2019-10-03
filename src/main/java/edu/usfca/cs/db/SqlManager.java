@@ -5,11 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.config.Constants;
 
 /**
  * SqlManager is for querying,inserting or updating sql tables. Main class for all SQL operations.
@@ -62,11 +64,11 @@ public class SqlManager {
                     replicateSnIdList.add(resultSet.getInt("replicaId"));
                     backupIdSnList.add(resultSet.getInt("backupId"));
                 } while (resultSet.next());
+                storageNode.setBackupIdSnList(backupIdSnList);
+                storageNode.setReplicateSnIdList(replicateSnIdList);
             } else {
                 logger.debug("Storage Node can not be found in DB.");
             }
-            storageNode.setBackupIdSnList(backupIdSnList);
-            storageNode.setReplicateSnIdList(replicateSnIdList);
             selectStatement.close();
             resultSet.close();
         } catch (SQLException e) {
@@ -367,6 +369,73 @@ public class SqlManager {
         }
         return result;
 
+    }
+
+    public HashMap<Integer, StorageNode> getAllOperationalSNList() {
+        HashMap<Integer, StorageNode> availableStorageNodeMap = new HashMap<Integer, StorageNode>();
+        ArrayList<Integer> replicateSnIdList = null;
+        ArrayList<Integer> backupIdSnList = null;
+        Connection connection = null;
+        String sql = "select * from sn_information sn, sn_replication sr where status = '"
+                + Constants.STATUS_OPERATIONAL + "' and sn.snId=sr.snId";
+        PreparedStatement selectStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            selectStatement = connection.prepareStatement(sql);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Getting ALL OPERATIONAL SNs from db.");
+            }
+            ResultSet resultSet = selectStatement.executeQuery();
+            if (resultSet.next()) {
+                do {
+                    int snId = resultSet.getInt("snId");
+                    StorageNode storageNode = availableStorageNodeMap.get(snId);
+                    if (storageNode == null) {
+                        storageNode = new StorageNode();
+                        storageNode.setSnId(snId);
+                        storageNode.setStatus(resultSet.getString("status"));
+                        storageNode.setSnIp(resultSet.getString("snIP"));
+                        storageNode.setSnPort(resultSet.getInt("snPort"));
+                        storageNode.setTotalFreeSpace(resultSet.getLong("totalFreeSpace"));
+                        storageNode.setTotalStorageRequest(resultSet.getInt("totalStorageReq"));
+                        storageNode.setTotalRetrievelRequest(resultSet.getInt("totalRetrievelReq"));
+                        replicateSnIdList = new ArrayList<>();
+                        backupIdSnList = new ArrayList<>();
+                        replicateSnIdList.add(resultSet.getInt("replicaId"));
+                        backupIdSnList.add(resultSet.getInt("backupId"));
+                        storageNode.setBackupIdSnList(backupIdSnList);
+                        storageNode.setReplicateSnIdList(replicateSnIdList);
+                        availableStorageNodeMap.put(storageNode.getSnId(), storageNode);
+                    } else {
+                        storageNode.getBackupIdSnList().add(resultSet.getInt("backupId"));
+                        storageNode.getReplicateSnIdList().add(resultSet.getInt("replicaId"));
+                    }
+
+                } while (resultSet.next());
+            } else {
+                logger.debug("Storage Node can not be found in DB.");
+            }
+            selectStatement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (selectStatement != null)
+                    selectStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return availableStorageNodeMap;
     }
 
 }
