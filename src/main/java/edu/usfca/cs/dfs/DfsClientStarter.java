@@ -1,9 +1,9 @@
 package edu.usfca.cs.dfs;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,17 +24,29 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class DfsClientStarter {
 
-    private static Logger          logger                      = LogManager
-            .getLogger(DfsClientStarter.class);
-    /**
-     * Every Client request will be sent by a seperate Thread.
-     */
-    private static ExecutorService threadPoolForClientRequests = Executors.newFixedThreadPool(30);
+    private static Logger           logger    = LogManager.getLogger(DfsClientStarter.class);
 
-    public DfsClientStarter() {
+    private static DfsClientStarter instance;
+    private final static Object     classLock = new Object();
+    private List<ByteString>        chunks    = new ArrayList<ByteString>();
+
+    private DfsClientStarter() {
     }
 
-    private static void listStorageNode(Bootstrap bootstrap) throws InterruptedException {
+    /**
+     * Singleton: getInstance
+     * @return
+     */
+    public static DfsClientStarter getInstance() {
+        synchronized (classLock) {
+            if (instance == null) {
+                instance = new DfsClientStarter();
+            }
+            return instance;
+        }
+    }
+
+    private static void listStorageNode(Bootstrap bootstrap) {
         System.out.println("Client will be connected to Controller<"
                 + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
                 + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
@@ -49,7 +61,7 @@ public class DfsClientStarter {
         Channel chan = cf.channel();
         chan.write(msgWrapper);
         chan.flush();
-        chan.closeFuture().sync();
+        chan.closeFuture().syncUninterruptibly();
     }
 
     private static void storeFile(Bootstrap bootstrap) {
@@ -87,11 +99,10 @@ public class DfsClientStarter {
                 .newBuilder().setStoreChunkMsg(storeChunkMsg).build();
         Channel chan = cf.channel();
         ChannelFuture write = chan.write(msgWrapper);
-        chan.flush();
-        write.syncUninterruptibly();
+        chan.flush().closeFuture().syncUninterruptibly();
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         ConfigurationManagerClient.getInstance();
         System.out.println("Client is started with these parameters: "
                 + ConfigurationManagerClient.getInstance().toString());

@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.StorageMessages.HeartBeat;
+import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
 import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
@@ -25,13 +26,23 @@ public class DfsControllerStarter {
     private HashMap<Integer, ScheduledFuture<?>> keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
     private HashMap<Integer, StorageNode>        storageNodeHashMap           = new HashMap<Integer, StorageNode>();
 
-    private DfsControllerStarter() {
+    private HashMap<Integer, BloomFilter>        bloomFilters                 = new HashMap<Integer, BloomFilter>();
 
+    private DfsControllerStarter() {
+        //TODO: Create bloom filter when add storage node to controller
+        for (int i = 0; i < 12; i++) {
+            bloomFilters
+                    .put(i + 1,
+                         new BloomFilter(ConfigurationManagerController.getInstance()
+                                 .getFilterLength(),
+                                         ConfigurationManagerController.getInstance().getHashTime(),
+                                         ConfigurationManagerController.getInstance().getSeed()));
+        }
     }
 
     /**
      * Singleton
-     *  
+     *
      * @return
      */
     public static DfsControllerStarter getInstance() {
@@ -80,7 +91,6 @@ public class DfsControllerStarter {
     }
 
     public boolean addStorageNode(HeartBeat heartBeat) {
-
         StorageNode storageNode = new StorageNode(heartBeat.getSnId(),
                                                   null,
                                                   null,
@@ -88,16 +98,21 @@ public class DfsControllerStarter {
                                                   heartBeat.getSnPort(),
                                                   heartBeat.getTotalFreeSpaceInBytes(),
                                                   Constants.STATUS_OPERATIONAL);
-
         boolean result = SqlManager.getInstance().insertSN(storageNode);
-
         if (result) {
             storageNodeHashMap.put(heartBeat.getSnId(), storageNode);
         } else {
             return false;
         }
-
         return result;
+    }
+
+    public HashMap<Integer, BloomFilter> getBloomFilters() {
+        return bloomFilters;
+    }
+
+    public void setBloomFilters(HashMap<Integer, BloomFilter> bloomFilters) {
+        this.bloomFilters = bloomFilters;
     }
 
 }
