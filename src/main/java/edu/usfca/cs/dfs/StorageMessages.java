@@ -34,7 +34,12 @@ public final class StorageMessages {
     int getChunkId();
 
     /**
-     * <code>bytes data = 3;</code>
+     * <code>int32 chunkSize = 3;</code>
+     */
+    int getChunkSize();
+
+    /**
+     * <code>bytes data = 4;</code>
      */
     com.google.protobuf.ByteString getData();
   }
@@ -96,7 +101,12 @@ public final class StorageMessages {
               chunkId_ = input.readInt32();
               break;
             }
-            case 26: {
+            case 24: {
+
+              chunkSize_ = input.readInt32();
+              break;
+            }
+            case 34: {
 
               data_ = input.readBytes();
               break;
@@ -176,10 +186,19 @@ public final class StorageMessages {
       return chunkId_;
     }
 
-    public static final int DATA_FIELD_NUMBER = 3;
+    public static final int CHUNKSIZE_FIELD_NUMBER = 3;
+    private int chunkSize_;
+    /**
+     * <code>int32 chunkSize = 3;</code>
+     */
+    public int getChunkSize() {
+      return chunkSize_;
+    }
+
+    public static final int DATA_FIELD_NUMBER = 4;
     private com.google.protobuf.ByteString data_;
     /**
-     * <code>bytes data = 3;</code>
+     * <code>bytes data = 4;</code>
      */
     public com.google.protobuf.ByteString getData() {
       return data_;
@@ -205,8 +224,11 @@ public final class StorageMessages {
       if (chunkId_ != 0) {
         output.writeInt32(2, chunkId_);
       }
+      if (chunkSize_ != 0) {
+        output.writeInt32(3, chunkSize_);
+      }
       if (!data_.isEmpty()) {
-        output.writeBytes(3, data_);
+        output.writeBytes(4, data_);
       }
       unknownFields.writeTo(output);
     }
@@ -224,9 +246,13 @@ public final class StorageMessages {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(2, chunkId_);
       }
+      if (chunkSize_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, chunkSize_);
+      }
       if (!data_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, data_);
+          .computeBytesSize(4, data_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -247,6 +273,8 @@ public final class StorageMessages {
           .equals(other.getFileName())) return false;
       if (getChunkId()
           != other.getChunkId()) return false;
+      if (getChunkSize()
+          != other.getChunkSize()) return false;
       if (!getData()
           .equals(other.getData())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
@@ -264,6 +292,8 @@ public final class StorageMessages {
       hash = (53 * hash) + getFileName().hashCode();
       hash = (37 * hash) + CHUNKID_FIELD_NUMBER;
       hash = (53 * hash) + getChunkId();
+      hash = (37 * hash) + CHUNKSIZE_FIELD_NUMBER;
+      hash = (53 * hash) + getChunkSize();
       hash = (37 * hash) + DATA_FIELD_NUMBER;
       hash = (53 * hash) + getData().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
@@ -403,6 +433,8 @@ public final class StorageMessages {
 
         chunkId_ = 0;
 
+        chunkSize_ = 0;
+
         data_ = com.google.protobuf.ByteString.EMPTY;
 
         return this;
@@ -433,6 +465,7 @@ public final class StorageMessages {
         edu.usfca.cs.dfs.StorageMessages.StoreChunk result = new edu.usfca.cs.dfs.StorageMessages.StoreChunk(this);
         result.fileName_ = fileName_;
         result.chunkId_ = chunkId_;
+        result.chunkSize_ = chunkSize_;
         result.data_ = data_;
         onBuilt();
         return result;
@@ -488,6 +521,9 @@ public final class StorageMessages {
         }
         if (other.getChunkId() != 0) {
           setChunkId(other.getChunkId());
+        }
+        if (other.getChunkSize() != 0) {
+          setChunkSize(other.getChunkSize());
         }
         if (other.getData() != com.google.protobuf.ByteString.EMPTY) {
           setData(other.getData());
@@ -616,15 +652,41 @@ public final class StorageMessages {
         return this;
       }
 
+      private int chunkSize_ ;
+      /**
+       * <code>int32 chunkSize = 3;</code>
+       */
+      public int getChunkSize() {
+        return chunkSize_;
+      }
+      /**
+       * <code>int32 chunkSize = 3;</code>
+       */
+      public Builder setChunkSize(int value) {
+        
+        chunkSize_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 chunkSize = 3;</code>
+       */
+      public Builder clearChunkSize() {
+        
+        chunkSize_ = 0;
+        onChanged();
+        return this;
+      }
+
       private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>bytes data = 3;</code>
+       * <code>bytes data = 4;</code>
        */
       public com.google.protobuf.ByteString getData() {
         return data_;
       }
       /**
-       * <code>bytes data = 3;</code>
+       * <code>bytes data = 4;</code>
        */
       public Builder setData(com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -636,7 +698,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>bytes data = 3;</code>
+       * <code>bytes data = 4;</code>
        */
       public Builder clearData() {
         
@@ -9396,36 +9458,37 @@ public final class StorageMessages {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\026storage_messages.proto\"=\n\nStoreChunk\022\020" +
-      "\n\010fileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\022\014\n\004dat" +
-      "a\030\003 \001(\014\"6\n\022StoreChunkLocation\022 \n\006snInfo\030" +
-      "\001 \003(\0132\020.StorageNodeInfo\"5\n\022StoreChunkRes" +
-      "ponse\022\017\n\007chunkId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\222" +
-      "\001\n\tHeartBeat\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t" +
-      "\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFreeSpaceInByte" +
-      "s\030\004 \001(\003\022\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025" +
-      "numOfRetrievelRequest\030\006 \001(\005\"1\n\021HeartBeat" +
-      "Response\022\014\n\004snId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\006" +
-      "\n\004List\"0\n\014ListResponse\022 \n\006snInfo\030\001 \003(\0132\020" +
-      ".StorageNodeInfo\" \n\014RetrieveFile\022\020\n\010file" +
-      "Name\030\001 \001(\t\"C\n\024RetrieveFileResponse\022+\n\021sn" +
-      "InfoOfChunkZero\030\001 \001(\0132\020.StorageNodeInfo\"" +
-      "\230\001\n\017StorageNodeInfo\022\014\n\004snId\030\001 \001(\005\022\014\n\004snI" +
-      "p\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFreeSpac" +
-      "eInBytes\030\004 \001(\003\022\033\n\023numOfStorageMessage\030\005 " +
-      "\001(\005\022\035\n\025numOfRetrievelRequest\030\006 \001(\005\"\305\003\n\025S" +
-      "torageMessageWrapper\022$\n\rstoreChunkMsg\030\001 " +
-      "\001(\0132\013.StoreChunkH\000\022(\n\017retrieveFileMsg\030\002 " +
-      "\001(\0132\r.RetrieveFileH\000\022\"\n\014heartBeatMsg\030\003 \001" +
-      "(\0132\n.HeartBeatH\000\022/\n\021HeartBeatResponse\030\004 " +
-      "\001(\0132\022.HeartBeatResponseH\000\022\025\n\004list\030\005 \001(\0132" +
-      "\005.ListH\000\022%\n\014listResponse\030\006 \001(\0132\r.ListRes" +
-      "ponseH\000\0221\n\022storeChunkLocation\030\007 \001(\0132\023.St" +
-      "oreChunkLocationH\000\0221\n\022storeChunkResponse" +
-      "\030\010 \001(\0132\023.StoreChunkResponseH\000\022%\n\014retriev" +
-      "eFile\030\t \001(\0132\r.RetrieveFileH\000\0225\n\024retrieve" +
-      "FileResponse\030\n \001(\0132\025.RetrieveFileRespons" +
-      "eH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb\006proto3"
+      "\n\026storage_messages.proto\"P\n\nStoreChunk\022\020" +
+      "\n\010fileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\022\021\n\tchu" +
+      "nkSize\030\003 \001(\005\022\014\n\004data\030\004 \001(\014\"6\n\022StoreChunk" +
+      "Location\022 \n\006snInfo\030\001 \003(\0132\020.StorageNodeIn" +
+      "fo\"5\n\022StoreChunkResponse\022\017\n\007chunkId\030\001 \001(" +
+      "\005\022\016\n\006status\030\002 \001(\010\"\222\001\n\tHeartBeat\022\014\n\004snId\030" +
+      "\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025t" +
+      "otalFreeSpaceInBytes\030\004 \001(\003\022\033\n\023numOfStora" +
+      "geMessage\030\005 \001(\005\022\035\n\025numOfRetrievelRequest" +
+      "\030\006 \001(\005\"1\n\021HeartBeatResponse\022\014\n\004snId\030\001 \001(" +
+      "\005\022\016\n\006status\030\002 \001(\010\"\006\n\004List\"0\n\014ListRespons" +
+      "e\022 \n\006snInfo\030\001 \003(\0132\020.StorageNodeInfo\" \n\014R" +
+      "etrieveFile\022\020\n\010fileName\030\001 \001(\t\"C\n\024Retriev" +
+      "eFileResponse\022+\n\021snInfoOfChunkZero\030\001 \001(\013" +
+      "2\020.StorageNodeInfo\"\230\001\n\017StorageNodeInfo\022\014" +
+      "\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001" +
+      "(\005\022\035\n\025totalFreeSpaceInBytes\030\004 \001(\003\022\033\n\023num" +
+      "OfStorageMessage\030\005 \001(\005\022\035\n\025numOfRetrievel" +
+      "Request\030\006 \001(\005\"\305\003\n\025StorageMessageWrapper\022" +
+      "$\n\rstoreChunkMsg\030\001 \001(\0132\013.StoreChunkH\000\022(\n" +
+      "\017retrieveFileMsg\030\002 \001(\0132\r.RetrieveFileH\000\022" +
+      "\"\n\014heartBeatMsg\030\003 \001(\0132\n.HeartBeatH\000\022/\n\021H" +
+      "eartBeatResponse\030\004 \001(\0132\022.HeartBeatRespon" +
+      "seH\000\022\025\n\004list\030\005 \001(\0132\005.ListH\000\022%\n\014listRespo" +
+      "nse\030\006 \001(\0132\r.ListResponseH\000\0221\n\022storeChunk" +
+      "Location\030\007 \001(\0132\023.StoreChunkLocationH\000\0221\n" +
+      "\022storeChunkResponse\030\010 \001(\0132\023.StoreChunkRe" +
+      "sponseH\000\022%\n\014retrieveFile\030\t \001(\0132\r.Retriev" +
+      "eFileH\000\0225\n\024retrieveFileResponse\030\n \001(\0132\025." +
+      "RetrieveFileResponseH\000B\005\n\003msgB\022\n\020edu.usf" +
+      "ca.cs.dfsb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9436,7 +9499,7 @@ public final class StorageMessages {
     internal_static_StoreChunk_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StoreChunk_descriptor,
-        new java.lang.String[] { "FileName", "ChunkId", "Data", });
+        new java.lang.String[] { "FileName", "ChunkId", "ChunkSize", "Data", });
     internal_static_StoreChunkLocation_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_StoreChunkLocation_fieldAccessorTable = new

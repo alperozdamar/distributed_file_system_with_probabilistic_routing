@@ -4,7 +4,8 @@ option java_package = "edu.usfca.cs.dfs";
 message StoreChunk {
     string fileName = 1;
     int32 chunkId = 2;
-    bytes data = 3;
+    int32 chunkSize = 3;
+    bytes data = 4;
 }
 
 message StoreChunkLocation {

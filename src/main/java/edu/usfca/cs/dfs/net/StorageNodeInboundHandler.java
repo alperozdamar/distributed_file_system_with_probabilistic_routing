@@ -43,30 +43,33 @@ public class StorageNodeInboundHandler extends InboundHandler {
         /* Writable status of the channel changed */
     }
 
+    private void handleStoreChunkMsg(ChannelHandlerContext ctx, StorageMessages.StoreChunk storeChunkMsg){
+
+        System.out.println("[SN]This is Store Chunk Message...");
+        System.out.println("[SN]Storing file name: " + storeChunkMsg.getFileName());
+        System.out.println("[SN]Storing chunk Id: " + storeChunkMsg.getChunkId());
+
+        //Response to client, first node only
+        System.out.println("[SN]Send back message");
+
+        StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse.newBuilder()
+                .setChunkId(storeChunkMsg.getChunkId()).setStatus(true).build();
+
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setStoreChunkResponse(responseMsg).build();
+        Channel chan = ctx.channel();
+        ChannelFuture write = chan.write(msgWrapper);
+        chan.flush();
+        write.addListener(ChannelFutureListener.CLOSE);
+
+        DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalStorageRequest();
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         System.out.println("[SN]Received sth!");
         if (msg.hasStoreChunkMsg()) {
-            System.out.println("[SN]This is Store Chunk Message...");
-
-            StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
-            System.out.println("[SN]Storing file name: " + storeChunkMsg.getFileName());
-
-            ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder()
-                    .setFileName("my_file.txt").setChunkId(3).setData(data).build();
-
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                    .newBuilder().setStoreChunkMsg(responseMsg).build();
-            System.out.println("[SN]Send back message");
-
-            Channel chan = ctx.channel();
-            ChannelFuture write = chan.write(msgWrapper);
-            chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
-
-            DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalStorageRequest();
-
+            handleStoreChunkMsg(ctx, msg.getStoreChunkMsg());
         } else if (msg.hasHeartBeatResponse()) {
             StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
             System.out.println("[SN] Heart Beat Response came from Controller... from me. SN-Id:"

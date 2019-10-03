@@ -56,6 +56,7 @@ public class ControllerInboundHandler extends InboundHandler {
         for (int i = 1; i <= 12; i++) {
             //TODO: Check if SN have enough storage
             if (i % 3 == 1) {
+                //Return 3 continuous nodes
                 for (int j = i; j < i + 3; j++) {
                     DfsControllerStarter.getInstance().getBloomFilters().get(i)
                             .put((fileName + chunkId).getBytes());

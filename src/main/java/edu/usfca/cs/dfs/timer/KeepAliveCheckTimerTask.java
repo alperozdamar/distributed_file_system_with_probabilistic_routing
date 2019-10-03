@@ -32,12 +32,11 @@ public class KeepAliveCheckTimerTask implements Runnable {
             if (storageNode != null) {
                 long currentTime = System.currentTimeMillis();
 
-                System.out.println("SnId :" + snId + ",LastHeartBeatTime:"
-                        + storageNode.getLastHeartBeatTime() + ",currenTime:" + currentTime
-                        + ",timeout:" + timeOut);
-                System.out.println("(currentTime - timeOut) :" + (currentTime - timeOut));
-
                 if (logger.isDebugEnabled()) {
+                    logger.info("SnId :" + snId + ",LastHeartBeatTime:"
+                            + storageNode.getLastHeartBeatTime() + ",currenTime:" + currentTime
+                            + ",timeout:" + timeOut);
+                    logger.info("(currentTime - timeOut) :" + (currentTime - timeOut));
                     logger.debug("CurrenTime :" + currentTime);
                     logger.debug("LastHeartBeatTime:" + storageNode.getLastHeartBeatTime());
                     logger.debug("Timeout:" + timeOut);
@@ -45,8 +44,6 @@ public class KeepAliveCheckTimerTask implements Runnable {
                 }
                 if ((currentTime - timeOut) > storageNode.getLastHeartBeatTime()) {
                     logger.debug("Timeout occured for SN[" + snId + "], No heart beat since "
-                            + timeOut + " milliseconds!");
-                    System.out.println("Timeout occured for SN[" + snId + "], No heart beat since "
                             + timeOut + " milliseconds!");
                     storageNode.setStatus(Constants.STATUS_DOWN);
                     SqlManager.getInstance().updateSNInformation(snId, Constants.STATUS_DOWN);
@@ -64,7 +61,6 @@ public class KeepAliveCheckTimerTask implements Runnable {
             }
         } catch (Exception e) {
             logger.error("Exception occured in HeartBeat:", e);
-            System.err.println(e);
         }
     }
 

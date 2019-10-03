@@ -98,7 +98,7 @@ public class DfsClientStarter {
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setStoreChunkMsg(storeChunkMsg).build();
         Channel chan = cf.channel();
-        ChannelFuture write = chan.write(msgWrapper);
+        chan.write(msgWrapper);
         chan.flush().closeFuture().syncUninterruptibly();
     }
 
