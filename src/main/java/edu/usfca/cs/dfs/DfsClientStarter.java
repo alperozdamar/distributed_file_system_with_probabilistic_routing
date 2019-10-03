@@ -1,11 +1,9 @@
 package edu.usfca.cs.dfs;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.ByteString;
 
@@ -35,11 +33,14 @@ public class DfsClientStarter {
         System.out.println("Client will be connected to Controller<"
                 + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
                 + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
-        ChannelFuture cf = Utils.connect(bootstrap, ConfigurationManagerClient.getInstance().getControllerIp(),
-                ConfigurationManagerClient.getInstance().getControllerPort());
+        ChannelFuture cf = Utils
+                .connect(bootstrap,
+                         ConfigurationManagerClient.getInstance().getControllerIp(),
+                         ConfigurationManagerClient.getInstance().getControllerPort());
         //Create LIST message
         StorageMessages.List listMsm = StorageMessages.List.newBuilder().build();
-        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setList(listMsm).build();
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setList(listMsm).build();
         Channel chan = cf.channel();
         chan.write(msgWrapper);
         chan.flush();
@@ -47,8 +48,10 @@ public class DfsClientStarter {
     }
 
     private static void storeFile(Bootstrap bootstrap) {
-        ChannelFuture cf = Utils.connect(bootstrap, ConfigurationManagerClient.getInstance().getControllerIp(),
-                ConfigurationManagerClient.getInstance().getControllerPort());
+        ChannelFuture cf = Utils
+                .connect(bootstrap,
+                         ConfigurationManagerClient.getInstance().getControllerIp(),
+                         ConfigurationManagerClient.getInstance().getControllerPort());
         Scanner scanner = new Scanner(System.in);
         //  prompt for command.
         System.out.print("Enter your fileName and folder:");
@@ -64,19 +67,19 @@ public class DfsClientStarter {
         System.out.format("The size of the file: %d bytes", fileSize);
         System.out.format("\nThe size of chunks: %d bytes", chunkSize);
         long numOfChunks = (long) Math.ceil((float) fileSize / (float) chunkSize);
-        System.out.format("\nNumber Of Chunks is %d for file size:%d bytes",
-                numOfChunks,
-                fileSize);
+        System.out.format("\nNumber Of Chunks is %d for file size:%d bytes", numOfChunks, fileSize);
         long lastChunkByteSize = fileSize % chunkSize;
         System.out.format("\nlastChunkByteSize is %d for file size:%d bytes",
-                lastChunkByteSize,
-                fileSize);
+                          lastChunkByteSize,
+                          fileSize);
 
         System.out.println("FileName:" + file.getName());
 
         ByteString data = ByteString.copyFromUtf8("Hello World!");
-        StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName(file.getName()).setChunkId(88).setData(data).build();
-        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
+        StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
+                .setFileName(file.getName()).setChunkId(88).setData(data).build();
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setStoreChunkMsg(storeChunkMsg).build();
         Channel chan = cf.channel();
         ChannelFuture write = chan.write(msgWrapper);
         chan.flush();
@@ -98,7 +101,6 @@ public class DfsClientStarter {
 
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-
 
         while (true) {
             // create a scanner so we can read the command-line input
