@@ -9,12 +9,14 @@ import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.dfs.DfsControllerStarter;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
+import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 
 public class TimerManager {
 
     private static Logger                     logger    = LogManager.getLogger(TimerManager.class);
-    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(ConfigurationManagerSn.getInstance().getThreadNumOfScheduledPoolExecutor());
+    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(ConfigurationManagerSn
+            .getInstance().getThreadNumOfScheduledPoolExecutor());
     private static final TimerManager         instance  = new TimerManager();
 
     public static TimerManager getInstance() {
@@ -32,32 +34,35 @@ public class TimerManager {
     }
 
     @SuppressWarnings("unchecked")
-    public void scheduleKeepAliveCheckTimer(DfsControllerStarter dfsControllerStarter, int snId,
-                                            int timeout) {
-        ScheduledFuture timerHandle = scheduler.schedule(new KeepAliveCheckTimerTask(dfsControllerStarter,
-                                                                                     snId,
-                                                                                     timeout),
-                                                         timeout,
-                                                         TimeUnit.MILLISECONDS);
-        dfsControllerStarter.setKeepAliveCheckTimerHandle(timerHandle, snId);
+    public void scheduleKeepAliveCheckTimer(int snId) {
+        ScheduledFuture timerHandle = scheduler
+                .scheduleAtFixedRate(new KeepAliveCheckTimerTask(snId),
+                                     5,
+                                     ConfigurationManagerController.getInstance()
+                                             .getKeepAlivePeriodInMilliseconds(),
+                                     TimeUnit.MILLISECONDS);
+        DfsControllerStarter.getInstance().setKeepAliveCheckTimerHandle(timerHandle, snId);
     }
 
     @SuppressWarnings("unchecked")
-    public void cancelKeepAliveCheckTimer(DfsControllerStarter dfsControllerStarter, int snId) {
-        ScheduledFuture timerHandle = dfsControllerStarter.getKeepAliveCheckTimerHandle(snId);
+    public void cancelKeepAliveCheckTimer(int snId) {
+        ScheduledFuture timerHandle = DfsControllerStarter.getInstance()
+                .getKeepAliveCheckTimerHandle(snId);
         if (timerHandle != null) {
             timerHandle.cancel(true);
-            dfsControllerStarter.setKeepAliveCheckTimerHandle(null, snId);
+            DfsControllerStarter.getInstance().setKeepAliveCheckTimerHandle(null, snId);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public void scheduleHeartBeatTimer(DfsStorageNodeStarter dfsStorageNodeStarter, int timeout) {
-        ScheduledFuture timerHandle = scheduler.schedule(new HeartBeatSenderTimerTask(dfsStorageNodeStarter,
-                                                                                      timeout),
-                                                         timeout,
-                                                         TimeUnit.MILLISECONDS);
-        dfsStorageNodeStarter.setHeartBeatSenderTimerHandle(timerHandle);
+    public void scheduleHeartBeatTimer() {
+        ScheduledFuture timerHandle = scheduler
+                .scheduleAtFixedRate(new HeartBeatSenderTimerTask(),
+                                     10,
+                                     ConfigurationManagerSn.getInstance()
+                                             .getHeartBeatPeriodInMilliseconds(),
+                                     TimeUnit.MILLISECONDS);
+        DfsStorageNodeStarter.getInstance().setHeartBeatSenderTimerHandle(timerHandle);
     }
 
     @SuppressWarnings("unchecked")

@@ -214,29 +214,70 @@ public class SqlManager {
         return result;
     }
 
-    public synchronized boolean insertSN(int snId, String snIp, int snPort, long totalFreeSpace,
-                                         long totalStorageReq, long totalRetrievelReq) {
+    //    public synchronized boolean insertSN(int snId, String snIp, int snPort, long totalFreeSpace,
+    //                                         long totalStorageReq, long totalRetrievelReq) {
+    //        boolean result = false;
+    //        Connection connection = null;
+    //        if (logger.isDebugEnabled()) {
+    //            logger.debug("snId:" + snId);
+    //            logger.debug("snIp:" + snIp);
+    //            logger.debug("snPort:" + snPort);
+    //            logger.debug("totalFreeSpace:" + totalFreeSpace);
+    //            logger.debug("totalStorageReq:" + totalStorageReq);
+    //            logger.debug("totalRetrievelReq:" + totalRetrievelReq);
+    //        }
+    //        String sql = SqlConstants.INSERT_SN;
+    //        PreparedStatement insertStatement = null;
+    //        try {
+    //            connection = DbManager.getInstance().getBds().getConnection();
+    //            insertStatement = connection.prepareStatement(sql);
+    //            insertStatement.setInt(1, snId);
+    //            insertStatement.setString(2, snIp);
+    //            insertStatement.setInt(3, snPort);
+    //            insertStatement.setLong(4, totalFreeSpace);
+    //            insertStatement.setLong(5, totalStorageReq);
+    //            insertStatement.setLong(6, totalRetrievelReq);
+    //            insertStatement.execute();
+    //            result = true;
+    //        } catch (SQLException e) {
+    //            logger.error("Error:", e);
+    //            e.printStackTrace();
+    //            return false;
+    //        } catch (Exception e) {
+    //            logger.error("Exception occured:", e);
+    //            e.printStackTrace();
+    //            return false;
+    //        } finally {
+    //            try {
+    //                if (insertStatement != null)
+    //                    insertStatement.close();
+    //                if (connection != null)
+    //                    connection.close();
+    //            } catch (Exception e) {
+    //                e.printStackTrace();
+    //            }
+    //        }
+    //        return result;
+    //    }
+
+    public synchronized boolean insertSN(StorageNode storageNode) {
         boolean result = false;
         Connection connection = null;
         if (logger.isDebugEnabled()) {
-            logger.debug("snId:" + snId);
-            logger.debug("snIp:" + snIp);
-            logger.debug("snPort:" + snPort);
-            logger.debug("totalFreeSpace:" + totalFreeSpace);
-            logger.debug("totalStorageReq:" + totalStorageReq);
-            logger.debug("totalRetrievelReq:" + totalRetrievelReq);
+            logger.debug(storageNode.toString());
         }
         String sql = SqlConstants.INSERT_SN;
         PreparedStatement insertStatement = null;
         try {
             connection = DbManager.getInstance().getBds().getConnection();
             insertStatement = connection.prepareStatement(sql);
-            insertStatement.setInt(1, snId);
-            insertStatement.setString(2, snIp);
-            insertStatement.setInt(3, snPort);
-            insertStatement.setLong(4, totalFreeSpace);
-            insertStatement.setLong(5, totalStorageReq);
-            insertStatement.setLong(6, totalRetrievelReq);
+            insertStatement.setInt(1, storageNode.getSnId());
+            insertStatement.setString(2, storageNode.getSnIp());
+            insertStatement.setInt(3, storageNode.getSnPort());
+            insertStatement.setLong(4, storageNode.getTotalFreeSpace());
+            insertStatement.setLong(5, storageNode.getTotalStorageRequest());
+            insertStatement.setLong(6, storageNode.getTotalRetrievelRequest());
+            insertStatement.setString(7, storageNode.getStatus());
             insertStatement.execute();
             result = true;
         } catch (SQLException e) {
@@ -258,6 +299,74 @@ public class SqlManager {
             }
         }
         return result;
+    }
+
+    public boolean deleteAllSNs() {
+        boolean result = false;
+        Connection connection = null;
+        String sql = SqlConstants.DELETE_ALL_SNS;
+        PreparedStatement deleteStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            deleteStatement = connection.prepareStatement(sql);
+            deleteStatement.execute();
+            result = true;
+            System.out.println("All SN data is cleared from DB.");
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (deleteStatement != null)
+                    deleteStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+
+    }
+
+    public boolean updateSNInformation(int snId, String newStatus) {
+        boolean result = false;
+        Connection connection = null;
+        String sql = SqlConstants.UPDATE_SN;
+        PreparedStatement updateStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            updateStatement = connection.prepareStatement(sql);
+            updateStatement.setString(1, newStatus);
+            updateStatement.setInt(2, snId);
+            updateStatement.execute();
+            result = true;
+            System.out.println("SN info is updated from DB.");
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (updateStatement != null)
+                    updateStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+
     }
 
 }

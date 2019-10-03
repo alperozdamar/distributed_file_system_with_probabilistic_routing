@@ -1,7 +1,11 @@
 package edu.usfca.cs.dfs;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ScheduledFuture;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
@@ -9,6 +13,7 @@ import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
 import edu.usfca.cs.dfs.net.ServerMessageRouter;
+import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -19,6 +24,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class DfsStorageNodeStarter {
 
+    private static Logger                logger    = LogManager
+            .getLogger(DfsStorageNodeStarter.class);
     private static DfsStorageNodeStarter instance;
     private final static Object          classLock = new Object();
     ServerMessageRouter                  messageRouter;
@@ -51,7 +58,9 @@ public class DfsStorageNodeStarter {
                                           null,
                                           null,
                                           "localhost",
-                                          ConfigurationManagerSn.getInstance().getSnPort());
+                                          ConfigurationManagerSn.getInstance().getSnPort(),
+                                          calculateTotalFreeSpaceInBytes(),
+                                          Constants.STATUS_OPERATIONAL);
 
             System.out.println(storageNode.toString());
 
@@ -62,21 +71,30 @@ public class DfsStorageNodeStarter {
             MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
             EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-            Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE,
-                                                                                                            true).handler(pipeline);
+            Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                    .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
 
             /**
              * SN will connect to the Controller
              */
-            channelFuture = bootstrap.connect(ConfigurationManagerClient.getInstance().getControllerIp(),
-                                              ConfigurationManagerClient.getInstance().getControllerPort());
+            channelFuture = bootstrap
+                    .connect(ConfigurationManagerClient.getInstance().getControllerIp(),
+                             ConfigurationManagerClient.getInstance().getControllerPort());
 
-            StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder().setSnId(storageNode.getSnId()).setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes()).setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setHeartBeatMsg(heartBeat).build();
+            StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
+                    .setSnId(storageNode.getSnId())
+                    .setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes())
+                    .setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setHeartBeatMsg(heartBeat).build();
             Channel chan = channelFuture.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
             write.syncUninterruptibly();
+
+            System.out.println("[SN] Creating Timer for Heart Beats:" + storageNode.getSnId());
+            TimerManager.getInstance().scheduleHeartBeatTimer();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,6 +104,10 @@ public class DfsStorageNodeStarter {
     public static void main(String[] args) throws IOException {
         DfsStorageNodeStarter.getInstance();
         instance.start();
+    }
+
+    public long calculateTotalFreeSpaceInBytes() {
+        return new File("/").getFreeSpace();
     }
 
     public ScheduledFuture<?> getHeartBeatSenderTimerHandle() {

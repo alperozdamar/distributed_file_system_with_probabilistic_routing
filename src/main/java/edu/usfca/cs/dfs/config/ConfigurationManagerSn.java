@@ -4,12 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Singleton Configuration Manager for Project1.
  * 
  */
 public class ConfigurationManagerSn {
 
+    private static Logger                 logger                           = LogManager
+            .getLogger(ConfigurationManagerSn.class);
     public static final String            PROJECT_1_SN_CONFIG_FILE         = "config"
             + File.separator + "project1_sn.properties";
     private static ConfigurationManagerSn instance;
@@ -63,7 +68,8 @@ public class ConfigurationManagerSn {
 
             controllerIp = props.getProperty("controllerIp");
             if (controllerIp == null) {
-                System.out.println("controllerIp property is Null! Please Check configuration file.");
+                System.out
+                        .println("controllerIp property is Null! Please Check configuration file.");
             } else {
                 controllerIp = controllerIp.trim();
             }
@@ -78,7 +84,8 @@ public class ConfigurationManagerSn {
             }
 
             try {
-                String threadNumString = props.getProperty("threadNumOfScheduledPoolExecutor").trim();
+                String threadNumString = props.getProperty("threadNumOfScheduledPoolExecutor")
+                        .trim();
                 threadNumOfScheduledPoolExecutor = (threadNumString == null) ? 20
                         : Integer.parseInt(threadNumString);
             } catch (Exception e) {
@@ -87,7 +94,8 @@ public class ConfigurationManagerSn {
             }
 
             try {
-                String heartBeatPeriodInMillisecondsString = props.getProperty("heartBeatPeriodInMilliseconds").trim();
+                String heartBeatPeriodInMillisecondsString = props
+                        .getProperty("heartBeatPeriodInMilliseconds").trim();
                 heartBeatPeriodInMilliseconds = (heartBeatPeriodInMillisecondsString == null) ? 5000
                         : Integer.parseInt(heartBeatPeriodInMillisecondsString);
             } catch (Exception e) {

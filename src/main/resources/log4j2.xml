@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+	<Properties>
+		<Property name="basePath">D:\\Workspace\\alper_workspace\\P1-hiep_alper_team</Property>
+	</Properties>
+
+	<Appenders>
+		<RollingFile name="fileLogger" fileName="${basePath}/logs/project1.log"
+			filePattern="${basePath}/logs/project1-%d{yyyy-MM-dd}.log">
+			<PatternLayout>
+				<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] (%F:%L) - %msg%n</pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1"
+					modulate="true" />
+			</Policies>
+		</RollingFile>
+
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout
+				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] (%F:%L) - %msg%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Logger name="cs601.project2" level="error" additivity="true">
+			<appender-ref ref="fileLogger" level="error" />
+		</Logger>
+		<Root level="error" additivity="false">
+			<appender-ref ref="console" />
+		</Root>
+	</Loggers>
+</Configuration>

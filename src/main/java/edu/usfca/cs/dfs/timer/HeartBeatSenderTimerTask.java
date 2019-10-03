@@ -11,30 +11,33 @@ import io.netty.channel.ChannelFuture;
 
 public class HeartBeatSenderTimerTask implements Runnable {
 
-    private static Logger logger = LogManager.getLogger(TimerManager.class);
+    private static Logger logger = LogManager.getLogger(HeartBeatSenderTimerTask.class);
 
-    int                   timeOut;
-    DfsStorageNodeStarter dfsStorageNodeStarter;
+    public HeartBeatSenderTimerTask() {
 
-    public HeartBeatSenderTimerTask(DfsStorageNodeStarter storageNodeStarter, int timeOut) {
-        this.timeOut = timeOut;
-        this.dfsStorageNodeStarter = storageNodeStarter;
     }
 
     public void run() {
         try {
-            StorageNode storageNode = dfsStorageNodeStarter.getStorageNode();
+            StorageNode storageNode = DfsStorageNodeStarter.getInstance().getStorageNode();
             if (logger.isDebugEnabled()) {
                 logger.debug("Apply Heart Beat Timer timeout occurred with snId :"
                         + storageNode.getSnId());
             }
 
+            System.out.println("Apply Heart Beat Timer timeout occurred with snId :"
+                    + storageNode.getSnId());
+
             /**
              * SN will connect to the Controller
              */
-            StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder().setSnId(storageNode.getSnId()).setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes()).setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setHeartBeatMsg(heartBeat).build();
-            Channel chan = dfsStorageNodeStarter.getChannelFuture().channel();
+            StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
+                    .setSnId(storageNode.getSnId())
+                    .setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes())
+                    .setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setHeartBeatMsg(heartBeat).build();
+            Channel chan = DfsStorageNodeStarter.getInstance().getChannelFuture().channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
             write.syncUninterruptibly();

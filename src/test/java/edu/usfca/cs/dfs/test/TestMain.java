@@ -8,6 +8,7 @@ import org.junit.Test;
 import edu.usfca.cs.db.DbManager;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.config.Constants;
 
 public class TestMain {
 
@@ -69,14 +70,15 @@ public class TestMain {
             long totalStorageReq = 0;
             long totalFreeSpace = 10000;
             long totalRetrievelReq = 0;
-            for (int i = 1; i < 13; i++) {
 
-                boolean result = SqlManager.getInstance().insertSN(i,
-                                                                   "192.168.1.1",
-                                                                   7070,
-                                                                   totalFreeSpace + i * 100,
-                                                                   totalStorageReq,
-                                                                   totalRetrievelReq);
+            for (int i = 1; i < 13; i++) {
+                StorageNode storageNode = new StorageNode();
+                storageNode.setSnId(i);
+                storageNode.setSnIp("192.168.1.1");
+                storageNode.setSnPort(7070);
+                storageNode.setTotalFreeSpace(totalFreeSpace + i * 1000);
+                storageNode.setStatus(Constants.STATUS_OPERATIONAL);
+                boolean result = SqlManager.getInstance().insertSN(storageNode);
 
                 Assert.assertTrue(result);
                 System.out.println("SN-" + i + " ,successfully inserted!");

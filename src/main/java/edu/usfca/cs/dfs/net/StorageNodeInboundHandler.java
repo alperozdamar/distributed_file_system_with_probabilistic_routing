@@ -2,11 +2,13 @@ package edu.usfca.cs.dfs.net;
 
 import java.net.InetSocketAddress;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -16,6 +18,8 @@ import io.netty.channel.ChannelHandlerContext;
 
 @ChannelHandler.Sharable
 public class StorageNodeInboundHandler extends InboundHandler {
+
+    private static Logger logger = LogManager.getLogger(StorageNodeInboundHandler.class);
 
     public StorageNodeInboundHandler() {
     }
@@ -49,9 +53,11 @@ public class StorageNodeInboundHandler extends InboundHandler {
             System.out.println("[SN]Storing file name: " + storeChunkMsg.getFileName());
 
             ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
+            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder()
+                    .setFileName("my_file.txt").setChunkId(3).setData(data).build();
 
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setStoreChunkMsg(responseMsg).build();
             System.out.println("[SN]Send back message");
 
             Channel chan = ctx.channel();
@@ -67,16 +73,14 @@ public class StorageNodeInboundHandler extends InboundHandler {
                     + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
 
             if (heartBeatResponse.getStatus()) {
-                System.out.println("[SN] Creating Timer for Heart Beats:"
-                        + heartBeatResponse.getSnId());
-
-                TimerManager.getInstance().scheduleHeartBeatTimer(DfsStorageNodeStarter.getInstance(),
-                                                                  ConfigurationManagerSn.getInstance().getHeartBeatPeriodInMilliseconds());
+                // System.out.println("[SN] Creating Timer for Heart Beats:"
+                //         + heartBeatResponse.getSnId());
+                // TimerManager.getInstance().scheduleHeartBeatTimer(ConfigurationManagerSn
+                //         .getInstance().getHeartBeatPeriodInMilliseconds());
 
             } else {
-
-                TimerManager.getInstance().cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
-
+                TimerManager.getInstance()
+                        .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
 
         } else if (msg.hasRetrieveFileMsg()) {

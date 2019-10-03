@@ -5,6 +5,9 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.Utils;
@@ -21,6 +24,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class DfsClientStarter {
 
+    private static Logger          logger                      = LogManager
+            .getLogger(DfsClientStarter.class);
     /**
      * Every Client request will be sent by a seperate Thread.
      */

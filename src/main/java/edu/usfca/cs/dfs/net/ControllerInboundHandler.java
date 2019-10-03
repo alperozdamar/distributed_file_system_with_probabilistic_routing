@@ -2,8 +2,15 @@ package edu.usfca.cs.dfs.net;
 
 import java.net.InetSocketAddress;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import edu.usfca.cs.Utils;
+import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.DfsControllerStarter;
 import edu.usfca.cs.dfs.StorageMessages;
+import edu.usfca.cs.dfs.config.Constants;
+import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -12,6 +19,8 @@ import io.netty.channel.ChannelHandlerContext;
 
 @ChannelHandler.Sharable
 public class ControllerInboundHandler extends InboundHandler {
+
+    private static Logger logger = LogManager.getLogger(ControllerInboundHandler.class);
 
     public ControllerInboundHandler() {
     }
@@ -49,9 +58,12 @@ public class ControllerInboundHandler extends InboundHandler {
             System.out.println("[Controller]Storing file name: " + storeChunkMsg.getFileName());
 
             //TODO: Logic code to select available SNs
-            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnIp("192.168.1.10").setSnPort(8888).build();
-            StorageMessages.StoreChunkLocation chunkLocationMsg = StorageMessages.StoreChunkLocation.newBuilder().addSnInfo(snInfo).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkLocation(chunkLocationMsg).build();
+            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
+                    .setSnIp("192.168.1.10").setSnPort(8888).build();
+            StorageMessages.StoreChunkLocation chunkLocationMsg = StorageMessages.StoreChunkLocation
+                    .newBuilder().addSnInfo(snInfo).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setStoreChunkLocation(chunkLocationMsg).build();
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
@@ -65,9 +77,42 @@ public class ControllerInboundHandler extends InboundHandler {
             System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
                     + heartBeat.getSnId() + "] <<<<<<<<<<<<<<----------------");
 
-            StorageMessages.HeartBeatResponse response = StorageMessages.HeartBeatResponse.newBuilder().setStatus(true).setSnId(heartBeat.getSnId()).build();
+            /**
+             * LETS ADD to DB if it is not exists in our Hash Map!!
+             */
+            StorageNode storageNode = DfsControllerStarter.getInstance().getStorageNodeHashMap()
+                    .get(heartBeat.getSnId());
+            if (storageNode != null) {
+                /**
+                 * Update lastHeartBeatTime!
+                 */
+                storageNode.setLastHeartBeatTime(System.currentTimeMillis());
+            } else {
+                /********************************************
+                 * Add to HashMap. 
+                 * Add to DB.
+                 * Schedule Timer for Heart Beat Timeouts.
+                 *******************************************/
+                boolean result = DfsControllerStarter.getInstance().addStorageNode(heartBeat);
+                if (result) {
+                    logger.debug("SN[" + heartBeat.getSnId()
+                            + "] successfully subscribed to Controller, status:"
+                            + Constants.STATUS_OPERATIONAL);
+                    System.out.println("SN[" + heartBeat.getSnId()
+                            + "] successfully subscribed to Controller, status:"
+                            + Constants.STATUS_OPERATIONAL);
+                    /**
+                     * Schedule KeepAliveChecker for heart beat timeouts...
+                     */
+                    TimerManager.getInstance().scheduleKeepAliveCheckTimer(heartBeat.getSnId());
+                }
+            }
 
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setHeartBeatResponse(response).build();
+            StorageMessages.HeartBeatResponse response = StorageMessages.HeartBeatResponse
+                    .newBuilder().setStatus(true).setSnId(heartBeat.getSnId()).build();
+
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setHeartBeatResponse(response).build();
 
             System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN["
                     + heartBeat.getSnId() + "] >>>>>>>>>>>--------------");
@@ -89,9 +134,14 @@ public class ControllerInboundHandler extends InboundHandler {
              */
             System.out.println("[Controller]Sending back list of SNs information");
             //TODO: Get information from database
-            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnId(1).setSnIp("192.168.0.1").setSnPort(6666).setTotalFreeSpaceInBytes(10000).setNumOfRetrievelRequest(10).setNumOfStorageMessage(10).build();
-            StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder().addSnInfo(snInfo).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setListResponse(response).build();
+            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
+                    .setSnId(1).setSnIp("192.168.0.1").setSnPort(6666)
+                    .setTotalFreeSpaceInBytes(10000).setNumOfRetrievelRequest(10)
+                    .setNumOfStorageMessage(10).build();
+            StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder()
+                    .addSnInfo(snInfo).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setListResponse(response).build();
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();

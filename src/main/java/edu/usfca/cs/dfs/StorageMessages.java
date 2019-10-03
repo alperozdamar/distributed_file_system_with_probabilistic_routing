@@ -2038,17 +2038,32 @@ public final class StorageMessages {
     int getSnId();
 
     /**
-     * <code>int64 totalFreeSpaceInBytes = 2;</code>
+     * <code>string snIp = 2;</code>
+     */
+    java.lang.String getSnIp();
+    /**
+     * <code>string snIp = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getSnIpBytes();
+
+    /**
+     * <code>int32 snPort = 3;</code>
+     */
+    int getSnPort();
+
+    /**
+     * <code>int64 totalFreeSpaceInBytes = 4;</code>
      */
     long getTotalFreeSpaceInBytes();
 
     /**
-     * <code>int32 numOfStorageMessage = 3;</code>
+     * <code>int32 numOfStorageMessage = 5;</code>
      */
     int getNumOfStorageMessage();
 
     /**
-     * <code>int32 numOfRetrievelRequest = 4;</code>
+     * <code>int32 numOfRetrievelRequest = 6;</code>
      */
     int getNumOfRetrievelRequest();
   }
@@ -2065,6 +2080,7 @@ public final class StorageMessages {
       super(builder);
     }
     private HeartBeat() {
+      snIp_ = "";
     }
 
     @java.lang.Override
@@ -2102,17 +2118,28 @@ public final class StorageMessages {
               snId_ = input.readInt32();
               break;
             }
-            case 16: {
+            case 18: {
+              java.lang.String s = input.readStringRequireUtf8();
 
-              totalFreeSpaceInBytes_ = input.readInt64();
+              snIp_ = s;
               break;
             }
             case 24: {
 
-              numOfStorageMessage_ = input.readInt32();
+              snPort_ = input.readInt32();
               break;
             }
             case 32: {
+
+              totalFreeSpaceInBytes_ = input.readInt64();
+              break;
+            }
+            case 40: {
+
+              numOfStorageMessage_ = input.readInt32();
+              break;
+            }
+            case 48: {
 
               numOfRetrievelRequest_ = input.readInt32();
               break;
@@ -2158,28 +2185,71 @@ public final class StorageMessages {
       return snId_;
     }
 
-    public static final int TOTALFREESPACEINBYTES_FIELD_NUMBER = 2;
+    public static final int SNIP_FIELD_NUMBER = 2;
+    private volatile java.lang.Object snIp_;
+    /**
+     * <code>string snIp = 2;</code>
+     */
+    public java.lang.String getSnIp() {
+      java.lang.Object ref = snIp_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        snIp_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string snIp = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSnIpBytes() {
+      java.lang.Object ref = snIp_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        snIp_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SNPORT_FIELD_NUMBER = 3;
+    private int snPort_;
+    /**
+     * <code>int32 snPort = 3;</code>
+     */
+    public int getSnPort() {
+      return snPort_;
+    }
+
+    public static final int TOTALFREESPACEINBYTES_FIELD_NUMBER = 4;
     private long totalFreeSpaceInBytes_;
     /**
-     * <code>int64 totalFreeSpaceInBytes = 2;</code>
+     * <code>int64 totalFreeSpaceInBytes = 4;</code>
      */
     public long getTotalFreeSpaceInBytes() {
       return totalFreeSpaceInBytes_;
     }
 
-    public static final int NUMOFSTORAGEMESSAGE_FIELD_NUMBER = 3;
+    public static final int NUMOFSTORAGEMESSAGE_FIELD_NUMBER = 5;
     private int numOfStorageMessage_;
     /**
-     * <code>int32 numOfStorageMessage = 3;</code>
+     * <code>int32 numOfStorageMessage = 5;</code>
      */
     public int getNumOfStorageMessage() {
       return numOfStorageMessage_;
     }
 
-    public static final int NUMOFRETRIEVELREQUEST_FIELD_NUMBER = 4;
+    public static final int NUMOFRETRIEVELREQUEST_FIELD_NUMBER = 6;
     private int numOfRetrievelRequest_;
     /**
-     * <code>int32 numOfRetrievelRequest = 4;</code>
+     * <code>int32 numOfRetrievelRequest = 6;</code>
      */
     public int getNumOfRetrievelRequest() {
       return numOfRetrievelRequest_;
@@ -2202,14 +2272,20 @@ public final class StorageMessages {
       if (snId_ != 0) {
         output.writeInt32(1, snId_);
       }
+      if (!getSnIpBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, snIp_);
+      }
+      if (snPort_ != 0) {
+        output.writeInt32(3, snPort_);
+      }
       if (totalFreeSpaceInBytes_ != 0L) {
-        output.writeInt64(2, totalFreeSpaceInBytes_);
+        output.writeInt64(4, totalFreeSpaceInBytes_);
       }
       if (numOfStorageMessage_ != 0) {
-        output.writeInt32(3, numOfStorageMessage_);
+        output.writeInt32(5, numOfStorageMessage_);
       }
       if (numOfRetrievelRequest_ != 0) {
-        output.writeInt32(4, numOfRetrievelRequest_);
+        output.writeInt32(6, numOfRetrievelRequest_);
       }
       unknownFields.writeTo(output);
     }
@@ -2224,17 +2300,24 @@ public final class StorageMessages {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, snId_);
       }
+      if (!getSnIpBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, snIp_);
+      }
+      if (snPort_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, snPort_);
+      }
       if (totalFreeSpaceInBytes_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, totalFreeSpaceInBytes_);
+          .computeInt64Size(4, totalFreeSpaceInBytes_);
       }
       if (numOfStorageMessage_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, numOfStorageMessage_);
+          .computeInt32Size(5, numOfStorageMessage_);
       }
       if (numOfRetrievelRequest_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(4, numOfRetrievelRequest_);
+          .computeInt32Size(6, numOfRetrievelRequest_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -2253,6 +2336,10 @@ public final class StorageMessages {
 
       if (getSnId()
           != other.getSnId()) return false;
+      if (!getSnIp()
+          .equals(other.getSnIp())) return false;
+      if (getSnPort()
+          != other.getSnPort()) return false;
       if (getTotalFreeSpaceInBytes()
           != other.getTotalFreeSpaceInBytes()) return false;
       if (getNumOfStorageMessage()
@@ -2272,6 +2359,10 @@ public final class StorageMessages {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + SNID_FIELD_NUMBER;
       hash = (53 * hash) + getSnId();
+      hash = (37 * hash) + SNIP_FIELD_NUMBER;
+      hash = (53 * hash) + getSnIp().hashCode();
+      hash = (37 * hash) + SNPORT_FIELD_NUMBER;
+      hash = (53 * hash) + getSnPort();
       hash = (37 * hash) + TOTALFREESPACEINBYTES_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getTotalFreeSpaceInBytes());
@@ -2414,6 +2505,10 @@ public final class StorageMessages {
         super.clear();
         snId_ = 0;
 
+        snIp_ = "";
+
+        snPort_ = 0;
+
         totalFreeSpaceInBytes_ = 0L;
 
         numOfStorageMessage_ = 0;
@@ -2447,6 +2542,8 @@ public final class StorageMessages {
       public edu.usfca.cs.dfs.StorageMessages.HeartBeat buildPartial() {
         edu.usfca.cs.dfs.StorageMessages.HeartBeat result = new edu.usfca.cs.dfs.StorageMessages.HeartBeat(this);
         result.snId_ = snId_;
+        result.snIp_ = snIp_;
+        result.snPort_ = snPort_;
         result.totalFreeSpaceInBytes_ = totalFreeSpaceInBytes_;
         result.numOfStorageMessage_ = numOfStorageMessage_;
         result.numOfRetrievelRequest_ = numOfRetrievelRequest_;
@@ -2500,6 +2597,13 @@ public final class StorageMessages {
         if (other == edu.usfca.cs.dfs.StorageMessages.HeartBeat.getDefaultInstance()) return this;
         if (other.getSnId() != 0) {
           setSnId(other.getSnId());
+        }
+        if (!other.getSnIp().isEmpty()) {
+          snIp_ = other.snIp_;
+          onChanged();
+        }
+        if (other.getSnPort() != 0) {
+          setSnPort(other.getSnPort());
         }
         if (other.getTotalFreeSpaceInBytes() != 0L) {
           setTotalFreeSpaceInBytes(other.getTotalFreeSpaceInBytes());
@@ -2565,15 +2669,110 @@ public final class StorageMessages {
         return this;
       }
 
+      private java.lang.Object snIp_ = "";
+      /**
+       * <code>string snIp = 2;</code>
+       */
+      public java.lang.String getSnIp() {
+        java.lang.Object ref = snIp_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          snIp_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string snIp = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSnIpBytes() {
+        java.lang.Object ref = snIp_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          snIp_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string snIp = 2;</code>
+       */
+      public Builder setSnIp(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        snIp_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string snIp = 2;</code>
+       */
+      public Builder clearSnIp() {
+        
+        snIp_ = getDefaultInstance().getSnIp();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string snIp = 2;</code>
+       */
+      public Builder setSnIpBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        snIp_ = value;
+        onChanged();
+        return this;
+      }
+
+      private int snPort_ ;
+      /**
+       * <code>int32 snPort = 3;</code>
+       */
+      public int getSnPort() {
+        return snPort_;
+      }
+      /**
+       * <code>int32 snPort = 3;</code>
+       */
+      public Builder setSnPort(int value) {
+        
+        snPort_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 snPort = 3;</code>
+       */
+      public Builder clearSnPort() {
+        
+        snPort_ = 0;
+        onChanged();
+        return this;
+      }
+
       private long totalFreeSpaceInBytes_ ;
       /**
-       * <code>int64 totalFreeSpaceInBytes = 2;</code>
+       * <code>int64 totalFreeSpaceInBytes = 4;</code>
        */
       public long getTotalFreeSpaceInBytes() {
         return totalFreeSpaceInBytes_;
       }
       /**
-       * <code>int64 totalFreeSpaceInBytes = 2;</code>
+       * <code>int64 totalFreeSpaceInBytes = 4;</code>
        */
       public Builder setTotalFreeSpaceInBytes(long value) {
         
@@ -2582,7 +2781,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>int64 totalFreeSpaceInBytes = 2;</code>
+       * <code>int64 totalFreeSpaceInBytes = 4;</code>
        */
       public Builder clearTotalFreeSpaceInBytes() {
         
@@ -2593,13 +2792,13 @@ public final class StorageMessages {
 
       private int numOfStorageMessage_ ;
       /**
-       * <code>int32 numOfStorageMessage = 3;</code>
+       * <code>int32 numOfStorageMessage = 5;</code>
        */
       public int getNumOfStorageMessage() {
         return numOfStorageMessage_;
       }
       /**
-       * <code>int32 numOfStorageMessage = 3;</code>
+       * <code>int32 numOfStorageMessage = 5;</code>
        */
       public Builder setNumOfStorageMessage(int value) {
         
@@ -2608,7 +2807,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>int32 numOfStorageMessage = 3;</code>
+       * <code>int32 numOfStorageMessage = 5;</code>
        */
       public Builder clearNumOfStorageMessage() {
         
@@ -2619,13 +2818,13 @@ public final class StorageMessages {
 
       private int numOfRetrievelRequest_ ;
       /**
-       * <code>int32 numOfRetrievelRequest = 4;</code>
+       * <code>int32 numOfRetrievelRequest = 6;</code>
        */
       public int getNumOfRetrievelRequest() {
         return numOfRetrievelRequest_;
       }
       /**
-       * <code>int32 numOfRetrievelRequest = 4;</code>
+       * <code>int32 numOfRetrievelRequest = 6;</code>
        */
       public Builder setNumOfRetrievelRequest(int value) {
         
@@ -2634,7 +2833,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>int32 numOfRetrievelRequest = 4;</code>
+       * <code>int32 numOfRetrievelRequest = 6;</code>
        */
       public Builder clearNumOfRetrievelRequest() {
         
@@ -9201,32 +9400,32 @@ public final class StorageMessages {
       "\n\010fileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\022\014\n\004dat" +
       "a\030\003 \001(\014\"6\n\022StoreChunkLocation\022 \n\006snInfo\030" +
       "\001 \003(\0132\020.StorageNodeInfo\"5\n\022StoreChunkRes" +
-      "ponse\022\017\n\007chunkId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"t" +
-      "\n\tHeartBeat\022\014\n\004snId\030\001 \001(\005\022\035\n\025totalFreeSp" +
-      "aceInBytes\030\002 \001(\003\022\033\n\023numOfStorageMessage\030" +
-      "\003 \001(\005\022\035\n\025numOfRetrievelRequest\030\004 \001(\005\"1\n\021" +
-      "HeartBeatResponse\022\014\n\004snId\030\001 \001(\005\022\016\n\006statu" +
-      "s\030\002 \001(\010\"\006\n\004List\"0\n\014ListResponse\022 \n\006snInf" +
-      "o\030\001 \003(\0132\020.StorageNodeInfo\" \n\014RetrieveFil" +
-      "e\022\020\n\010fileName\030\001 \001(\t\"C\n\024RetrieveFileRespo" +
-      "nse\022+\n\021snInfoOfChunkZero\030\001 \001(\0132\020.Storage" +
-      "NodeInfo\"\230\001\n\017StorageNodeInfo\022\014\n\004snId\030\001 \001" +
-      "(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025tota" +
-      "lFreeSpaceInBytes\030\004 \001(\003\022\033\n\023numOfStorageM" +
-      "essage\030\005 \001(\005\022\035\n\025numOfRetrievelRequest\030\006 " +
-      "\001(\005\"\305\003\n\025StorageMessageWrapper\022$\n\rstoreCh" +
-      "unkMsg\030\001 \001(\0132\013.StoreChunkH\000\022(\n\017retrieveF" +
-      "ileMsg\030\002 \001(\0132\r.RetrieveFileH\000\022\"\n\014heartBe" +
-      "atMsg\030\003 \001(\0132\n.HeartBeatH\000\022/\n\021HeartBeatRe" +
-      "sponse\030\004 \001(\0132\022.HeartBeatResponseH\000\022\025\n\004li" +
-      "st\030\005 \001(\0132\005.ListH\000\022%\n\014listResponse\030\006 \001(\0132" +
-      "\r.ListResponseH\000\0221\n\022storeChunkLocation\030\007" +
-      " \001(\0132\023.StoreChunkLocationH\000\0221\n\022storeChun" +
-      "kResponse\030\010 \001(\0132\023.StoreChunkResponseH\000\022%" +
-      "\n\014retrieveFile\030\t \001(\0132\r.RetrieveFileH\000\0225\n" +
-      "\024retrieveFileResponse\030\n \001(\0132\025.RetrieveFi" +
-      "leResponseH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb" +
-      "\006proto3"
+      "ponse\022\017\n\007chunkId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\222" +
+      "\001\n\tHeartBeat\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t" +
+      "\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFreeSpaceInByte" +
+      "s\030\004 \001(\003\022\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025" +
+      "numOfRetrievelRequest\030\006 \001(\005\"1\n\021HeartBeat" +
+      "Response\022\014\n\004snId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\006" +
+      "\n\004List\"0\n\014ListResponse\022 \n\006snInfo\030\001 \003(\0132\020" +
+      ".StorageNodeInfo\" \n\014RetrieveFile\022\020\n\010file" +
+      "Name\030\001 \001(\t\"C\n\024RetrieveFileResponse\022+\n\021sn" +
+      "InfoOfChunkZero\030\001 \001(\0132\020.StorageNodeInfo\"" +
+      "\230\001\n\017StorageNodeInfo\022\014\n\004snId\030\001 \001(\005\022\014\n\004snI" +
+      "p\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFreeSpac" +
+      "eInBytes\030\004 \001(\003\022\033\n\023numOfStorageMessage\030\005 " +
+      "\001(\005\022\035\n\025numOfRetrievelRequest\030\006 \001(\005\"\305\003\n\025S" +
+      "torageMessageWrapper\022$\n\rstoreChunkMsg\030\001 " +
+      "\001(\0132\013.StoreChunkH\000\022(\n\017retrieveFileMsg\030\002 " +
+      "\001(\0132\r.RetrieveFileH\000\022\"\n\014heartBeatMsg\030\003 \001" +
+      "(\0132\n.HeartBeatH\000\022/\n\021HeartBeatResponse\030\004 " +
+      "\001(\0132\022.HeartBeatResponseH\000\022\025\n\004list\030\005 \001(\0132" +
+      "\005.ListH\000\022%\n\014listResponse\030\006 \001(\0132\r.ListRes" +
+      "ponseH\000\0221\n\022storeChunkLocation\030\007 \001(\0132\023.St" +
+      "oreChunkLocationH\000\0221\n\022storeChunkResponse" +
+      "\030\010 \001(\0132\023.StoreChunkResponseH\000\022%\n\014retriev" +
+      "eFile\030\t \001(\0132\r.RetrieveFileH\000\0225\n\024retrieve" +
+      "FileResponse\030\n \001(\0132\025.RetrieveFileRespons" +
+      "eH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9255,7 +9454,7 @@ public final class StorageMessages {
     internal_static_HeartBeat_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_HeartBeat_descriptor,
-        new java.lang.String[] { "SnId", "TotalFreeSpaceInBytes", "NumOfStorageMessage", "NumOfRetrievelRequest", });
+        new java.lang.String[] { "SnId", "SnIp", "SnPort", "TotalFreeSpaceInBytes", "NumOfStorageMessage", "NumOfRetrievelRequest", });
     internal_static_HeartBeatResponse_descriptor =
       getDescriptor().getMessageTypes().get(4);
     internal_static_HeartBeatResponse_fieldAccessorTable = new

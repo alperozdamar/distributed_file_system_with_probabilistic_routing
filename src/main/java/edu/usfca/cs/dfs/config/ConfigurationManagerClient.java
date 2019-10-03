@@ -4,11 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Singleton Configuration Manager for Project1.
  * 
  */
 public class ConfigurationManagerClient {
+
+    private static Logger                     logger                       = LogManager
+            .getLogger(ConfigurationManagerClient.class);
 
     private static final String               PROJECT_1_CLIENT_CONFIG_FILE = "config"
             + File.separator + "project1_client.properties";
@@ -46,7 +52,8 @@ public class ConfigurationManagerClient {
 
             controllerIp = props.getProperty("controllerIp");
             if (controllerIp == null) {
-                System.out.println("controllerIp property is Null! Please Check configuration file.");
+                System.out
+                        .println("controllerIp property is Null! Please Check configuration file.");
             } else {
                 controllerIp = controllerIp.trim();
             }

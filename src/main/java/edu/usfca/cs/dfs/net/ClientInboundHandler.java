@@ -4,6 +4,9 @@ import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.Utils;
@@ -17,6 +20,8 @@ import io.netty.channel.ChannelHandlerContext;
 
 @ChannelHandler.Sharable
 public class ClientInboundHandler extends InboundHandler {
+
+    private static Logger logger = LogManager.getLogger(ClientInboundHandler.class);
 
     public ClientInboundHandler() {
     }
@@ -46,8 +51,8 @@ public class ClientInboundHandler extends InboundHandler {
         if (msg.hasStoreChunkLocation()) {
             System.out.println("[Client]This is Store Chunk Message...");
             StorageMessages.StoreChunkLocation storeChunkMsg = msg.getStoreChunkLocation();
-            for(StorageMessages.StorageNodeInfo sn : storeChunkMsg.getSnInfoList()){
-                System.out.printf("[Client]IP : %s - Port: %d\n",sn.getSnIp(), sn.getSnPort());
+            for (StorageMessages.StorageNodeInfo sn : storeChunkMsg.getSnInfoList()) {
+                System.out.printf("[Client]IP : %s - Port: %d\n", sn.getSnIp(), sn.getSnPort());
             }
 
         } else if (msg.hasStoreChunkResponse()) {
@@ -67,8 +72,10 @@ public class ClientInboundHandler extends InboundHandler {
             System.out.println("[Client]  : " + storeChunkesponse.getStatus());
 
             ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
+            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder()
+                    .setFileName("my_file.txt").setChunkId(3).setData(data).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setStoreChunkMsg(responseMsg).build();
             System.out.println("[Client]Send back message");
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
@@ -76,7 +83,8 @@ public class ClientInboundHandler extends InboundHandler {
             write.addListener(ChannelFutureListener.CLOSE);
 
         } else if (msg.hasListResponse()) {
-            List<StorageMessages.StorageNodeInfo> snInfoList = msg.getListResponse().getSnInfoList();
+            List<StorageMessages.StorageNodeInfo> snInfoList = msg.getListResponse()
+                    .getSnInfoList();
             for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
                 StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
                 System.out.println("[Client]Sn.id:" + storageNodeInfo.getSnId());

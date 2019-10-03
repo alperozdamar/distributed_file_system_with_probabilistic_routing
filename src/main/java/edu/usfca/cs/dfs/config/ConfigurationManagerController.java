@@ -4,27 +4,35 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Singleton Configuration Manager for Project1.
  * 
  */
 public class ConfigurationManagerController {
 
-    private final int defaultFilterLength = 1000;
-    private final int defaultHashTime = 3;
-    private final int defaultHashSeed = 3;
-    private final int defaultControllerPort = 8080;
+    private static Logger                         logger                                = LogManager
+            .getLogger(ConfigurationManagerController.class);
+    private final int                             defaultFilterLength                   = 1000;
+    private final int                             defaultHashTime                       = 3;
+    private final int                             defaultHashSeed                       = 3;
+    private final int                             defaultControllerPort                 = 8080;
+    private final int                             defaultKeepAlivePeriodInMilliseconds  = 10000;
+    private final int                             defaultHeartBeatTimeoutInMilliseconds = 60000;
 
-
-    public static final String                    PROJECT_1_CONTROLLER_CONFIG_FILE = "config"
+    public static final String                    PROJECT_1_CONTROLLER_CONFIG_FILE      = "config"
             + File.separator + "project1_controller.properties";
     private static ConfigurationManagerController instance;
-    private final static Object                   classLock                        = new Object();
-    private String                                controllerIp                     = "";
-    private int                                   controllerPort                   = defaultControllerPort;
-    private int                                   filterLength = defaultFilterLength;
-    private int                                   hashTime = defaultHashTime;
-    private long                                  seed = defaultHashSeed;
+    private final static Object                   classLock                             = new Object();
+    private String                                controllerIp                          = "";
+    private int                                   controllerPort                        = defaultControllerPort;
+    private int                                   filterLength                          = defaultFilterLength;
+    private int                                   hashTime                              = defaultHashTime;
+    private long                                  seed                                  = defaultHashSeed;
+    private int                                   keepAlivePeriodInMilliseconds         = defaultKeepAlivePeriodInMilliseconds;
+    private int                                   heartBeatTimeoutInMilliseconds        = defaultHeartBeatTimeoutInMilliseconds;
 
     private ConfigurationManagerController() {
         readClientConfigFile();
@@ -69,7 +77,8 @@ public class ConfigurationManagerController {
             }
             try {
                 String hashTimeString = props.getProperty("HASH_TIME").trim();
-                hashTime = (hashTimeString == null) ? defaultHashTime : Integer.parseInt(hashTimeString);
+                hashTime = (hashTimeString == null) ? defaultHashTime
+                        : Integer.parseInt(hashTimeString);
             } catch (Exception e) {
                 hashTime = defaultHashTime;
                 e.printStackTrace();
@@ -81,6 +90,28 @@ public class ConfigurationManagerController {
                 seed = defaultHashSeed;
                 e.printStackTrace();
             }
+            try {
+                String keepAlivePeriodInMillisecondsString = props
+                        .getProperty("keepAlivePeriodInMilliseconds").trim();
+                keepAlivePeriodInMilliseconds = (keepAlivePeriodInMillisecondsString == null)
+                        ? defaultKeepAlivePeriodInMilliseconds
+                        : Integer.parseInt(keepAlivePeriodInMillisecondsString);
+            } catch (Exception e) {
+                keepAlivePeriodInMilliseconds = defaultKeepAlivePeriodInMilliseconds;
+                e.printStackTrace();
+            }
+
+            try {
+                String heartBeatTimeoutInMillisecondsString = props
+                        .getProperty("heartBeatTimeoutInMilliseconds").trim();
+                heartBeatTimeoutInMilliseconds = (heartBeatTimeoutInMillisecondsString == null)
+                        ? defaultKeepAlivePeriodInMilliseconds
+                        : Integer.parseInt(heartBeatTimeoutInMillisecondsString);
+            } catch (Exception e) {
+                heartBeatTimeoutInMilliseconds = defaultKeepAlivePeriodInMilliseconds;
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_CONTROLLER_CONFIG_FILE);
@@ -105,12 +136,6 @@ public class ConfigurationManagerController {
         this.controllerPort = controllerPort;
     }
 
-    @Override
-    public String toString() {
-        return "ConfigurationManagerController [controllerIp=" + controllerIp + ", controllerPort="
-                + controllerPort + "]";
-    }
-
     public int getFilterLength() {
         return filterLength;
     }
@@ -133,6 +158,31 @@ public class ConfigurationManagerController {
 
     public void setSeed(long seed) {
         this.seed = seed;
+    }
+
+    public int getKeepAlivePeriodInMilliseconds() {
+        return keepAlivePeriodInMilliseconds;
+    }
+
+    public void setKeepAlivePeriodInMilliseconds(int keepAlivePeriodInMilliseconds) {
+        this.keepAlivePeriodInMilliseconds = keepAlivePeriodInMilliseconds;
+    }
+
+    public int getHeartBeatTimeoutInMilliseconds() {
+        return heartBeatTimeoutInMilliseconds;
+    }
+
+    public void setHeartBeatTimeoutInMilliseconds(int heartBeatTimeoutInMilliseconds) {
+        this.heartBeatTimeoutInMilliseconds = heartBeatTimeoutInMilliseconds;
+    }
+
+    @Override
+    public String toString() {
+        return "ConfigurationManagerController [controllerIp=" + controllerIp + ", controllerPort="
+                + controllerPort + ", filterLength=" + filterLength + ", hashTime=" + hashTime
+                + ", seed=" + seed + ", keepAlivePeriodInMilliseconds="
+                + keepAlivePeriodInMilliseconds + ", heartBeatTimeoutInMilliseconds="
+                + heartBeatTimeoutInMilliseconds + "]";
     }
 
 }
