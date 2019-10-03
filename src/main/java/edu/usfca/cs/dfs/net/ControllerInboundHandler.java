@@ -45,13 +45,15 @@ public class ControllerInboundHandler extends InboundHandler {
             StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
             System.out.println("[Controller]Storing file name: " + storeChunkMsg.getFileName());
 
-            ByteString data = ByteString.copyFromUtf8("Hello World!");
-
-            StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse.newBuilder().setStatus(true).setChunkId(storeChunkMsg.getChunkId()).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkResponse(responseMsg).build();
-            System.out.println("[Controller]Send responseMsg back to Client for chunkId:"
-                    + storeChunkMsg.getChunkId());
-
+            //TODO: Logic code to select available SNs
+            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
+                    .setSnIp("192.168.1.10")
+                    .setSnPort(8888).build();
+            StorageMessages.StoreChunkLocation chunkLocationMsg =
+                    StorageMessages.StoreChunkLocation.newBuilder().addSnInfo(snInfo).build();
+            StorageMessages.StorageMessageWrapper msgWrapper =
+                    StorageMessages.StorageMessageWrapper.newBuilder()
+                            .setStoreChunkLocation(chunkLocationMsg).build();
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
@@ -82,17 +84,12 @@ public class ControllerInboundHandler extends InboundHandler {
              * I am Controller
              */
 
-        } else if (msg.hasStoreChunkResponse()) {
-
-            /**
-             * I am Controller
-             */
-
         } else if (msg.hasList()) {
             /**
              * Get the list of SN from DB and return to client
              */
             System.out.println("[Controller]Sending back list of SNs information");
+            //TODO: Get information from database
             StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
                     .setSnId(1)
                     .setSnIp("192.168.0.1")

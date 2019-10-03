@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.ByteString;
 
+import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
@@ -29,18 +31,24 @@ public class DfsClient {
     public DfsClient() {
     }
 
-    private static void listStorageNode(ChannelFuture cf) throws InterruptedException {
+    private static void listStorageNode(Bootstrap bootstrap) throws InterruptedException {
+        System.out.println("Client will be connected to Controller<"
+                + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
+                + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
+        ChannelFuture cf = Utils.connect(bootstrap, ConfigurationManagerClient.getInstance().getControllerIp(),
+                ConfigurationManagerClient.getInstance().getControllerPort());
         //Create LIST message
         StorageMessages.List listMsm = StorageMessages.List.newBuilder().build();
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setList(listMsm).build();
         Channel chan = cf.channel();
-        ChannelFuture write = chan.write(msgWrapper);
+        chan.write(msgWrapper);
         chan.flush();
-        chan.closeFuture();
-        write.await();
+        chan.closeFuture().sync();
     }
 
-    private static void storeFile(ChannelFuture cf){
+    private static void storeFile(Bootstrap bootstrap) {
+        ChannelFuture cf = Utils.connect(bootstrap, ConfigurationManagerClient.getInstance().getControllerIp(),
+                ConfigurationManagerClient.getInstance().getControllerPort());
         Scanner scanner = new Scanner(System.in);
         //  prompt for command.
         System.out.print("Enter your fileName and folder:");
@@ -75,7 +83,7 @@ public class DfsClient {
         write.syncUninterruptibly();
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
         ConfigurationManagerClient.getInstance();
         System.out.println("Client is started with these parameters: "
                 + ConfigurationManagerClient.getInstance().toString());
@@ -88,8 +96,8 @@ public class DfsClient {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
 
-        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE,
-                                                                                                        true).handler(pipeline);
+        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
 
 
         while (true) {
@@ -102,19 +110,12 @@ public class DfsClient {
             // get command as String
             String command = scanner.next();
 
-            System.out.println("Client will be connected to Controller<"
-                    + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
-                    + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
-            ChannelFuture cf = bootstrap.connect(ConfigurationManagerClient.getInstance().getControllerIp(),
-                    ConfigurationManagerClient.getInstance().getControllerPort());
-            cf.syncUninterruptibly();
-
             if (command.equalsIgnoreCase(Constants.LIST)) {
-                listStorageNode(cf);
+                listStorageNode(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.RETRIEVE)) {
 
             } else if (command.equalsIgnoreCase(Constants.STORE)) {
-                storeFile(cf);
+                storeFile(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.EXIT)) {
                 System.out.println("Client will be shutdown....");
                 workerGroup.shutdownGracefully();

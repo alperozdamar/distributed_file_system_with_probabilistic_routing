@@ -43,18 +43,13 @@ public class ClientInboundHandler extends InboundHandler {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         Utils.printHeader("[Client]Received sth!");
-        if (msg.hasStoreChunkMsg()) {
+        if (msg.hasStoreChunkLocation()) {
             System.out.println("[Client]This is Store Chunk Message...");
-            StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
-            System.out.println("[Client]Storing file name: " + storeChunkMsg.getFileName());
-            ByteString data = ByteString.copyFromUtf8("Hello World!");
-            StorageMessages.StoreChunk responseMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file.txt").setChunkId(3).setData(data).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(responseMsg).build();
-            System.out.println("[Client]Send back message");
-            Channel chan = ctx.channel();
-            ChannelFuture write = chan.write(msgWrapper);
-            chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
+            StorageMessages.StoreChunkLocation storeChunkMsg = msg.getStoreChunkLocation();
+            for(StorageMessages.StorageNodeInfo sn : storeChunkMsg.getSnInfoList()){
+                System.out.printf("[Client]IP : %s - Port: %d\n",sn.getSnIp(), sn.getSnPort());
+            }
+
         } else if (msg.hasStoreChunkResponse()) {
 
             /**
