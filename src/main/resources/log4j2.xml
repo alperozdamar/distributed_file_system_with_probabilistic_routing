@@ -14,7 +14,7 @@
 				<TimeBasedTriggeringPolicy interval="1"
 					modulate="true" />
 			</Policies>
-		</RollingFile>
+		</RollingFile>		
 
 		<Console name="console" target="SYSTEM_OUT">
 			<PatternLayout
@@ -22,8 +22,8 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="cs601.project2" level="error" additivity="true">
-			<appender-ref ref="fileLogger" level="error" />
+		<Logger name="edu.usfca" level="debug" additivity="true">
+			<appender-ref ref="fileLogger" level="debug" />
 		</Logger>
 		<Root level="error" additivity="false">
 			<appender-ref ref="console" />
