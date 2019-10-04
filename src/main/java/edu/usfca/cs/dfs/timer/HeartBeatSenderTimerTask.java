@@ -1,12 +1,12 @@
 package edu.usfca.cs.dfs.timer;
 
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
+import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
@@ -43,6 +43,7 @@ public class HeartBeatSenderTimerTask implements Runnable {
             Channel chan = DfsStorageNodeStarter.getInstance().getChannelFuture().channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
+            write.syncUninterruptibly();
 
         } catch (Exception e) {
             logger.error("Exception occured in HeartBeat:", e);
