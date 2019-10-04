@@ -32,7 +32,6 @@ public class DfsControllerStarter {
     ServerMessageRouter                          messageRouter;
     private HashMap<Integer, ScheduledFuture<?>> keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
     private HashMap<Integer, StorageNode>        storageNodeHashMap           = new HashMap<Integer, StorageNode>();
-
     private HashMap<Integer, BloomFilter>        bloomFilters                 = new HashMap<Integer, BloomFilter>();
 
     private DfsControllerStarter() {
@@ -72,6 +71,7 @@ public class DfsControllerStarter {
     public void start() throws IOException {
 
         SqlManager.getInstance().deleteAllSNs();
+        SqlManager.getInstance().deleteAllSNsReplications();
 
         messageRouter = new ServerMessageRouter(Constants.CONTROLLER);
         System.out.println(ConfigurationManagerController.getInstance().toString());
@@ -119,6 +119,41 @@ public class DfsControllerStarter {
                                  .getFilterLength(),
                                          ConfigurationManagerController.getInstance().getHashTime(),
                                          ConfigurationManagerController.getInstance().getSeed()));
+
+            int maxSnId = SqlManager.getInstance().getMaxSnId();
+            int snId = storageNode.getSnId();
+            System.out.println("maxSnId:" + maxSnId);
+            System.out.println("(snId % 3):" + snId % 3);
+
+            int value = snId % 3;
+
+            if (value == 1) {
+                /**
+                 * Do not add any row to sn_replication
+                 */
+            } else if (value == 2) {
+                /**
+                 * Add 2 rows to sn_replication
+                 * snId:1   replicaId:2
+                 * snId:2   replicaId:1
+                 */
+                SqlManager.getInstance().insertSNReplication(snId - 1, snId, -1);
+                SqlManager.getInstance().insertSNReplication(snId, snId - 1, -1);
+
+            } else if (value == 0) {
+                /**
+                 * Add 4 rows to sn_replication
+                 * snId:1   replicaId:3
+                 * snId:2   replicaId:3
+                 * snId:3   replicaId:1
+                 * snId:3   replicaId:2
+                 */
+                SqlManager.getInstance().insertSNReplication(snId - 2, snId, -1);
+                SqlManager.getInstance().insertSNReplication(snId - 1, snId, -1);
+                SqlManager.getInstance().insertSNReplication(snId, snId - 2, -1);
+                SqlManager.getInstance().insertSNReplication(snId, snId - 1, -1);
+            }
+
         } else {
             return false;
         }

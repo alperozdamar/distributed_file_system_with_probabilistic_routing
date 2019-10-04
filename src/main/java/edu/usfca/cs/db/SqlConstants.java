@@ -18,6 +18,8 @@ public class SqlConstants {
 
     public static final String DELETE_ALL_SNS                = "DELETE FROM sn_information";
 
+    public static final String DELETE_ALL_SNS_REPLICATION    = "DELETE FROM sn_replication";
+
     public static final String UPDATE_SN                     = "UPDATE sn_information SET status=? WHERE snId=?";
 
 }

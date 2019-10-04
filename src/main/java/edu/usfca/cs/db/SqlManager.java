@@ -236,9 +236,8 @@ public class SqlManager {
         boolean result = false;
         Connection connection = null;
         if (logger.isDebugEnabled()) {
-            logger.debug("snId:" + snId);
-            logger.debug("replicaId:" + replicaId);
-            logger.debug("backupId:" + backupId);
+            logger.debug("Inserting sn_replication snId:" + snId + ",replicaId:" + replicaId
+                    + ",backUpId:" + backupId);
         }
         String sql = SqlConstants.INSERT_SN_REPLICATION;
         PreparedStatement insertStatement = null;
@@ -270,52 +269,6 @@ public class SqlManager {
         }
         return result;
     }
-
-    //    public synchronized boolean insertSN(int snId, String snIp, int snPort, long totalFreeSpace,
-    //                                         long totalStorageReq, long totalRetrievelReq) {
-    //        boolean result = false;
-    //        Connection connection = null;
-    //        if (logger.isDebugEnabled()) {
-    //            logger.debug("snId:" + snId);
-    //            logger.debug("snIp:" + snIp);
-    //            logger.debug("snPort:" + snPort);
-    //            logger.debug("totalFreeSpace:" + totalFreeSpace);
-    //            logger.debug("totalStorageReq:" + totalStorageReq);
-    //            logger.debug("totalRetrievelReq:" + totalRetrievelReq);
-    //        }
-    //        String sql = SqlConstants.INSERT_SN;
-    //        PreparedStatement insertStatement = null;
-    //        try {
-    //            connection = DbManager.getInstance().getBds().getConnection();
-    //            insertStatement = connection.prepareStatement(sql);
-    //            insertStatement.setInt(1, snId);
-    //            insertStatement.setString(2, snIp);
-    //            insertStatement.setInt(3, snPort);
-    //            insertStatement.setLong(4, totalFreeSpace);
-    //            insertStatement.setLong(5, totalStorageReq);
-    //            insertStatement.setLong(6, totalRetrievelReq);
-    //            insertStatement.execute();
-    //            result = true;
-    //        } catch (SQLException e) {
-    //            logger.error("Error:", e);
-    //            e.printStackTrace();
-    //            return false;
-    //        } catch (Exception e) {
-    //            logger.error("Exception occured:", e);
-    //            e.printStackTrace();
-    //            return false;
-    //        } finally {
-    //            try {
-    //                if (insertStatement != null)
-    //                    insertStatement.close();
-    //                if (connection != null)
-    //                    connection.close();
-    //            } catch (Exception e) {
-    //                e.printStackTrace();
-    //            }
-    //        }
-    //        return result;
-    //    }
 
     public synchronized boolean insertSN(StorageNode storageNode) {
         boolean result = false;
@@ -491,6 +444,80 @@ public class SqlManager {
             }
         }
         return availableStorageNodeMap;
+    }
+
+    public boolean deleteAllSNsReplications() {
+        boolean result = false;
+        Connection connection = null;
+        String sql = SqlConstants.DELETE_ALL_SNS_REPLICATION;
+        PreparedStatement deleteStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            deleteStatement = connection.prepareStatement(sql);
+            deleteStatement.execute();
+            result = true;
+            System.out.println("All SN_REPLICATION data is cleared from DB.");
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (deleteStatement != null)
+                    deleteStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+
+    }
+
+    public int getMaxSnId() {
+        Connection connection = null;
+        int maxSnId = 0;
+        String sql = "SELECT snId from sn_information ORDER BY snId DESC LIMIT 1";
+        PreparedStatement selectStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            selectStatement = connection.prepareStatement(sql);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Queried MAX(snId).");
+            }
+
+            ResultSet resultSet = selectStatement.executeQuery();
+            if (resultSet.next()) {
+                maxSnId = resultSet.getInt("snId");
+            } else {
+                logger.debug("No Storage Node can not be found in DB.");
+            }
+            selectStatement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return -1;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return -1;
+        } finally {
+            try {
+                if (selectStatement != null)
+                    selectStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return maxSnId;
     }
 
 }
