@@ -133,6 +133,12 @@ public class ControllerInboundHandler extends InboundHandler {
             int snId = heartBeat.getSnId();
             System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN[" + snId
                     + "] <<<<<<<<<<<<<<----------------");
+            System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:Ip[" + heartBeat.getSnIp()
+                    + "] <<<<<<<<<<<<<<----------------");
+            System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:Port[" + heartBeat.getSnPort()
+                    + "] <<<<<<<<<<<<<<----------------");
+            System.out.println("[Controller] ----------<<<<<<<<<< HashMap length[" + DfsControllerStarter.getInstance().getStorageNodeHashMap().size()
+                    + "] <<<<<<<<<<<<<<----------------");
 
             /**
              * LETS ADD to DB if it is not exists in our Hash Map!!

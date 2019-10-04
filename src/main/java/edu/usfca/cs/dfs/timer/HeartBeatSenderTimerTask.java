@@ -1,5 +1,6 @@
 package edu.usfca.cs.dfs.timer;
 
+import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,6 +34,8 @@ public class HeartBeatSenderTimerTask implements Runnable {
              */
             StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
                     .setSnId(storageNode.getSnId())
+                    .setSnIp(ConfigurationManagerSn.getInstance().getMyIp())
+                    .setSnPort(ConfigurationManagerSn.getInstance().getSnPort())
                     .setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes())
                     .setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
@@ -40,7 +43,6 @@ public class HeartBeatSenderTimerTask implements Runnable {
             Channel chan = DfsStorageNodeStarter.getInstance().getChannelFuture().channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
-            write.syncUninterruptibly();
 
         } catch (Exception e) {
             logger.error("Exception occured in HeartBeat:", e);

@@ -97,9 +97,6 @@ public class DfsStorageNodeStarter {
             chan.flush();
             write.syncUninterruptibly();
 
-            System.out.println("[SN] Creating Timer for Heart Beats:" + storageNode.getSnId());
-            TimerManager.getInstance().scheduleHeartBeatTimer();
-
         } catch (Exception e) {
             e.printStackTrace();
         }

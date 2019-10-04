@@ -120,6 +120,7 @@ public class DfsControllerStarter {
                                          ConfigurationManagerController.getInstance().getHashTime(),
                                          ConfigurationManagerController.getInstance().getSeed()));
         } else {
+            System.out.println("Something wrong");
             return false;
         }
         return result;

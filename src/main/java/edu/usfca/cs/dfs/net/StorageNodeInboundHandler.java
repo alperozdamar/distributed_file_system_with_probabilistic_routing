@@ -119,12 +119,15 @@ public class StorageNodeInboundHandler extends InboundHandler {
             System.out.println("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
                     + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
 
-            if (heartBeatResponse.getStatus()) {
+            if (heartBeatResponse.getStatus() && DfsStorageNodeStarter.getInstance().getHeartBeatSenderTimerHandle()==null) {
                 // System.out.println("[SN] Creating Timer for Heart Beats:"
                 //         + heartBeatResponse.getSnId());
                 // TimerManager.getInstance().scheduleHeartBeatTimer(ConfigurationManagerSn
                 //         .getInstance().getHeartBeatPeriodInMilliseconds());
 
+
+                System.out.println("[SN] Creating Timer for Heart Beats:" + heartBeatResponse.getSnId());
+                TimerManager.getInstance().scheduleHeartBeatTimer();
             } else {
                 TimerManager.getInstance()
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
