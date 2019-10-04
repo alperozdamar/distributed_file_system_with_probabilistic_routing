@@ -54,7 +54,7 @@ public class DfsStorageNodeStarter {
     public void start() throws IOException {
 
         try {
-            storageNode = new StorageNode(ConfigurationManagerSn.getInstance().getSnId(),
+            storageNode = new StorageNode(-1,
                                           null,
                                           null,
                                           "localhost",

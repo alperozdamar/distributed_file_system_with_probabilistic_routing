@@ -102,8 +102,8 @@ public class DfsControllerStarter {
         this.storageNodeHashMap = storageNodeHashMap;
     }
 
-    public boolean addStorageNode(HeartBeat heartBeat) {
-        StorageNode storageNode = new StorageNode(heartBeat.getSnId(),
+    public boolean addStorageNode(HeartBeat heartBeat, int newSnId) {
+        StorageNode storageNode = new StorageNode(newSnId,
                                                   null,
                                                   null,
                                                   heartBeat.getSnIp(),
@@ -112,9 +112,9 @@ public class DfsControllerStarter {
                                                   Constants.STATUS_OPERATIONAL);
         boolean result = SqlManager.getInstance().insertSN(storageNode);
         if (result) {
-            storageNodeHashMap.put(heartBeat.getSnId(), storageNode);
+            storageNodeHashMap.put(newSnId, storageNode);
             bloomFilters
-                    .put(heartBeat.getSnId(),
+                    .put(newSnId,
                          new BloomFilter(ConfigurationManagerController.getInstance()
                                  .getFilterLength(),
                                          ConfigurationManagerController.getInstance().getHashTime(),

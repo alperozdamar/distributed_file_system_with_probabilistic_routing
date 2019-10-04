@@ -2,14 +2,13 @@ package edu.usfca.cs.dfs.net;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import edu.usfca.cs.db.SqlManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.Utils;
+import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsControllerStarter;
 import edu.usfca.cs.dfs.StorageMessages;
@@ -57,33 +56,28 @@ public class ControllerInboundHandler extends InboundHandler {
 
         ChannelFuture write = null;
         SqlManager sqlManager = SqlManager.getInstance();
-        HashMap<Integer,StorageNode> listSN = sqlManager.getAllOperationalSNList();
-        for(Map.Entry<Integer, StorageNode> entry : listSN.entrySet()){
+        HashMap<Integer, StorageNode> listSN = sqlManager.getAllOperationalSNList();
+        for (Map.Entry<Integer, StorageNode> entry : listSN.entrySet()) {
             int id = entry.getKey();
             StorageNode sn = entry.getValue();
-            if(id%3 == 1 && sn.getTotalFreeSpace()>storeChunkMsg.getChunkSize()){//Primary node
+            if (id % 3 == 1 && sn.getTotalFreeSpace() > storeChunkMsg.getChunkSize()) {//Primary node
                 DfsControllerStarter.getInstance().getBloomFilters().get(id)
                         .put((fileName + chunkId).getBytes());
-                StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
-                        .setSnIp(sn.getSnIp())
-                        .setSnPort(sn.getSnPort()).build();
+                StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
+                        .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
                 StorageMessages.StoreChunkLocation.Builder chunkLocationMsgBuilder = StorageMessages.StoreChunkLocation
-                        .newBuilder()
-                        .setFileName(storeChunkMsg.getFileName())
+                        .newBuilder().setFileName(storeChunkMsg.getFileName())
                         .setChunkId(storeChunkMsg.getChunkId())
-                        .setChunkSize(storeChunkMsg.getChunkSize())
-                        .addSnInfo(snInfo);
-                for(int replicaId : sn.getReplicateSnIdList()){
+                        .setChunkSize(storeChunkMsg.getChunkSize()).addSnInfo(snInfo);
+                for (int replicaId : sn.getReplicateSnIdList()) {
                     //TODO: check if replica is down, select backup id
                     sn = sqlManager.getSNInformationById(replicaId);
-                    snInfo = StorageMessages.StorageNodeInfo.newBuilder()
-                            .setSnIp(sn.getSnIp())
+                    snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnIp(sn.getSnIp())
                             .setSnPort(sn.getSnPort()).build();
                     chunkLocationMsgBuilder.addSnInfo(snInfo);
                 }
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                        .newBuilder()
-                        .setStoreChunkLocation(chunkLocationMsgBuilder).build();
+                        .newBuilder().setStoreChunkLocation(chunkLocationMsgBuilder).build();
                 Channel chan = ctx.channel();
                 write = chan.write(msgWrapper);
                 chan.flush().closeFuture();
@@ -136,14 +130,15 @@ public class ControllerInboundHandler extends InboundHandler {
          *************/
         else if (msg.hasHeartBeatMsg()) {
             StorageMessages.HeartBeat heartBeat = msg.getHeartBeatMsg();
-            System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
-                    + heartBeat.getSnId() + "] <<<<<<<<<<<<<<----------------");
+            int snId = heartBeat.getSnId();
+            System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN[" + snId
+                    + "] <<<<<<<<<<<<<<----------------");
 
             /**
              * LETS ADD to DB if it is not exists in our Hash Map!!
              */
             StorageNode storageNode = DfsControllerStarter.getInstance().getStorageNodeHashMap()
-                    .get(heartBeat.getSnId());
+                    .get(snId);
             if (storageNode != null) {
                 /**
                  * Update lastHeartBeatTime!
@@ -155,29 +150,32 @@ public class ControllerInboundHandler extends InboundHandler {
                  * Add to DB.
                  * Schedule Timer for Heart Beat Timeouts.
                  *******************************************/
-                boolean result = DfsControllerStarter.getInstance().addStorageNode(heartBeat);
+                snId = SqlManager.getInstance().getMaxSnId() + 1;
+
+                logger.debug("Assigned new snId:" + snId);
+
+                boolean result = DfsControllerStarter.getInstance().addStorageNode(heartBeat, snId);
                 if (result) {
-                    logger.debug("SN[" + heartBeat.getSnId()
-                            + "] successfully subscribed to Controller, status:"
+                    logger.debug("SN[" + snId + "] successfully subscribed to Controller, status:"
                             + Constants.STATUS_OPERATIONAL);
-                    System.out.println("SN[" + heartBeat.getSnId()
+                    System.out.println("SN[" + snId
                             + "] successfully subscribed to Controller, status:"
                             + Constants.STATUS_OPERATIONAL);
                     /**
                      * Schedule KeepAliveChecker for heart beat timeouts...
                      */
-                    TimerManager.getInstance().scheduleKeepAliveCheckTimer(heartBeat.getSnId());
+                    TimerManager.getInstance().scheduleKeepAliveCheckTimer(snId);
                 }
             }
 
             StorageMessages.HeartBeatResponse response = StorageMessages.HeartBeatResponse
-                    .newBuilder().setStatus(true).setSnId(heartBeat.getSnId()).build();
+                    .newBuilder().setStatus(true).setSnId(snId).build();
 
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                     .newBuilder().setHeartBeatResponse(response).build();
 
-            System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN["
-                    + heartBeat.getSnId() + "] >>>>>>>>>>>--------------");
+            System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN[" + snId
+                    + "] >>>>>>>>>>>--------------");
 
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);

@@ -493,4 +493,45 @@ public class SqlManager {
         return availableStorageNodeMap;
     }
 
+    public int getMaxSnId() {
+        Connection connection = null;
+        int maxSnId = 0;
+        String sql = "SELECT snId from sn_information ORDER BY snId DESC LIMIT 1";
+        PreparedStatement selectStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            selectStatement = connection.prepareStatement(sql);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Queried MAX(snId).");
+            }
+
+            ResultSet resultSet = selectStatement.executeQuery();
+            if (resultSet.next()) {
+                maxSnId = resultSet.getInt("snId");
+            } else {
+                logger.debug("No Storage Node can not be found in DB.");
+            }
+            selectStatement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return -1;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return -1;
+        } finally {
+            try {
+                if (selectStatement != null)
+                    selectStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return maxSnId;
+    }
+
 }

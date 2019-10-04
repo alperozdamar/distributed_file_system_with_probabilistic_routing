@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -78,7 +77,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
     }
 
     public void replicateChunk(StorageMessages.StoreChunk storeChunkMsg) {
-        int mySnId = ConfigurationManagerSn.getInstance().getSnId();
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
 
         /**
          * TODO:
@@ -115,6 +114,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
             handleStoreChunkMsg(ctx, msg.getStoreChunkMsg());
         } else if (msg.hasHeartBeatResponse()) {
             StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
+            DfsStorageNodeStarter.getInstance().getStorageNode()
+                    .setSnId(heartBeatResponse.getSnId());
             System.out.println("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
                     + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
 

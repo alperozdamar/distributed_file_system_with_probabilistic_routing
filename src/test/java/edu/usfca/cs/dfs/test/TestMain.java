@@ -3,6 +3,7 @@ package edu.usfca.cs.dfs.test;
 import java.io.File;
 import java.util.HashMap;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import edu.usfca.cs.db.DbManager;
@@ -76,6 +77,12 @@ public class TestMain {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testGetMaxSnId() {
+        System.out.println("Max SnId:" + SqlManager.getInstance().getMaxSnId());
+        Assert.assertTrue(SqlManager.getInstance().getMaxSnId() >= 0);
     }
 
     @Test
