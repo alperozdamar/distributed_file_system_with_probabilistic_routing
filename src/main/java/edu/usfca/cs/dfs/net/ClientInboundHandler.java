@@ -76,11 +76,13 @@ public class ClientInboundHandler extends InboundHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        String chunkCheckSum = Utils.getMd5(chunk);
 
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk.newBuilder()
                 .setFileName(chunkLocationMsg.getFileName())
                 .setChunkId(chunkLocationMsg.getChunkId())
+                .setChecksum(chunkCheckSum)
                 .setData(data);
         for(int i=1;i<listSNs.size();i++){
             storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(listSNs.get(i));
