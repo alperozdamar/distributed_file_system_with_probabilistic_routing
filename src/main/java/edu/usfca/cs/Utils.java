@@ -3,11 +3,13 @@ package edu.usfca.cs;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.zip.GZIPOutputStream;
 
 public class Utils {
     public static void printHeader(String header){
@@ -60,5 +62,72 @@ public class Utils {
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * If their maximum compression is greater than 0.6 then compress it
+     * @param chunk byte array to compress
+     * @return
+     */
+    public static byte[] compressChunk(byte[] chunk){
+        double entr = entropy(chunk);
+        double maxCompression = (1 - entr/8)*100;
+        if(maxCompression>0.6){
+            ByteArrayOutputStream byteStream =
+                    new ByteArrayOutputStream(chunk.length);
+            try {
+                GZIPOutputStream gzipOS = new GZIPOutputStream(byteStream);
+                try
+                {
+                    gzipOS.write(chunk);
+                }
+                finally
+                {
+                    gzipOS.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    byteStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            byte[] compressedData = byteStream.toByteArray();
+            return compressedData;
+        }
+        return chunk;
+    }
+
+    /**
+     * Calculates the entropy per character/byte of a byte array.
+     *
+     * @param input array to calculate entropy of
+     *
+     * @return entropy bits per byte
+     */
+    public static double entropy(byte[] input) {
+        if (input.length == 0) {
+            return 0.0;
+        }
+
+        /* Total up the occurrences of each byte */
+        int[] charCounts = new int[256];
+        for (byte b : input) {
+            charCounts[b & 0xFF]++;
+        }
+
+        double entropy = 0.0;
+        for (int i = 0; i < 256; ++i) {
+            if (charCounts[i] == 0.0) {
+                continue;
+            }
+
+            double freq = (double) charCounts[i] / input.length;
+            entropy -= freq * (Math.log(freq) / Math.log(2));
+        }
+
+        return entropy;
     }
 }
