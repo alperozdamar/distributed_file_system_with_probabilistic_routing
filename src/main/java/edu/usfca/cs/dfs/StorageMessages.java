@@ -66,6 +66,16 @@ public final class StorageMessages {
      */
     edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder getSnInfoOrBuilder(
         int index);
+
+    /**
+     * <code>string checksum = 6;</code>
+     */
+    java.lang.String getChecksum();
+    /**
+     * <code>string checksum = 6;</code>
+     */
+    com.google.protobuf.ByteString
+        getChecksumBytes();
   }
   /**
    * Protobuf type {@code StoreChunk}
@@ -83,6 +93,7 @@ public final class StorageMessages {
       fileName_ = "";
       data_ = com.google.protobuf.ByteString.EMPTY;
       snInfo_ = java.util.Collections.emptyList();
+      checksum_ = "";
     }
 
     @java.lang.Override
@@ -144,6 +155,12 @@ public final class StorageMessages {
               }
               snInfo_.add(
                   input.readMessage(edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.parser(), extensionRegistry));
+              break;
+            }
+            case 50: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              checksum_ = s;
               break;
             }
             default: {
@@ -277,6 +294,40 @@ public final class StorageMessages {
       return snInfo_.get(index);
     }
 
+    public static final int CHECKSUM_FIELD_NUMBER = 6;
+    private volatile java.lang.Object checksum_;
+    /**
+     * <code>string checksum = 6;</code>
+     */
+    public java.lang.String getChecksum() {
+      java.lang.Object ref = checksum_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        checksum_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string checksum = 6;</code>
+     */
+    public com.google.protobuf.ByteString
+        getChecksumBytes() {
+      java.lang.Object ref = checksum_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        checksum_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -306,6 +357,9 @@ public final class StorageMessages {
       for (int i = 0; i < snInfo_.size(); i++) {
         output.writeMessage(5, snInfo_.get(i));
       }
+      if (!getChecksumBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 6, checksum_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -334,6 +388,9 @@ public final class StorageMessages {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, snInfo_.get(i));
       }
+      if (!getChecksumBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, checksum_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -359,6 +416,8 @@ public final class StorageMessages {
           .equals(other.getData())) return false;
       if (!getSnInfoList()
           .equals(other.getSnInfoList())) return false;
+      if (!getChecksum()
+          .equals(other.getChecksum())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -382,6 +441,8 @@ public final class StorageMessages {
         hash = (37 * hash) + SNINFO_FIELD_NUMBER;
         hash = (53 * hash) + getSnInfoList().hashCode();
       }
+      hash = (37 * hash) + CHECKSUM_FIELD_NUMBER;
+      hash = (53 * hash) + getChecksum().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -530,6 +591,8 @@ public final class StorageMessages {
         } else {
           snInfoBuilder_.clear();
         }
+        checksum_ = "";
+
         return this;
       }
 
@@ -570,6 +633,7 @@ public final class StorageMessages {
         } else {
           result.snInfo_ = snInfoBuilder_.build();
         }
+        result.checksum_ = checksum_;
         onBuilt();
         return result;
       }
@@ -656,6 +720,10 @@ public final class StorageMessages {
               snInfoBuilder_.addAllMessages(other.snInfo_);
             }
           }
+        }
+        if (!other.getChecksum().isEmpty()) {
+          checksum_ = other.checksum_;
+          onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1075,6 +1143,75 @@ public final class StorageMessages {
           snInfo_ = null;
         }
         return snInfoBuilder_;
+      }
+
+      private java.lang.Object checksum_ = "";
+      /**
+       * <code>string checksum = 6;</code>
+       */
+      public java.lang.String getChecksum() {
+        java.lang.Object ref = checksum_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          checksum_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string checksum = 6;</code>
+       */
+      public com.google.protobuf.ByteString
+          getChecksumBytes() {
+        java.lang.Object ref = checksum_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          checksum_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string checksum = 6;</code>
+       */
+      public Builder setChecksum(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        checksum_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string checksum = 6;</code>
+       */
+      public Builder clearChecksum() {
+        
+        checksum_ = getDefaultInstance().getChecksum();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string checksum = 6;</code>
+       */
+      public Builder setChecksumBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        checksum_ = value;
+        onChanged();
+        return this;
       }
       @java.lang.Override
       public final Builder setUnknownFields(
@@ -10724,41 +10861,41 @@ public final class StorageMessages {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\026storage_messages.proto\"r\n\nStoreChunk\022\020" +
-      "\n\010fileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\022\021\n\tchu" +
-      "nkSize\030\003 \001(\005\022\014\n\004data\030\004 \001(\014\022 \n\006snInfo\030\005 \003" +
-      "(\0132\020.StorageNodeInfo\"6\n\022StoreChunkLocati" +
-      "on\022 \n\006snInfo\030\001 \003(\0132\020.StorageNodeInfo\"5\n\022" +
-      "StoreChunkResponse\022\017\n\007chunkId\030\001 \001(\005\022\016\n\006s" +
-      "tatus\030\002 \001(\010\"\222\001\n\tHeartBeat\022\014\n\004snId\030\001 \001(\005\022" +
-      "\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFr" +
-      "eeSpaceInBytes\030\004 \001(\003\022\033\n\023numOfStorageMess" +
-      "age\030\005 \001(\005\022\035\n\025numOfRetrievelRequest\030\006 \001(\005" +
-      "\"1\n\021HeartBeatResponse\022\014\n\004snId\030\001 \001(\005\022\016\n\006s" +
-      "tatus\030\002 \001(\010\"\006\n\004List\"0\n\014ListResponse\022 \n\006s" +
-      "nInfo\030\001 \003(\0132\020.StorageNodeInfo\" \n\014Retriev" +
-      "eFile\022\020\n\010fileName\030\001 \001(\t\"C\n\024RetrieveFileR" +
-      "esponse\022+\n\021snInfoOfChunkZero\030\001 \001(\0132\020.Sto" +
-      "rageNodeInfo\"\230\001\n\017StorageNodeInfo\022\014\n\004snId" +
-      "\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025" +
-      "totalFreeSpaceInBytes\030\004 \001(\003\022\033\n\023numOfStor" +
-      "ageMessage\030\005 \001(\005\022\035\n\025numOfRetrievelReques" +
-      "t\030\006 \001(\005\"F\n\016ReplicaRequest\022\037\n\nstoreChunk\030" +
-      "\001 \001(\0132\013.StoreChunk\022\023\n\013primarySnId\030\002 \001(\005\"" +
-      "\360\003\n\025StorageMessageWrapper\022$\n\rstoreChunkM" +
-      "sg\030\001 \001(\0132\013.StoreChunkH\000\022(\n\017retrieveFileM" +
-      "sg\030\002 \001(\0132\r.RetrieveFileH\000\022\"\n\014heartBeatMs" +
-      "g\030\003 \001(\0132\n.HeartBeatH\000\022/\n\021HeartBeatRespon" +
-      "se\030\004 \001(\0132\022.HeartBeatResponseH\000\022\025\n\004list\030\005" +
-      " \001(\0132\005.ListH\000\022%\n\014listResponse\030\006 \001(\0132\r.Li" +
-      "stResponseH\000\0221\n\022storeChunkLocation\030\007 \001(\013" +
-      "2\023.StoreChunkLocationH\000\0221\n\022storeChunkRes" +
-      "ponse\030\010 \001(\0132\023.StoreChunkResponseH\000\022%\n\014re" +
-      "trieveFile\030\t \001(\0132\r.RetrieveFileH\000\0225\n\024ret" +
-      "rieveFileResponse\030\n \001(\0132\025.RetrieveFileRe" +
-      "sponseH\000\022)\n\016replicaRequest\030\013 \001(\0132\017.Repli" +
-      "caRequestH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb\006" +
-      "proto3"
+      "\n\026storage_messages.proto\"\204\001\n\nStoreChunk\022" +
+      "\020\n\010fileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\022\021\n\tch" +
+      "unkSize\030\003 \001(\005\022\014\n\004data\030\004 \001(\014\022 \n\006snInfo\030\005 " +
+      "\003(\0132\020.StorageNodeInfo\022\020\n\010checksum\030\006 \001(\t\"" +
+      "6\n\022StoreChunkLocation\022 \n\006snInfo\030\001 \003(\0132\020." +
+      "StorageNodeInfo\"5\n\022StoreChunkResponse\022\017\n" +
+      "\007chunkId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\222\001\n\tHeart" +
+      "Beat\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006snPo" +
+      "rt\030\003 \001(\005\022\035\n\025totalFreeSpaceInBytes\030\004 \001(\003\022" +
+      "\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025numOfRet" +
+      "rievelRequest\030\006 \001(\005\"1\n\021HeartBeatResponse" +
+      "\022\014\n\004snId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\006\n\004List\"0" +
+      "\n\014ListResponse\022 \n\006snInfo\030\001 \003(\0132\020.Storage" +
+      "NodeInfo\" \n\014RetrieveFile\022\020\n\010fileName\030\001 \001" +
+      "(\t\"C\n\024RetrieveFileResponse\022+\n\021snInfoOfCh" +
+      "unkZero\030\001 \001(\0132\020.StorageNodeInfo\"\230\001\n\017Stor" +
+      "ageNodeInfo\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022" +
+      "\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFreeSpaceInBytes" +
+      "\030\004 \001(\003\022\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025n" +
+      "umOfRetrievelRequest\030\006 \001(\005\"F\n\016ReplicaReq" +
+      "uest\022\037\n\nstoreChunk\030\001 \001(\0132\013.StoreChunk\022\023\n" +
+      "\013primarySnId\030\002 \001(\005\"\360\003\n\025StorageMessageWra" +
+      "pper\022$\n\rstoreChunkMsg\030\001 \001(\0132\013.StoreChunk" +
+      "H\000\022(\n\017retrieveFileMsg\030\002 \001(\0132\r.RetrieveFi" +
+      "leH\000\022\"\n\014heartBeatMsg\030\003 \001(\0132\n.HeartBeatH\000" +
+      "\022/\n\021HeartBeatResponse\030\004 \001(\0132\022.HeartBeatR" +
+      "esponseH\000\022\025\n\004list\030\005 \001(\0132\005.ListH\000\022%\n\014list" +
+      "Response\030\006 \001(\0132\r.ListResponseH\000\0221\n\022store" +
+      "ChunkLocation\030\007 \001(\0132\023.StoreChunkLocation" +
+      "H\000\0221\n\022storeChunkResponse\030\010 \001(\0132\023.StoreCh" +
+      "unkResponseH\000\022%\n\014retrieveFile\030\t \001(\0132\r.Re" +
+      "trieveFileH\000\0225\n\024retrieveFileResponse\030\n \001" +
+      "(\0132\025.RetrieveFileResponseH\000\022)\n\016replicaRe" +
+      "quest\030\013 \001(\0132\017.ReplicaRequestH\000B\005\n\003msgB\022\n" +
+      "\020edu.usfca.cs.dfsb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10769,7 +10906,7 @@ public final class StorageMessages {
     internal_static_StoreChunk_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StoreChunk_descriptor,
-        new java.lang.String[] { "FileName", "ChunkId", "ChunkSize", "Data", "SnInfo", });
+        new java.lang.String[] { "FileName", "ChunkId", "ChunkSize", "Data", "SnInfo", "Checksum", });
     internal_static_StoreChunkLocation_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_StoreChunkLocation_fieldAccessorTable = new
