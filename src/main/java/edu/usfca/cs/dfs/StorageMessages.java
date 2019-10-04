@@ -1271,25 +1271,45 @@ public final class StorageMessages {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>string fileName = 1;</code>
+     */
+    java.lang.String getFileName();
+    /**
+     * <code>string fileName = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getFileNameBytes();
+
+    /**
+     * <code>int32 chunkId = 2;</code>
+     */
+    int getChunkId();
+
+    /**
+     * <code>int32 chunkSize = 3;</code>
+     */
+    int getChunkSize();
+
+    /**
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     java.util.List<edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo> 
         getSnInfoList();
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo getSnInfo(int index);
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     int getSnInfoCount();
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     java.util.List<? extends edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder> 
         getSnInfoOrBuilderList();
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder getSnInfoOrBuilder(
         int index);
@@ -1307,6 +1327,7 @@ public final class StorageMessages {
       super(builder);
     }
     private StoreChunkLocation() {
+      fileName_ = "";
       snInfo_ = java.util.Collections.emptyList();
     }
 
@@ -1342,6 +1363,22 @@ public final class StorageMessages {
               done = true;
               break;
             case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              fileName_ = s;
+              break;
+            }
+            case 16: {
+
+              chunkId_ = input.readInt32();
+              break;
+            }
+            case 24: {
+
+              chunkSize_ = input.readInt32();
+              break;
+            }
+            case 34: {
               if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 snInfo_ = new java.util.ArrayList<edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo>();
                 mutable_bitField0_ |= 0x00000001;
@@ -1385,35 +1422,87 @@ public final class StorageMessages {
               edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation.class, edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation.Builder.class);
     }
 
-    public static final int SNINFO_FIELD_NUMBER = 1;
+    public static final int FILENAME_FIELD_NUMBER = 1;
+    private volatile java.lang.Object fileName_;
+    /**
+     * <code>string fileName = 1;</code>
+     */
+    public java.lang.String getFileName() {
+      java.lang.Object ref = fileName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        fileName_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string fileName = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getFileNameBytes() {
+      java.lang.Object ref = fileName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        fileName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CHUNKID_FIELD_NUMBER = 2;
+    private int chunkId_;
+    /**
+     * <code>int32 chunkId = 2;</code>
+     */
+    public int getChunkId() {
+      return chunkId_;
+    }
+
+    public static final int CHUNKSIZE_FIELD_NUMBER = 3;
+    private int chunkSize_;
+    /**
+     * <code>int32 chunkSize = 3;</code>
+     */
+    public int getChunkSize() {
+      return chunkSize_;
+    }
+
+    public static final int SNINFO_FIELD_NUMBER = 4;
     private java.util.List<edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo> snInfo_;
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     public java.util.List<edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo> getSnInfoList() {
       return snInfo_;
     }
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     public java.util.List<? extends edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder> 
         getSnInfoOrBuilderList() {
       return snInfo_;
     }
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     public int getSnInfoCount() {
       return snInfo_.size();
     }
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     public edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo getSnInfo(int index) {
       return snInfo_.get(index);
     }
     /**
-     * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+     * <code>repeated .StorageNodeInfo snInfo = 4;</code>
      */
     public edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder getSnInfoOrBuilder(
         int index) {
@@ -1434,8 +1523,17 @@ public final class StorageMessages {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (!getFileNameBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, fileName_);
+      }
+      if (chunkId_ != 0) {
+        output.writeInt32(2, chunkId_);
+      }
+      if (chunkSize_ != 0) {
+        output.writeInt32(3, chunkSize_);
+      }
       for (int i = 0; i < snInfo_.size(); i++) {
-        output.writeMessage(1, snInfo_.get(i));
+        output.writeMessage(4, snInfo_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -1446,9 +1544,20 @@ public final class StorageMessages {
       if (size != -1) return size;
 
       size = 0;
+      if (!getFileNameBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, fileName_);
+      }
+      if (chunkId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, chunkId_);
+      }
+      if (chunkSize_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, chunkSize_);
+      }
       for (int i = 0; i < snInfo_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, snInfo_.get(i));
+          .computeMessageSize(4, snInfo_.get(i));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1465,6 +1574,12 @@ public final class StorageMessages {
       }
       edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation other = (edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation) obj;
 
+      if (!getFileName()
+          .equals(other.getFileName())) return false;
+      if (getChunkId()
+          != other.getChunkId()) return false;
+      if (getChunkSize()
+          != other.getChunkSize()) return false;
       if (!getSnInfoList()
           .equals(other.getSnInfoList())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
@@ -1478,6 +1593,12 @@ public final class StorageMessages {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + FILENAME_FIELD_NUMBER;
+      hash = (53 * hash) + getFileName().hashCode();
+      hash = (37 * hash) + CHUNKID_FIELD_NUMBER;
+      hash = (53 * hash) + getChunkId();
+      hash = (37 * hash) + CHUNKSIZE_FIELD_NUMBER;
+      hash = (53 * hash) + getChunkSize();
       if (getSnInfoCount() > 0) {
         hash = (37 * hash) + SNINFO_FIELD_NUMBER;
         hash = (53 * hash) + getSnInfoList().hashCode();
@@ -1616,6 +1737,12 @@ public final class StorageMessages {
       @java.lang.Override
       public Builder clear() {
         super.clear();
+        fileName_ = "";
+
+        chunkId_ = 0;
+
+        chunkSize_ = 0;
+
         if (snInfoBuilder_ == null) {
           snInfo_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000001);
@@ -1649,6 +1776,9 @@ public final class StorageMessages {
       public edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation buildPartial() {
         edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation result = new edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation(this);
         int from_bitField0_ = bitField0_;
+        result.fileName_ = fileName_;
+        result.chunkId_ = chunkId_;
+        result.chunkSize_ = chunkSize_;
         if (snInfoBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0)) {
             snInfo_ = java.util.Collections.unmodifiableList(snInfo_);
@@ -1706,6 +1836,16 @@ public final class StorageMessages {
 
       public Builder mergeFrom(edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation other) {
         if (other == edu.usfca.cs.dfs.StorageMessages.StoreChunkLocation.getDefaultInstance()) return this;
+        if (!other.getFileName().isEmpty()) {
+          fileName_ = other.fileName_;
+          onChanged();
+        }
+        if (other.getChunkId() != 0) {
+          setChunkId(other.getChunkId());
+        }
+        if (other.getChunkSize() != 0) {
+          setChunkSize(other.getChunkSize());
+        }
         if (snInfoBuilder_ == null) {
           if (!other.snInfo_.isEmpty()) {
             if (snInfo_.isEmpty()) {
@@ -1762,6 +1902,127 @@ public final class StorageMessages {
       }
       private int bitField0_;
 
+      private java.lang.Object fileName_ = "";
+      /**
+       * <code>string fileName = 1;</code>
+       */
+      public java.lang.String getFileName() {
+        java.lang.Object ref = fileName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          fileName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string fileName = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getFileNameBytes() {
+        java.lang.Object ref = fileName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          fileName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string fileName = 1;</code>
+       */
+      public Builder setFileName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        fileName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string fileName = 1;</code>
+       */
+      public Builder clearFileName() {
+        
+        fileName_ = getDefaultInstance().getFileName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string fileName = 1;</code>
+       */
+      public Builder setFileNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        fileName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private int chunkId_ ;
+      /**
+       * <code>int32 chunkId = 2;</code>
+       */
+      public int getChunkId() {
+        return chunkId_;
+      }
+      /**
+       * <code>int32 chunkId = 2;</code>
+       */
+      public Builder setChunkId(int value) {
+        
+        chunkId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 chunkId = 2;</code>
+       */
+      public Builder clearChunkId() {
+        
+        chunkId_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int chunkSize_ ;
+      /**
+       * <code>int32 chunkSize = 3;</code>
+       */
+      public int getChunkSize() {
+        return chunkSize_;
+      }
+      /**
+       * <code>int32 chunkSize = 3;</code>
+       */
+      public Builder setChunkSize(int value) {
+        
+        chunkSize_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 chunkSize = 3;</code>
+       */
+      public Builder clearChunkSize() {
+        
+        chunkSize_ = 0;
+        onChanged();
+        return this;
+      }
+
       private java.util.List<edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo> snInfo_ =
         java.util.Collections.emptyList();
       private void ensureSnInfoIsMutable() {
@@ -1775,7 +2036,7 @@ public final class StorageMessages {
           edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo, edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder, edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder> snInfoBuilder_;
 
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public java.util.List<edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo> getSnInfoList() {
         if (snInfoBuilder_ == null) {
@@ -1785,7 +2046,7 @@ public final class StorageMessages {
         }
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public int getSnInfoCount() {
         if (snInfoBuilder_ == null) {
@@ -1795,7 +2056,7 @@ public final class StorageMessages {
         }
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo getSnInfo(int index) {
         if (snInfoBuilder_ == null) {
@@ -1805,7 +2066,7 @@ public final class StorageMessages {
         }
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder setSnInfo(
           int index, edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo value) {
@@ -1822,7 +2083,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder setSnInfo(
           int index, edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder builderForValue) {
@@ -1836,7 +2097,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder addSnInfo(edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo value) {
         if (snInfoBuilder_ == null) {
@@ -1852,7 +2113,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder addSnInfo(
           int index, edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo value) {
@@ -1869,7 +2130,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder addSnInfo(
           edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder builderForValue) {
@@ -1883,7 +2144,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder addSnInfo(
           int index, edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder builderForValue) {
@@ -1897,7 +2158,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder addAllSnInfo(
           java.lang.Iterable<? extends edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo> values) {
@@ -1912,7 +2173,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder clearSnInfo() {
         if (snInfoBuilder_ == null) {
@@ -1925,7 +2186,7 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public Builder removeSnInfo(int index) {
         if (snInfoBuilder_ == null) {
@@ -1938,14 +2199,14 @@ public final class StorageMessages {
         return this;
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder getSnInfoBuilder(
           int index) {
         return getSnInfoFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder getSnInfoOrBuilder(
           int index) {
@@ -1955,7 +2216,7 @@ public final class StorageMessages {
         }
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public java.util.List<? extends edu.usfca.cs.dfs.StorageMessages.StorageNodeInfoOrBuilder> 
            getSnInfoOrBuilderList() {
@@ -1966,14 +2227,14 @@ public final class StorageMessages {
         }
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder addSnInfoBuilder() {
         return getSnInfoFieldBuilder().addBuilder(
             edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.getDefaultInstance());
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder addSnInfoBuilder(
           int index) {
@@ -1981,7 +2242,7 @@ public final class StorageMessages {
             index, edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.getDefaultInstance());
       }
       /**
-       * <code>repeated .StorageNodeInfo snInfo = 1;</code>
+       * <code>repeated .StorageNodeInfo snInfo = 4;</code>
        */
       public java.util.List<edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo.Builder> 
            getSnInfoBuilderList() {
@@ -10865,37 +11126,38 @@ public final class StorageMessages {
       "\020\n\010fileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\022\021\n\tch" +
       "unkSize\030\003 \001(\005\022\014\n\004data\030\004 \001(\014\022 \n\006snInfo\030\005 " +
       "\003(\0132\020.StorageNodeInfo\022\020\n\010checksum\030\006 \001(\t\"" +
-      "6\n\022StoreChunkLocation\022 \n\006snInfo\030\001 \003(\0132\020." +
-      "StorageNodeInfo\"5\n\022StoreChunkResponse\022\017\n" +
-      "\007chunkId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\222\001\n\tHeart" +
-      "Beat\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006snPo" +
-      "rt\030\003 \001(\005\022\035\n\025totalFreeSpaceInBytes\030\004 \001(\003\022" +
-      "\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025numOfRet" +
-      "rievelRequest\030\006 \001(\005\"1\n\021HeartBeatResponse" +
-      "\022\014\n\004snId\030\001 \001(\005\022\016\n\006status\030\002 \001(\010\"\006\n\004List\"0" +
-      "\n\014ListResponse\022 \n\006snInfo\030\001 \003(\0132\020.Storage" +
-      "NodeInfo\" \n\014RetrieveFile\022\020\n\010fileName\030\001 \001" +
-      "(\t\"C\n\024RetrieveFileResponse\022+\n\021snInfoOfCh" +
-      "unkZero\030\001 \001(\0132\020.StorageNodeInfo\"\230\001\n\017Stor" +
-      "ageNodeInfo\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022" +
-      "\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFreeSpaceInBytes" +
-      "\030\004 \001(\003\022\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025n" +
-      "umOfRetrievelRequest\030\006 \001(\005\"F\n\016ReplicaReq" +
-      "uest\022\037\n\nstoreChunk\030\001 \001(\0132\013.StoreChunk\022\023\n" +
-      "\013primarySnId\030\002 \001(\005\"\360\003\n\025StorageMessageWra" +
-      "pper\022$\n\rstoreChunkMsg\030\001 \001(\0132\013.StoreChunk" +
-      "H\000\022(\n\017retrieveFileMsg\030\002 \001(\0132\r.RetrieveFi" +
-      "leH\000\022\"\n\014heartBeatMsg\030\003 \001(\0132\n.HeartBeatH\000" +
-      "\022/\n\021HeartBeatResponse\030\004 \001(\0132\022.HeartBeatR" +
-      "esponseH\000\022\025\n\004list\030\005 \001(\0132\005.ListH\000\022%\n\014list" +
-      "Response\030\006 \001(\0132\r.ListResponseH\000\0221\n\022store" +
-      "ChunkLocation\030\007 \001(\0132\023.StoreChunkLocation" +
-      "H\000\0221\n\022storeChunkResponse\030\010 \001(\0132\023.StoreCh" +
-      "unkResponseH\000\022%\n\014retrieveFile\030\t \001(\0132\r.Re" +
-      "trieveFileH\000\0225\n\024retrieveFileResponse\030\n \001" +
-      "(\0132\025.RetrieveFileResponseH\000\022)\n\016replicaRe" +
-      "quest\030\013 \001(\0132\017.ReplicaRequestH\000B\005\n\003msgB\022\n" +
-      "\020edu.usfca.cs.dfsb\006proto3"
+      "l\n\022StoreChunkLocation\022\020\n\010fileName\030\001 \001(\t\022" +
+      "\017\n\007chunkId\030\002 \001(\005\022\021\n\tchunkSize\030\003 \001(\005\022 \n\006s" +
+      "nInfo\030\004 \003(\0132\020.StorageNodeInfo\"5\n\022StoreCh" +
+      "unkResponse\022\017\n\007chunkId\030\001 \001(\005\022\016\n\006status\030\002" +
+      " \001(\010\"\222\001\n\tHeartBeat\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp" +
+      "\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFreeSpace" +
+      "InBytes\030\004 \001(\003\022\033\n\023numOfStorageMessage\030\005 \001" +
+      "(\005\022\035\n\025numOfRetrievelRequest\030\006 \001(\005\"1\n\021Hea" +
+      "rtBeatResponse\022\014\n\004snId\030\001 \001(\005\022\016\n\006status\030\002" +
+      " \001(\010\"\006\n\004List\"0\n\014ListResponse\022 \n\006snInfo\030\001" +
+      " \003(\0132\020.StorageNodeInfo\" \n\014RetrieveFile\022\020" +
+      "\n\010fileName\030\001 \001(\t\"C\n\024RetrieveFileResponse" +
+      "\022+\n\021snInfoOfChunkZero\030\001 \001(\0132\020.StorageNod" +
+      "eInfo\"\230\001\n\017StorageNodeInfo\022\014\n\004snId\030\001 \001(\005\022" +
+      "\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFr" +
+      "eeSpaceInBytes\030\004 \001(\003\022\033\n\023numOfStorageMess" +
+      "age\030\005 \001(\005\022\035\n\025numOfRetrievelRequest\030\006 \001(\005" +
+      "\"F\n\016ReplicaRequest\022\037\n\nstoreChunk\030\001 \001(\0132\013" +
+      ".StoreChunk\022\023\n\013primarySnId\030\002 \001(\005\"\360\003\n\025Sto" +
+      "rageMessageWrapper\022$\n\rstoreChunkMsg\030\001 \001(" +
+      "\0132\013.StoreChunkH\000\022(\n\017retrieveFileMsg\030\002 \001(" +
+      "\0132\r.RetrieveFileH\000\022\"\n\014heartBeatMsg\030\003 \001(\013" +
+      "2\n.HeartBeatH\000\022/\n\021HeartBeatResponse\030\004 \001(" +
+      "\0132\022.HeartBeatResponseH\000\022\025\n\004list\030\005 \001(\0132\005." +
+      "ListH\000\022%\n\014listResponse\030\006 \001(\0132\r.ListRespo" +
+      "nseH\000\0221\n\022storeChunkLocation\030\007 \001(\0132\023.Stor" +
+      "eChunkLocationH\000\0221\n\022storeChunkResponse\030\010" +
+      " \001(\0132\023.StoreChunkResponseH\000\022%\n\014retrieveF" +
+      "ile\030\t \001(\0132\r.RetrieveFileH\000\0225\n\024retrieveFi" +
+      "leResponse\030\n \001(\0132\025.RetrieveFileResponseH" +
+      "\000\022)\n\016replicaRequest\030\013 \001(\0132\017.ReplicaReque" +
+      "stH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10912,7 +11174,7 @@ public final class StorageMessages {
     internal_static_StoreChunkLocation_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StoreChunkLocation_descriptor,
-        new java.lang.String[] { "SnInfo", });
+        new java.lang.String[] { "FileName", "ChunkId", "ChunkSize", "SnInfo", });
     internal_static_StoreChunkResponse_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_StoreChunkResponse_fieldAccessorTable = new

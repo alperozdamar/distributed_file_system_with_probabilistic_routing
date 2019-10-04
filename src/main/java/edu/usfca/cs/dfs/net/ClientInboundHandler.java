@@ -1,10 +1,12 @@
 package edu.usfca.cs.dfs.net;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.usfca.cs.dfs.DfsClientStarter;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
 import edu.usfca.cs.dfs.config.Constants;
 import io.netty.bootstrap.Bootstrap;
@@ -19,6 +21,8 @@ import com.google.protobuf.ByteString;
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
+
+import static edu.usfca.cs.Utils.readFromFile;
 
 @ChannelHandler.Sharable
 public class ClientInboundHandler extends InboundHandler {
@@ -49,9 +53,8 @@ public class ClientInboundHandler extends InboundHandler {
 
     private void handleStoreChunkLocationMsg(ChannelHandlerContext ctx, StorageMessages.StoreChunkLocation chunkLocationMsg){
         System.out.println("[Client]This is Store Chunk Location Message...");
-        for (StorageMessages.StorageNodeInfo sn : chunkLocationMsg.getSnInfoList()) {
-            System.out.printf("[Client]IP : %s - Port: %d\n", sn.getSnIp(), sn.getSnPort());
-        }
+        List<StorageMessages.StorageNodeInfo> listSNs = chunkLocationMsg.getSnInfoList();
+        StorageMessages.StorageNodeInfo firstNode = listSNs.get(0);
         //Send chunk to SN
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
@@ -60,14 +63,30 @@ public class ClientInboundHandler extends InboundHandler {
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
         ChannelFuture cf = Utils
                 .connect(bootstrap,
-                        "localhost",
-                        8001);
+                        firstNode.getSnIp(),
+                        firstNode.getSnPort());
 
-        ByteString data = ByteString.copyFromUtf8("Hello World!");
-        StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
-                .setFileName("Test Chunk").setChunkId(88).setData(data).build();
+        //Read chunk from file base on chunkId
+        int configChunkSize = (int) ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+        byte[] chunk = null;
+        try {
+            chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
+                    configChunkSize*chunkLocationMsg.getChunkId()-1,
+                    chunkLocationMsg.getChunkSize());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ByteString data = ByteString.copyFrom(chunk);
+        StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk.newBuilder()
+                .setFileName(chunkLocationMsg.getFileName())
+                .setChunkId(chunkLocationMsg.getChunkId())
+                .setData(data);
+        for(int i=1;i<listSNs.size();i++){
+            storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(listSNs.get(i));
+        }
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                .newBuilder().setStoreChunkMsg(storeChunkMsg).build();
+                .newBuilder().setStoreChunkMsg(storeChunkMsgBuilder).build();
         Channel chan = cf.channel();
         chan.write(msgWrapper);
         chan.flush().closeFuture().syncUninterruptibly();
@@ -109,7 +128,6 @@ public class ClientInboundHandler extends InboundHandler {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        System.out.println("[Client]Flush ctx");
         ctx.flush();
     }
 

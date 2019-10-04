@@ -51,6 +51,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         System.out.println("[SN]This is Store Chunk Message...");
         System.out.println("[SN]Storing file name: " + storeChunkMsg.getFileName());
         System.out.println("[SN]Storing chunk Id: " + storeChunkMsg.getChunkId());
+        System.out.println("[SN]Storing data: " + storeChunkMsg.getData().toString());
 
         //Response to client, first node only
         System.out.println("[SN]Send back message");
@@ -140,7 +141,6 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        System.out.println("[SN]Flush ctx");
         ctx.flush();
     }
 

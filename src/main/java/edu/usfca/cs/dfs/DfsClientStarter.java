@@ -28,7 +28,8 @@ public class DfsClientStarter {
 
     private static DfsClientStarter instance;
     private final static Object     classLock = new Object();
-    private List<ByteString>        chunks    = new ArrayList<ByteString>();
+
+    private String fileInfo = "";
 
     private DfsClientStarter() {
     }
@@ -46,7 +47,7 @@ public class DfsClientStarter {
         }
     }
 
-    private static void listStorageNode(Bootstrap bootstrap) {
+    private void listStorageNode(Bootstrap bootstrap) {
         System.out.println("Client will be connected to Controller<"
                 + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
                 + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
@@ -64,15 +65,11 @@ public class DfsClientStarter {
         chan.closeFuture().syncUninterruptibly();
     }
 
-    private static void storeFile(Bootstrap bootstrap) {
-        ChannelFuture cf = Utils
-                .connect(bootstrap,
-                         ConfigurationManagerClient.getInstance().getControllerIp(),
-                         ConfigurationManagerClient.getInstance().getControllerPort());
+    private void storeFile(Bootstrap bootstrap) {
         Scanner scanner = new Scanner(System.in);
         //  prompt for command.
         System.out.print("Enter your fileName and folder:");
-        String fileInfo = scanner.next().trim();
+        fileInfo = scanner.next().trim();
         /**
          * TODO:
          * Find the specified file and divide into chunks...
@@ -92,20 +89,28 @@ public class DfsClientStarter {
 
         System.out.println("FileName:" + file.getName());
 
-        ByteString data = ByteString.copyFromUtf8("Hello World!");
-        StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
-                .setFileName(file.getName()).setChunkId(88).setData(data).build();
-        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                .newBuilder().setStoreChunkMsg(storeChunkMsg).build();
-        Channel chan = cf.channel();
-        chan.write(msgWrapper);
-        chan.flush().closeFuture().syncUninterruptibly();
+        byte[] buffer = new byte[(int) chunkSize];
+        int read = 0;
+        for (int i = 0; i < numOfChunks; i++) {
+            ChannelFuture cf = Utils
+                    .connect(bootstrap,
+                            ConfigurationManagerClient.getInstance().getControllerIp(),
+                            ConfigurationManagerClient.getInstance().getControllerPort());
+            StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
+                    .setFileName(file.getName())
+                    .setChunkId(i + 1)
+                    .setChunkSize((int) (i==numOfChunks-1?lastChunkByteSize:chunkSize)).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setStoreChunkMsg(storeChunkMsg).build();
+            cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
+        }
     }
 
     public static void main(String[] args) {
         ConfigurationManagerClient.getInstance();
         System.out.println("Client is started with these parameters: "
                 + ConfigurationManagerClient.getInstance().toString());
+        DfsClientStarter dfsClient = DfsClientStarter.getInstance();
 
         /**
          * TODO:
@@ -129,11 +134,11 @@ public class DfsClientStarter {
             String command = scanner.next();
 
             if (command.equalsIgnoreCase(Constants.LIST)) {
-                listStorageNode(bootstrap);
+                dfsClient.listStorageNode(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.RETRIEVE)) {
 
             } else if (command.equalsIgnoreCase(Constants.STORE)) {
-                storeFile(bootstrap);
+                dfsClient.storeFile(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.EXIT)) {
                 System.out.println("Client will be shutdown....");
                 workerGroup.shutdownGracefully();
@@ -144,6 +149,14 @@ public class DfsClientStarter {
 
         }
 
+    }
+
+    public String getFileInfo() {
+        return fileInfo;
+    }
+
+    public void setFileInfo(String fileInfo) {
+        this.fileInfo = fileInfo;
     }
 
 }
