@@ -8,7 +8,6 @@ public class MyRandomAccessFileTest {
 
     public static void main(String[] args) {
         try {
-            // file content is "ABCDEFGH"
             String filePath = "input/test.txt";
 
             HashMap<Integer, byte[]> chunkMap = new HashMap<Integer, byte[]>();
@@ -19,9 +18,9 @@ public class MyRandomAccessFileTest {
             int chunkId = 1;
             for (int i = 0; i < raFile.length(); i = i + chunkSize) {
                 if (i == 0) {
-                    chunkMap.put(chunkId, readCharsFromFile(filePath, 0, chunkSize));
+                    chunkMap.put(chunkId, readChunksFromFile(filePath, 0, chunkSize));
                 } else {
-                    chunkMap.put(chunkId, readCharsFromFile(filePath, i, chunkSize));
+                    chunkMap.put(chunkId, readChunksFromFile(filePath, i, chunkSize));
                 }
                 chunkId++;
             }
@@ -52,7 +51,7 @@ public class MyRandomAccessFileTest {
         file.close();
     }
 
-    private static byte[] readCharsFromFile(String filePath, int seek, int chunkSize)
+    private static byte[] readChunksFromFile(String filePath, int seek, int chunkSize)
             throws IOException {
         System.out.println("seek:" + seek);
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
