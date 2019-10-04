@@ -13,13 +13,15 @@ public class MyRandomAccessFileTest {
 
             HashMap<Integer, byte[]> chunkMap = new HashMap<Integer, byte[]>();
 
+            int chunkSize = 10;
+
             RandomAccessFile raFile = new RandomAccessFile(filePath, "rw");
             int chunkId = 1;
-            for (int i = 0; i < raFile.length(); i = i + 5) {
+            for (int i = 0; i < raFile.length(); i = i + chunkSize) {
                 if (i == 0) {
-                    chunkMap.put(chunkId, readCharsFromFile(filePath, 0, 5));
+                    chunkMap.put(chunkId, readCharsFromFile(filePath, 0, chunkSize));
                 } else {
-                    chunkMap.put(chunkId, readCharsFromFile(filePath, i, 5));
+                    chunkMap.put(chunkId, readCharsFromFile(filePath, i, chunkSize));
                 }
                 chunkId++;
             }
