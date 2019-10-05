@@ -98,6 +98,7 @@ public class ControllerInboundHandler extends InboundHandler {
             if(selectedIds.size()==3){//Enough SNs
                 StorageMessages.StoreChunkLocation.Builder chunkLocationMsgBuilder = StorageMessages.StoreChunkLocation
                         .newBuilder().setFileName(storeChunkMsg.getFileName())
+                        .setPrimarySnId(primarySN.getSnId())
                         .setChunkId(storeChunkMsg.getChunkId())
                         .setChunkSize(storeChunkMsg.getChunkSize());
                 for (int snId : selectedIds) {

@@ -21,7 +21,8 @@ message StoreChunkLocation {
     string fileName = 1;
 	int32 chunkId = 2;
     int64 chunkSize = 3;
-    repeated StorageNodeInfo snInfo=4;
+    int32 primarySnId = 4;
+    repeated StorageNodeInfo snInfo=5;
 }
 
 message StoreChunkResponse{

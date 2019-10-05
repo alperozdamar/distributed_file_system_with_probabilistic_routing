@@ -82,17 +82,13 @@ public class ClientInboundHandler extends InboundHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        System.out.println("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
                 .newBuilder().setFileName(chunkLocationMsg.getFileName())
+                .setPrimarySnId(chunkLocationMsg.getPrimarySnId())
                 .setChunkId(chunkLocationMsg.getChunkId()).setData(data);
         for (int i = 1; i < listSNs.size(); i++) {
-            if(i==1){//Primary SN
-                int primarySNId = listSNs.get(i).getSnId();
-                storeChunkMsgBuilder = storeChunkMsgBuilder.setPrimarySnId(primarySNId);
-                System.out.println("Primary node is: "+primarySNId);
-            }
             storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(listSNs.get(i));
         }
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
