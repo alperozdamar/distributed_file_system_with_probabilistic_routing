@@ -1,8 +1,9 @@
 package edu.usfca.cs.dfs.net;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,49 +99,70 @@ public class StorageNodeInboundHandler extends InboundHandler {
         replicateChunk(storeChunkMsg);
     }
 
+    /**
+     * 
+     * Write chunk into File System.
+     * 
+     * @param storeChunkMsg
+     * @return
+     */
     private boolean writeIntoFileSystem(StorageMessages.StoreChunk storeChunkMsg) {
         boolean result = false;
-        try {
+        /**
+         * 1-) Create Directory if not exists. bigdata/whoamI/primaryId/
+         */
+        String path = createDirectoryIfNecessary();
 
-            /**
-             * Write chunk into File System.
-             * 
-             * bigdata/whoamI/primaryId/ data
-             * 
-             */
-            String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
-            Process whoamI;
-
-            whoamI = Runtime.getRuntime().exec("whoami");
-
-            directoryPath = directoryPath + File.pathSeparator + whoamI + File.separator
-                    + storeChunkMsg.getPrimarySnId();
-
-            File directory = new File(directoryPath);
-            if (!new File(directoryPath).exists()) {
-                System.out.print("No Folder");
-                directory.mkdir();
-                System.out.print("Folder created");
-            } else {
-                System.out.print("Folder already exists");
-            }
-
+        if (path != null) {
             /**
              * 2-) Save into file
              */
 
+            Utils.writeChunkIntoFile(path, storeChunkMsg);
+
             /**
              * 3-) Put into HASHMAP => key:(filename_chunkId) Value: (FileLocation,Checksum,FileName,ChunkId) 
              *      Also put into File System. (/bigdata/whoamI/.)
-             *      
-             *     
              */
-
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * 
+     * bigdata/whoamI/primaryId/ data
+     * 
+     */
+    private String createDirectoryIfNecessary() {
+        String directoryPath = null;
+        try {
+            System.out.println("Working Directory = " + System.getProperty("user.dir"));
+            directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            String whoamI = System.getProperty("user.name");
+            directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                    + File.separator + whoamI + File.separator + 3;
+
+            System.out.println("Path:" + directoryPath);
+            File directory = new File(directoryPath);
+            if (!directory.exists()) {
+                System.out.println("No Folder");
+
+                Files.createDirectories(Paths.get(directoryPath));
+
+                directory = new File(directoryPath);
+                if (!directory.exists()) {
+                    System.out.println("Folder is created,successfully.");
+                } else {
+                    System.out.println("Folder could not be created!");
+                }
+            } else {
+                System.out.println("No need to create folder already exists.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return directoryPath;
     }
 
     private void replicateChunk(StorageMessages.StoreChunk storeChunkMsg) {
