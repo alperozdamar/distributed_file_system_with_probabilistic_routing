@@ -59,7 +59,8 @@ public class DfsStorageNodeStarter {
                                           ConfigurationManagerSn.getInstance().getMyIp(),
                                           ConfigurationManagerSn.getInstance().getSnPort(),
                                           calculateTotalFreeSpaceInBytes(),
-                                          Constants.STATUS_OPERATIONAL);
+                                          Constants.STATUS_OPERATIONAL,
+                                          -1);
 
             System.out.println(storageNode.toString());
 

@@ -62,7 +62,6 @@ public class SqlManager {
                 do {
                     storageNode.setSnId(resultSet.getInt("snId"));
                     replicateSnIdList.add(resultSet.getInt("replicaId"));
-                    backupIdSnList.add(resultSet.getInt("backupId"));
                 } while (resultSet.next());
                 storageNode.setBackupIdSnList(backupIdSnList);
                 storageNode.setReplicateSnIdList(replicateSnIdList);
@@ -154,7 +153,7 @@ public class SqlManager {
      * @param backupId
      * @return
      */
-    public synchronized boolean updateSNReplication(int snId, int replicaId, int backupId) {
+    public synchronized boolean updateSNReplication(int snId, int backupId) {
         boolean result = false;
         Connection connection = null;
         String sql = SqlConstants.UPDATE_SN_REPLICATION_BY_SNID;
@@ -162,9 +161,8 @@ public class SqlManager {
         try {
             connection = DbManager.getInstance().getBds().getConnection();
             updateStatement = connection.prepareStatement(sql);
-            updateStatement.setInt(1, replicaId);
-            updateStatement.setInt(2, backupId);
-            updateStatement.setInt(3, snId);
+            updateStatement.setInt(1, backupId);
+            updateStatement.setInt(2, snId);
             updateStatement.execute();
             result = true;
         } catch (SQLException e) {
@@ -229,15 +227,13 @@ public class SqlManager {
      * 
      * @param snId
      * @param replicaId
-     * @param backupId
      * @return
      */
-    public synchronized boolean insertSNReplication(int snId, int replicaId, int backupId) {
+    public synchronized boolean insertSNReplication(int snId, int replicaId) {
         boolean result = false;
         Connection connection = null;
         if (logger.isDebugEnabled()) {
-            logger.debug("Inserting sn_replication snId:" + snId + ",replicaId:" + replicaId
-                    + ",backUpId:" + backupId);
+            logger.debug("Inserting sn_replication snId:" + snId + ",replicaId:" + replicaId);
         }
         String sql = SqlConstants.INSERT_SN_REPLICATION;
         PreparedStatement insertStatement = null;
@@ -246,7 +242,6 @@ public class SqlManager {
             insertStatement = connection.prepareStatement(sql);
             insertStatement.setInt(1, snId);
             insertStatement.setInt(2, replicaId);
-            insertStatement.setInt(3, backupId);
             insertStatement.execute();
             result = true;
         } catch (SQLException e) {
@@ -288,6 +283,7 @@ public class SqlManager {
             insertStatement.setLong(5, storageNode.getTotalStorageRequest());
             insertStatement.setLong(6, storageNode.getTotalRetrievelRequest());
             insertStatement.setString(7, storageNode.getStatus());
+            insertStatement.setInt(8, storageNode.getBackupId());
             insertStatement.execute();
             result = true;
         } catch (SQLException e) {

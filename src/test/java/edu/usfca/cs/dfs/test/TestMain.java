@@ -8,6 +8,8 @@ import org.junit.Test;
 import edu.usfca.cs.db.DbManager;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.DfsControllerStarter;
+import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 
 public class TestMain {
 
@@ -26,6 +28,37 @@ public class TestMain {
         long memoryFreeSpace = new File("/").getFreeSpace();
 
         System.out.println("Disk Free Space:" + memoryFreeSpace);
+
+        try {
+
+            /**
+             * Write chunk into File System.
+             * 
+             * bigdata/whoamI/primaryId/ data
+             * 
+             */
+            String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+
+            String whoamI = System.getProperty("user.name");
+
+            directoryPath = directoryPath + File.separator + whoamI + File.separator + 3;
+
+            System.out.println("Path:" + directoryPath);
+
+            File directory = new File(directoryPath);
+            if (!new File(directoryPath).exists()) {
+                System.out.println("No Folder");
+                directory.mkdir();
+                System.out.println("Folder created");
+            } else {
+                System.out.println("Folder already exists");
+            }
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
     }
 
     @Test
@@ -50,6 +83,13 @@ public class TestMain {
     }
 
     @Test
+    public void testComposeRingReplication() {
+
+        DfsControllerStarter.getInstance().composeRingReplication(12);
+
+    }
+
+    @Test
     public void testDBSnReplicationTable() {
         try {
             DbManager.getInstance();
@@ -57,13 +97,13 @@ public class TestMain {
             if (storageNode != null)
                 System.out.println(storageNode.toString());
 
-            SqlManager.getInstance().insertSNReplication(13, 14, 0);
-            SqlManager.getInstance().insertSNReplication(13, 15, 0);
+            SqlManager.getInstance().insertSNReplication(13, 14);
+            SqlManager.getInstance().insertSNReplication(13, 15);
             storageNode = SqlManager.getInstance().getSNReplication(13);
             if (storageNode != null)
                 System.out.println(storageNode.toString());
 
-            SqlManager.getInstance().updateSNReplication(13, 14, -1);
+            SqlManager.getInstance().updateSNReplication(13, 1);
             storageNode = SqlManager.getInstance().getSNReplication(13);
             if (storageNode != null)
                 System.out.println(storageNode.toString());

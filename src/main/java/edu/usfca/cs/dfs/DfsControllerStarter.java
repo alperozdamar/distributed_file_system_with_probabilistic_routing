@@ -25,15 +25,17 @@ import edu.usfca.cs.dfs.net.ServerMessageRouter;
 
 public class DfsControllerStarter {
 
-    private static Logger                        logger                       = LogManager
+    private static Logger                                 logger                       = LogManager
             .getLogger(DfsControllerStarter.class);
-    private static DfsControllerStarter          instance;
-    private final static Object                  classLock                    = new Object();
-    ServerMessageRouter                          messageRouter;
-    private HashMap<Integer, ScheduledFuture<?>> keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
-    private HashMap<Integer, StorageNode>        storageNodeHashMap           = new HashMap<Integer, StorageNode>();
-    private HashMap<Integer, BloomFilter>        bloomFilters                 = new HashMap<Integer, BloomFilter>();
-    private HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap = new HashMap<>();
+    private static DfsControllerStarter                   instance;
+    private final static Object                           classLock                    = new Object();
+    ServerMessageRouter                                   messageRouter;
+    private HashMap<Integer, ScheduledFuture<?>>          keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
+    private HashMap<Integer, StorageNode>                 storageNodeHashMap           = new HashMap<Integer, StorageNode>();
+    private HashMap<Integer, BloomFilter>                 bloomFilters                 = new HashMap<Integer, BloomFilter>();
+    private HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap          = new HashMap<>();
+
+    public static final int                               MAX_REPLICATION_NUMBER       = 3;
 
     public HashMap<String, StorageMessages.FileMetadata> getFileMetadataHashMap() {
         return fileMetadataHashMap;
@@ -118,7 +120,8 @@ public class DfsControllerStarter {
                                                   heartBeat.getSnIp(),
                                                   heartBeat.getSnPort(),
                                                   heartBeat.getTotalFreeSpaceInBytes(),
-                                                  Constants.STATUS_OPERATIONAL);
+                                                  Constants.STATUS_OPERATIONAL,
+                                                  -1);
         boolean result = SqlManager.getInstance().insertSN(storageNode);
         if (result) {
             storageNodeHashMap.put(newSnId, storageNode);
@@ -128,44 +131,43 @@ public class DfsControllerStarter {
                                  .getFilterLength(),
                                          ConfigurationManagerController.getInstance().getHashTime(),
                                          ConfigurationManagerController.getInstance().getSeed()));
-
-            int maxSnId = SqlManager.getInstance().getMaxSnId();
-            System.out.println("maxSnId:" + maxSnId);
-            System.out.println("(snId % 3):" + newSnId % 3);
-
-            int value = newSnId % 3;
-
-            if (value == 1) {
-                /**
-                 * Do not add any row to sn_replication
-                 */
-            } else if (value == 2) {
-                /**
-                 * Add 2 rows to sn_replication
-                 * snId:1   replicaId:2
-                 * snId:2   replicaId:1
-                 */
-                SqlManager.getInstance().insertSNReplication(newSnId - 1, newSnId, -1);
-                SqlManager.getInstance().insertSNReplication(newSnId, newSnId - 1, -1);
-
-            } else if (value == 0) {
-                /**
-                 * Add 4 rows to sn_replication
-                 * snId:1   replicaId:3
-                 * snId:2   replicaId:3
-                 * snId:3   replicaId:1
-                 * snId:3   replicaId:2
-                 */
-                SqlManager.getInstance().insertSNReplication(newSnId - 2, newSnId, -1);
-                SqlManager.getInstance().insertSNReplication(newSnId - 1, newSnId, -1);
-                SqlManager.getInstance().insertSNReplication(newSnId, newSnId - 2, -1);
-                SqlManager.getInstance().insertSNReplication(newSnId, newSnId - 1, -1);
-            }
-
+            composeRingReplication(newSnId);
         } else {
             return false;
         }
         return result;
+    }
+
+    public void composeRingReplication(int newSnId) {
+        SqlManager.getInstance().deleteAllSNsReplications();
+        if (newSnId <= 1) {
+            return;
+        }
+        if (newSnId == 2) {
+            SqlManager.getInstance().insertSNReplication(1, 2);
+            SqlManager.getInstance().insertSNReplication(2, 1);
+        } else {
+            /**
+             * 3-4-5-6-7-8-9-10-11-12
+             */
+            for (int i = 1; i <= newSnId; i++) {
+                int replicate1Id = i + 1;
+                int replicate2Id = i + 2;
+
+                if (replicate1Id > newSnId) {
+                    replicate1Id = 1;
+                }
+                if (replicate1Id == 1 && replicate2Id > newSnId) {
+                    replicate2Id = 2;
+                } else if (replicate2Id > newSnId) {
+                    replicate2Id = 1;
+                }
+                SqlManager.getInstance().insertSNReplication(i, replicate1Id);
+                SqlManager.getInstance().insertSNReplication(i, replicate2Id);
+
+            }
+
+        }
     }
 
     public HashMap<Integer, BloomFilter> getBloomFilters() {

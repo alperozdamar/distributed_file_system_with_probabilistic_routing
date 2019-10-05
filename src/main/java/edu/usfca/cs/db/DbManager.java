@@ -106,19 +106,6 @@ public class DbManager {
             StorageNode storageNode = SqlManager.getInstance().getSNReplication(1);
             System.out.println(storageNode.toString());
 
-            SqlManager.getInstance().insertSNReplication(13, 14, 0);
-            SqlManager.getInstance().insertSNReplication(13, 15, 0);
-            storageNode = SqlManager.getInstance().getSNReplication(13);
-            System.out.println(storageNode.toString());
-
-            SqlManager.getInstance().updateSNReplication(13, 14, -1);
-            storageNode = SqlManager.getInstance().getSNReplication(13);
-            System.out.println(storageNode.toString());
-
-            SqlManager.getInstance().deleteSNReplication(13);
-            storageNode = SqlManager.getInstance().getSNReplication(13);
-            System.out.println(storageNode.toString());
-
         } catch (Exception e) {
             e.printStackTrace();
         }

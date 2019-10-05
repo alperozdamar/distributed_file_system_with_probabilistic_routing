@@ -27,6 +27,8 @@ public class StorageNode {
 
     private long               lastHeartBeatTime     = System.currentTimeMillis();
 
+    private int                backupId;
+
     public StorageNode() {
         super();
         // TODO Auto-generated constructor stub
@@ -41,10 +43,11 @@ public class StorageNode {
      * @param backupIdSnList
      * @param snIp
      * @param snPort
+     * @param backupId
      */
     public StorageNode(int snId, ArrayList<Integer> replicateSnIdList,
                        ArrayList<Integer> backupIdSnList, String snIp, int snPort,
-                       long totalFreeSpace, String status) {
+                       long totalFreeSpace, String status, int backupId) {
         super();
         this.snId = snId;
         this.replicateSnIdList = replicateSnIdList;
@@ -54,6 +57,7 @@ public class StorageNode {
         this.totalFreeSpace = totalFreeSpace;
         this.totalStorageRequest = 0;
         this.totalRetrievelRequest = 0;
+        this.backupId = backupId;
         this.status = status;
     }
 
@@ -99,6 +103,8 @@ public class StorageNode {
         stringBuffer.append(this.getTotalFreeSpace());
         stringBuffer.append("|Status:");
         stringBuffer.append(this.getStatus());
+        stringBuffer.append("|");
+        stringBuffer.append(this.getBackupId());
         stringBuffer.append("|");
         stringBuffer.append("replicationId:");
         if (this.replicateSnIdList != null) {
@@ -188,6 +194,14 @@ public class StorageNode {
 
     public synchronized void setLastHeartBeatTime(long lastHeartBeatTime) {
         this.lastHeartBeatTime = lastHeartBeatTime;
+    }
+
+    public int getBackupId() {
+        return backupId;
+    }
+
+    public void setBackupId(int backupId) {
+        this.backupId = backupId;
     }
 
 }

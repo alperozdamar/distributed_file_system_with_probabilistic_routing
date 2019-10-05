@@ -1,5 +1,7 @@
 package edu.usfca.cs.dfs.net;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,7 @@ import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
+import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.bootstrap.Bootstrap;
@@ -63,8 +66,19 @@ public class StorageNodeInboundHandler extends InboundHandler {
         //Response to client, first node only
         System.out.println("[SN]Sending StoreChunk response message back to Client...");
 
+        /**
+         * TODO:
+         * 
+         * if successfully write into File System return sucess respnse
+         */
+        boolean result = writeIntoFileSystem(storeChunkMsg);
+
+        if (result) {
+            result = true;
+        }
+
         StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse
-                .newBuilder().setChunkId(storeChunkMsg.getChunkId()).setStatus(true).build();
+                .newBuilder().setChunkId(storeChunkMsg.getChunkId()).setStatus(result).build();
 
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setStoreChunkResponse(responseMsg).build();
@@ -82,6 +96,51 @@ public class StorageNodeInboundHandler extends InboundHandler {
          * Send this chunk to the other 2 replicas.
          */
         replicateChunk(storeChunkMsg);
+    }
+
+    private boolean writeIntoFileSystem(StorageMessages.StoreChunk storeChunkMsg) {
+        boolean result = false;
+        try {
+
+            /**
+             * Write chunk into File System.
+             * 
+             * bigdata/whoamI/primaryId/ data
+             * 
+             */
+            String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            Process whoamI;
+
+            whoamI = Runtime.getRuntime().exec("whoami");
+
+            directoryPath = directoryPath + File.pathSeparator + whoamI + File.separator
+                    + storeChunkMsg.getPrimarySnId();
+
+            File directory = new File(directoryPath);
+            if (!new File(directoryPath).exists()) {
+                System.out.print("No Folder");
+                directory.mkdir();
+                System.out.print("Folder created");
+            } else {
+                System.out.print("Folder already exists");
+            }
+
+            /**
+             * 2-) Save into file
+             */
+
+            /**
+             * 3-) Put into HASHMAP => key:(filename_chunkId) Value: (FileLocation,Checksum,FileName,ChunkId) 
+             *      Also put into File System. (/bigdata/whoamI/.)
+             *      
+             *     
+             */
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return result;
     }
 
     private void replicateChunk(StorageMessages.StoreChunk storeChunkMsg) {
