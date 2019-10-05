@@ -1,8 +1,7 @@
 package edu.usfca.cs.dfs.net;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import edu.usfca.cs.dfs.DfsClientStarter;
@@ -58,42 +57,56 @@ public class ControllerInboundHandler extends InboundHandler {
         System.out.println("[Controller]This is Store Chunk Message...");
         System.out.println("[Controller]Storing file name: " + fileName+ " - Chunk Id:"+storeChunkMsg.getChunkId());
 
-        //TODO: should we store metadata about file in controller
         if(storeChunkMsg.getChunkId()==0) { //Metadata chunk
-            System.out.println("[Controller]Receive metadata");
             try {
                 StorageMessages.FileMetadata fileMetadata = StorageMessages.FileMetadata.parseFrom(storeChunkMsg.getData());
-                System.out.println("[Controller] File size: "+fileMetadata.getFileSize());
-                System.out.println("[Controller] Number of chunk: "+fileMetadata.getNumOfChunks());
 
                 DfsControllerStarter.getInstance().getFileMetadataHashMap().put(
                         storeChunkMsg.getFileName(), fileMetadata);
             } catch (InvalidProtocolBufferException e) {
                 e.printStackTrace();
             }
-            System.out.println("[Controller]File Metadata Length: "+DfsControllerStarter.getInstance()
-            .getFileMetadataHashMap().size());
         }
         ChannelFuture write = null;
         SqlManager sqlManager = SqlManager.getInstance();
-        HashMap<Integer, StorageNode> listSN = sqlManager.getAllOperationalSNList();
-        for (Map.Entry<Integer, StorageNode> entry : listSN.entrySet()) {
-            int id = entry.getKey();
-            StorageNode sn = entry.getValue();
-            if (id % 3 == 1 && sn.getTotalFreeSpace() > storeChunkMsg.getChunkSize()) {//Primary node
-                HashMap<Integer, BloomFilter> snBloomFilters = DfsControllerStarter.getInstance().getBloomFilters();
-                snBloomFilters.get(id).put((fileName + chunkId).getBytes());
-                StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
-                        .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
+        HashMap<Integer, StorageNode> listSNMap = sqlManager.getAllOperationalSNList();
+        Random rand = new Random();
+
+        //loop until find a list of SNs
+        boolean selectedSNs = false;
+        while(!selectedSNs){
+            List<StorageNode> listSN = new ArrayList<StorageNode>(listSNMap.values());
+            //Chose random primary node in list of available
+            int index = rand.nextInt(listSN.size());
+            StorageNode primarySN = listSN.get(index);
+            List<Integer> replicaIds = primarySN.getReplicateSnIdList();
+            List<Integer> selectedIds = new ArrayList<Integer>();
+            selectedIds.add(primarySN.getSnId());
+            logger.debug("[Controller]Primary ID: "+primarySN.getSnId());
+            for(int replicaId : replicaIds){
+                StorageNode replicaSN = sqlManager.getSNInformationById(replicaId);
+                if(replicaSN.getStatus().equals("DOWN")){
+                    logger.debug("[Controller]Replica is "+replicaSN.getStatus());
+                    break;
+                } else if(replicaSN.getTotalFreeSpaceInBytes() < storeChunkMsg.getChunkSize()){
+                    logger.debug("[Controller]Replica not enough space: %d < %d\n",replicaSN.getTotalFreeSpace(), storeChunkMsg.getChunkSize());
+                    break;
+                } else {
+                    selectedIds.add(replicaId);
+                }
+            }
+            if(selectedIds.size()==3){//Enough SNs
                 StorageMessages.StoreChunkLocation.Builder chunkLocationMsgBuilder = StorageMessages.StoreChunkLocation
                         .newBuilder().setFileName(storeChunkMsg.getFileName())
                         .setChunkId(storeChunkMsg.getChunkId())
-                        .setChunkSize(storeChunkMsg.getChunkSize()).addSnInfo(snInfo);
-                for (int replicaId : sn.getReplicateSnIdList()) {
-                    //TODO: check if replica is down, select backup id
-                    snBloomFilters.get(replicaId).put((fileName + chunkId).getBytes());
-                    sn = sqlManager.getSNInformationById(replicaId);
-                    snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnIp(sn.getSnIp())
+                        .setChunkSize(storeChunkMsg.getChunkSize());
+                for (int snId : selectedIds) {
+                    StorageNode sn = sqlManager.getSNInformationById(snId);
+                    HashMap<Integer, BloomFilter> snBloomFilters = DfsControllerStarter.getInstance().getBloomFilters();
+                    snBloomFilters.get(snId).put((fileName + chunkId).getBytes());
+
+                    StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
+                            .setSnIp(sn.getSnIp())
                             .setSnPort(sn.getSnPort()).build();
                     chunkLocationMsgBuilder.addSnInfo(snInfo);
                 }
@@ -102,7 +115,7 @@ public class ControllerInboundHandler extends InboundHandler {
                 Channel chan = ctx.channel();
                 write = chan.write(msgWrapper);
                 chan.flush().closeFuture();
-                break;
+                selectedSNs = true;
             }
         }
         if (write.isDone()) {

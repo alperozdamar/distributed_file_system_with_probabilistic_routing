@@ -145,9 +145,7 @@ public class DfsClientStarter {
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setRetrieveFile(retrieveFileMsg).build();
         Channel chan = cf.channel();
-        chan.write(msgWrapper);
-        chan.flush();
-        chan.closeFuture().syncUninterruptibly();
+        chan.writeAndFlush(msgWrapper).syncUninterruptibly();
     }
 
     public static void main(String[] args) {
