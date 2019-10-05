@@ -33,6 +33,15 @@ public class DfsControllerStarter {
     private HashMap<Integer, ScheduledFuture<?>> keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
     private HashMap<Integer, StorageNode>        storageNodeHashMap           = new HashMap<Integer, StorageNode>();
     private HashMap<Integer, BloomFilter>        bloomFilters                 = new HashMap<Integer, BloomFilter>();
+    private HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap = new HashMap<>();
+
+    public HashMap<String, StorageMessages.FileMetadata> getFileMetadataHashMap() {
+        return fileMetadataHashMap;
+    }
+
+    public void setFileMetadataHashMap(HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap) {
+        this.fileMetadataHashMap = fileMetadataHashMap;
+    }
 
     private DfsControllerStarter() {
         //TODO: Create bloom filter when add storage node to controller

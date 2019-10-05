@@ -4,16 +4,22 @@ option java_package = "edu.usfca.cs.dfs";
 message StoreChunk {
     string fileName = 1;
     int32 chunkId = 2;
-    int32 chunkSize = 3;
+    int64 chunkSize = 3;
     bytes data = 4;
     repeated StorageNodeInfo snInfo=5;
     string checksum = 6;
 }
 
+message FileMetadata {
+    int64 fileSize = 1;
+    int32 numOfChunks = 2;
+    int64 chunkSize = 3;
+}
+
 message StoreChunkLocation {
     string fileName = 1;
 	int32 chunkId = 2;
-    int32 chunkSize = 3;
+    int64 chunkSize = 3;
     repeated StorageNodeInfo snInfo=4;
 }
 
@@ -52,6 +58,12 @@ message RetrieveFileResponse{
 	  StorageNodeInfo snInfoOfChunkZero=1;
 }
 
+message FileLocation {
+    string fileName = 1;
+    repeated StoreChunkLocation chunksLocation = 2;
+    bool status = 3;
+}
+
 message StorageNodeInfo{
 	int32 snId = 1;
 	string snIp =2;
@@ -68,16 +80,16 @@ message ReplicaRequest {
 
 message StorageMessageWrapper {
     oneof msg {
-        StoreChunk storeChunkMsg = 1;
-        RetrieveFile retrieveFileMsg = 2;
+        StoreChunk storeChunk = 1;
+        RetrieveFile retrieveFile = 2;
         HeartBeat heartBeatMsg = 3;
         HeartBeatResponse HeartBeatResponse = 4;
         List list = 5;
         ListResponse listResponse = 6;
         StoreChunkLocation storeChunkLocation=7;
         StoreChunkResponse storeChunkResponse=8;
-        RetrieveFile retrieveFile=9;
-        RetrieveFileResponse retrieveFileResponse=10;
-        ReplicaRequest replicaRequest=11;
+        RetrieveFileResponse retrieveFileResponse=9;
+        ReplicaRequest replicaRequest=10;
+        FileLocation fileLocation=11;
     }
 }

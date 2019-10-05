@@ -46,16 +46,16 @@ public class InboundHandler
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         System.out.println("Received sth");
-        if (msg.hasStoreChunkMsg()) {
+        if (msg.hasStoreChunk()) {
             System.out.println("This is Store Chunk Message...");
 
-            StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
+            StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunk();
             System.out.println("Storing file name: " + storeChunkMsg.getFileName() + " - " + (++i));
 
             ByteString data = ByteString.copyFromUtf8("Hello World!");
             StorageMessages.StoreChunk response = StorageMessages.StoreChunk.newBuilder().setFileName("my_file_" + i + ".txt").setChunkId(3).setData(data).build();
 
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(response).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunk(response).build();
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
@@ -67,7 +67,7 @@ public class InboundHandler
              * I am Controller.
              */
 
-        } else if (msg.hasRetrieveFileMsg()) {
+        } else if (msg.hasRetrieveFile()) {
 
             /**
              * I am Controller

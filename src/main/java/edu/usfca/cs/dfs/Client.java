@@ -54,7 +54,7 @@ public class Client {
         for(int i=0;i<100;i++) {
             StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName("my_file_"+i+".txt").setChunkId(3).setData(data).build();
 
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunkMsg(storeChunkMsg).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setStoreChunk(storeChunkMsg).build();
 
             writes.add(channels[(i+1)%thread].write(msgWrapper));
         }

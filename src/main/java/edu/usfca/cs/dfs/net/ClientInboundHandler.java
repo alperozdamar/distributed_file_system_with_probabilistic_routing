@@ -67,28 +67,30 @@ public class ClientInboundHandler extends InboundHandler {
                         firstNode.getSnPort());
 
         //Read chunk from file base on chunkId
-        int configChunkSize = (int) ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+        long configChunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
         byte[] chunk = null;
         try {
-            chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
-                    configChunkSize*chunkLocationMsg.getChunkId()-1,
-                    chunkLocationMsg.getChunkSize());
+            if(chunkLocationMsg.getChunkId()==0){//metadata chunk
+                chunk = DfsClientStarter.getInstance().getMetadata().toByteArray();
+            } else {
+                chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
+                        (int) (configChunkSize*chunkLocationMsg.getChunkId()-1),
+                        (int) chunkLocationMsg.getChunkSize());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String chunkCheckSum = Utils.getMd5(chunk);
 
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk.newBuilder()
                 .setFileName(chunkLocationMsg.getFileName())
                 .setChunkId(chunkLocationMsg.getChunkId())
-                .setChecksum(chunkCheckSum)
                 .setData(data);
         for(int i=1;i<listSNs.size();i++){
             storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(listSNs.get(i));
         }
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                .newBuilder().setStoreChunkMsg(storeChunkMsgBuilder).build();
+                .newBuilder().setStoreChunk(storeChunkMsgBuilder).build();
         Channel chan = cf.channel();
         chan.write(msgWrapper);
         chan.flush().closeFuture().syncUninterruptibly();
@@ -108,6 +110,22 @@ public class ClientInboundHandler extends InboundHandler {
         System.out.println("[Client]  : " + storeChunkResponseMsg.getStatus());
     }
 
+    private void handleFileLocationMsg(ChannelHandlerContext ctx, StorageMessages.FileLocation fileLocationMsg){
+        System.out.println("[Client]This is File Location Message Response...");
+        if(!fileLocationMsg.getStatus()){
+            System.out.println("[Client]File not found!!!");
+            return;
+        }
+        String fileName = fileLocationMsg.getFileName();
+        List<StorageMessages.StoreChunkLocation> chunksLocations = fileLocationMsg.getChunksLocationList();
+        for(StorageMessages.StoreChunkLocation chunkLocation : chunksLocations){
+            System.out.println("[Client]Chunk:"+chunkLocation.getChunkId());
+            for(StorageNodeInfo sn : chunkLocation.getSnInfoList()){
+                System.out.printf("[Client]SN Ip: %s - Port: %d\n", sn.getSnIp(), sn.getSnPort());
+            }
+        }
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         Utils.printHeader("[Client]Received sth!");
@@ -124,6 +142,9 @@ public class ClientInboundHandler extends InboundHandler {
                 System.out.println("[Client]Sn.id:" + storageNodeInfo.getSnId());
                 System.out.println("[Client]Sn.ip:" + storageNodeInfo.getSnIp());
             }
+        } else if (msg.hasFileLocation()){
+            StorageMessages.FileLocation fileLocationMsg = msg.getFileLocation();
+            handleFileLocationMsg(ctx, fileLocationMsg);
         }
 
     }

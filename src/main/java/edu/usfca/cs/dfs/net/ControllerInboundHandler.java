@@ -4,6 +4,10 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import edu.usfca.cs.dfs.DfsClientStarter;
+import edu.usfca.cs.dfs.DfsStorageNodeStarter;
+import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,10 +54,26 @@ public class ControllerInboundHandler extends InboundHandler {
     private void handleStoreChunkMsg(ChannelHandlerContext ctx,
                                      StorageMessages.StoreChunk storeChunkMsg) {
         String fileName = storeChunkMsg.getFileName();
-        String chunkId = String.valueOf(storeChunkMsg.getChunkId());
+        int chunkId = storeChunkMsg.getChunkId();
         System.out.println("[Controller]This is Store Chunk Message...");
-        System.out.println("[Controller]Storing file name: " + fileName);
+        System.out.println("[Controller]Storing file name: " + fileName+ " - Chunk Id:"+storeChunkMsg.getChunkId());
 
+        //TODO: should we store metadata about file in controller
+        if(storeChunkMsg.getChunkId()==0) { //Metadata chunk
+            System.out.println("[Controller]Receive metadata");
+            try {
+                StorageMessages.FileMetadata fileMetadata = StorageMessages.FileMetadata.parseFrom(storeChunkMsg.getData());
+                System.out.println("[Controller] File size: "+fileMetadata.getFileSize());
+                System.out.println("[Controller] Number of chunk: "+fileMetadata.getNumOfChunks());
+
+                DfsControllerStarter.getInstance().getFileMetadataHashMap().put(
+                        storeChunkMsg.getFileName(), fileMetadata);
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+            System.out.println("[Controller]File Metadata Length: "+DfsControllerStarter.getInstance()
+            .getFileMetadataHashMap().size());
+        }
         ChannelFuture write = null;
         SqlManager sqlManager = SqlManager.getInstance();
         HashMap<Integer, StorageNode> listSN = sqlManager.getAllOperationalSNList();
@@ -61,8 +81,8 @@ public class ControllerInboundHandler extends InboundHandler {
             int id = entry.getKey();
             StorageNode sn = entry.getValue();
             if (id % 3 == 1 && sn.getTotalFreeSpace() > storeChunkMsg.getChunkSize()) {//Primary node
-                DfsControllerStarter.getInstance().getBloomFilters().get(id)
-                        .put((fileName + chunkId).getBytes());
+                HashMap<Integer, BloomFilter> snBloomFilters = DfsControllerStarter.getInstance().getBloomFilters();
+                snBloomFilters.get(id).put((fileName + chunkId).getBytes());
                 StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
                         .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
                 StorageMessages.StoreChunkLocation.Builder chunkLocationMsgBuilder = StorageMessages.StoreChunkLocation
@@ -71,6 +91,7 @@ public class ControllerInboundHandler extends InboundHandler {
                         .setChunkSize(storeChunkMsg.getChunkSize()).addSnInfo(snInfo);
                 for (int replicaId : sn.getReplicateSnIdList()) {
                     //TODO: check if replica is down, select backup id
+                    snBloomFilters.get(replicaId).put((fileName + chunkId).getBytes());
                     sn = sqlManager.getSNInformationById(replicaId);
                     snInfo = StorageMessages.StorageNodeInfo.newBuilder().setSnIp(sn.getSnIp())
                             .setSnPort(sn.getSnPort()).build();
@@ -84,11 +105,6 @@ public class ControllerInboundHandler extends InboundHandler {
                 break;
             }
         }
-        for (int i = 1; i <= 12; i++) {
-            //TODO: Check if SN have enough storage
-            if (i % 3 == 1) {
-            }
-        }
         if (write.isDone()) {
             write.addListener(ChannelFutureListener.CLOSE);
         }
@@ -98,7 +114,7 @@ public class ControllerInboundHandler extends InboundHandler {
         /**
          * Get the list of SN from DB and return to client
          */
-        System.out.println("[Controller]Sending back list of SNs information");
+        logger.info("[Controller]Sending back list of SNs information");
         //TODO: Get information from database
         StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
                 .setSnId(1).setSnIp("192.168.0.1").setSnPort(6666).setTotalFreeSpaceInBytes(10000)
@@ -171,6 +187,53 @@ public class ControllerInboundHandler extends InboundHandler {
         write.addListener(ChannelFutureListener.CLOSE_ON_FAILURE); // I keep connection open for heart beats...
     }
 
+    private void handleRetrieveFile(ChannelHandlerContext ctx, StorageMessages.RetrieveFile retrieveFileMsg){
+        String fileName = retrieveFileMsg.getFileName();
+        System.out.println("[Controller]Retrieve all chunk location for file:"+fileName);
+        StorageMessages.FileMetadata fileMetadata = DfsControllerStarter.getInstance()
+                .getFileMetadataHashMap().get(fileName);
+        System.out.println("[Controller] File size: "+fileMetadata.getFileSize());
+        System.out.println("[Controller] Number of chunk: "+fileMetadata.getNumOfChunks());
+
+        StorageMessages.FileLocation.Builder fileLocationBuilder = StorageMessages.FileLocation.newBuilder()
+                .setFileName(fileName)
+                .setStatus(true);
+
+        SqlManager sqlManager = SqlManager.getInstance();
+        HashMap<Integer, StorageNode> listSN = sqlManager.getAllOperationalSNList();
+        //Get information of all chunk
+        for(int i=1;i<=fileMetadata.getNumOfChunks();i++){
+            StorageMessages.StoreChunkLocation.Builder chunkLocationBuilder
+                    = StorageMessages.StoreChunkLocation.newBuilder().setChunkId(i);
+            boolean available = false;
+            for(Map.Entry<Integer, BloomFilter> snBloomFilter
+                    : DfsControllerStarter.getInstance().getBloomFilters().entrySet()){
+                int snId = snBloomFilter.getKey();
+                BloomFilter bloomFilter = snBloomFilter.getValue();
+                if(bloomFilter.get((fileName+i).getBytes())){
+                    available = true;
+                    StorageNode sn = listSN.get(snId);
+                    StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
+                            .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
+                    chunkLocationBuilder.addSnInfo(snInfo);
+                }
+            }
+            if(!available){//TODO: chunk have no data in SN, return not found
+                System.out.println("[Controller]Not Available");
+                fileLocationBuilder.setStatus(false);
+                break;
+            } else {
+                System.out.println("[Controller]Available");
+                fileLocationBuilder.addChunksLocation(chunkLocationBuilder);
+            }
+        }
+
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setFileLocation(fileLocationBuilder).build();
+        Channel chan = ctx.channel();
+        chan.writeAndFlush(msgWrapper);
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         Utils.printHeader("[Controller]Received sth!");
@@ -178,8 +241,8 @@ public class ControllerInboundHandler extends InboundHandler {
         /***
          * STORE
          */
-        if (msg.hasStoreChunkMsg()) {
-            StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunkMsg();
+        if (msg.hasStoreChunk()) {
+            StorageMessages.StoreChunk storeChunkMsg = msg.getStoreChunk();
             handleStoreChunkMsg(ctx, storeChunkMsg);
         }
         /***
@@ -187,10 +250,12 @@ public class ControllerInboundHandler extends InboundHandler {
          *************/
         else if (msg.hasHeartBeatMsg()) {
             handleHeartBeat(ctx, msg);
-        } else if (msg.hasRetrieveFileMsg()) {
+        } else if (msg.hasRetrieveFile()) {
             /**
              * I am Controller
              */
+            StorageMessages.RetrieveFile retrieveFileMsg = msg.getRetrieveFile();
+            handleRetrieveFile(ctx, retrieveFileMsg);
         } else if (msg.hasList()) {
             /**
              * Get the list of SN from DB and return to client

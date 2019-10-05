@@ -1,14 +1,10 @@
 package edu.usfca.cs.dfs;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
@@ -28,8 +24,25 @@ public class DfsClientStarter {
 
     private static DfsClientStarter instance;
     private final static Object     classLock = new Object();
+    private StorageMessages.FileMetadata metadata;
 
     private String fileInfo = "";
+
+    public String getFileInfo() {
+        return fileInfo;
+    }
+
+    public void setFileInfo(String fileInfo) {
+        this.fileInfo = fileInfo;
+    }
+
+    public StorageMessages.FileMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(StorageMessages.FileMetadata metadata) {
+        this.metadata = metadata;
+    }
 
     private DfsClientStarter() {
     }
@@ -70,17 +83,12 @@ public class DfsClientStarter {
         //  prompt for command.
         System.out.print("Enter your fileName and folder:");
         fileInfo = scanner.next().trim();
-        /**
-         * TODO:
-         * Find the specified file and divide into chunks...
-         *
-         */
         File file = new File(fileInfo);
         long chunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
         long fileSize = file.length();
         System.out.format("The size of the file: %d bytes", fileSize);
         System.out.format("\nThe size of chunks: %d bytes", chunkSize);
-        long numOfChunks = (long) Math.ceil((float) fileSize / (float) chunkSize);
+        int numOfChunks = (int) Math.ceil((float) fileSize / (float) chunkSize);
         System.out.format("\nNumber Of Chunks is %d for file size:%d bytes", numOfChunks, fileSize);
         long lastChunkByteSize = fileSize % chunkSize;
         System.out.format("\nlastChunkByteSize is %d for file size:%d bytes",
@@ -88,22 +96,58 @@ public class DfsClientStarter {
                           fileSize);
 
         System.out.println("FileName:" + file.getName());
+        //Send metadata in chunk 0
+        this.metadata = StorageMessages.FileMetadata.newBuilder()
+                .setFileSize(fileSize)
+                .setNumOfChunks(numOfChunks).build();
+        ChannelFuture cf = Utils
+                .connect(bootstrap,
+                        ConfigurationManagerClient.getInstance().getControllerIp(),
+                        ConfigurationManagerClient.getInstance().getControllerPort());
+        StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
+                .setFileName(file.getName())
+                .setChunkId(0)
+                .setChunkSize(this.metadata.getSerializedSize())
+                .setData(this.metadata.toByteString()).build();
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setStoreChunk(storeChunkMsg).build();
+        cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
 
-        byte[] buffer = new byte[(int) chunkSize];
-        int read = 0;
+        //Send actual file from chunk 1
         for (int i = 0; i < numOfChunks; i++) {
-            ChannelFuture cf = Utils
+            cf = Utils
                     .connect(bootstrap,
                             ConfigurationManagerClient.getInstance().getControllerIp(),
                             ConfigurationManagerClient.getInstance().getControllerPort());
-            StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
+            storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
                     .setFileName(file.getName())
                     .setChunkId(i + 1)
-                    .setChunkSize((int) (i==numOfChunks-1?lastChunkByteSize:chunkSize)).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                    .newBuilder().setStoreChunkMsg(storeChunkMsg).build();
+                    .setChunkSize(i==numOfChunks-1?lastChunkByteSize:chunkSize).build();
+            msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setStoreChunk(storeChunkMsg).build();
             cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
         }
+    }
+
+    private void retrieveFile(Bootstrap bootstrap){
+        Scanner scanner = new Scanner(System.in);
+        //  prompt for command.
+        System.out.print("Enter your fileName: ");
+        String fileName = scanner.next().trim();
+
+        ChannelFuture cf = Utils
+                .connect(bootstrap,
+                        ConfigurationManagerClient.getInstance().getControllerIp(),
+                        ConfigurationManagerClient.getInstance().getControllerPort());
+        StorageMessages.RetrieveFile retrieveFileMsg = StorageMessages.RetrieveFile.newBuilder()
+                .setFileName(fileName).build();
+
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setRetrieveFile(retrieveFileMsg).build();
+        Channel chan = cf.channel();
+        chan.write(msgWrapper);
+        chan.flush();
+        chan.closeFuture().syncUninterruptibly();
     }
 
     public static void main(String[] args) {
@@ -136,7 +180,7 @@ public class DfsClientStarter {
             if (command.equalsIgnoreCase(Constants.LIST)) {
                 dfsClient.listStorageNode(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.RETRIEVE)) {
-
+                dfsClient.retrieveFile(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.STORE)) {
                 dfsClient.storeFile(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.EXIT)) {
@@ -150,13 +194,4 @@ public class DfsClientStarter {
         }
 
     }
-
-    public String getFileInfo() {
-        return fileInfo;
-    }
-
-    public void setFileInfo(String fileInfo) {
-        this.fileInfo = fileInfo;
-    }
-
 }

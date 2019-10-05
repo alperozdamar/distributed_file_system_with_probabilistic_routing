@@ -110,8 +110,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         System.out.println("[SN]Received msg!");
-        if (msg.hasStoreChunkMsg()) {
-            handleStoreChunkMsg(ctx, msg.getStoreChunkMsg());
+        if (msg.hasStoreChunk()) {
+            handleStoreChunkMsg(ctx, msg.getStoreChunk());
         } else if (msg.hasHeartBeatResponse()) {
             StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
             DfsStorageNodeStarter.getInstance().getStorageNode()
@@ -131,7 +131,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 TimerManager.getInstance()
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
-        } else if (msg.hasRetrieveFileMsg()) {
+        } else if (msg.hasRetrieveFile()) {
 
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
 
