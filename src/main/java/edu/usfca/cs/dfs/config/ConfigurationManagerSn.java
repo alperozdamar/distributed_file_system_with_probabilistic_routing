@@ -24,6 +24,7 @@ public class ConfigurationManagerSn {
     private int                           snPort                           = 9090;
     private int                           threadNumOfScheduledPoolExecutor = 10;
     private int                           heartBeatPeriodInMilliseconds    = 5000;
+    private String                        storeLocation                    = "bigdata";
     private String                        myIp;
 
     private ConfigurationManagerSn() {
@@ -102,6 +103,14 @@ public class ConfigurationManagerSn {
                 myIp = myIp.trim();
             }
 
+            storeLocation = props.getProperty("storeLocation");
+            if (storeLocation == null) {
+                System.out
+                        .println("storeLocation property is Null! Please Check configuration file.");
+            } else {
+                storeLocation = storeLocation.trim();
+            }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_SN_CONFIG_FILE);
@@ -158,12 +167,21 @@ public class ConfigurationManagerSn {
         this.myIp = myIp;
     }
 
+    public String getStoreLocation() {
+        return storeLocation;
+    }
+
+    public void setStoreLocation(String storeLocation) {
+        this.storeLocation = storeLocation;
+    }
+
     @Override
     public String toString() {
         return "ConfigurationManagerSn [controllerIp=" + controllerIp + ", controllerPort="
                 + controllerPort + ", snPort=" + snPort + ", threadNumOfScheduledPoolExecutor="
                 + threadNumOfScheduledPoolExecutor + ", heartBeatPeriodInMilliseconds="
-                + heartBeatPeriodInMilliseconds + ", myIp=" + myIp + "]";
+                + heartBeatPeriodInMilliseconds + ", storeLocation=" + storeLocation + ", myIp="
+                + myIp + "]";
     }
 
 }

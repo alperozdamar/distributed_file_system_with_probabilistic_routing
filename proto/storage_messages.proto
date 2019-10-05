@@ -8,6 +8,7 @@ message StoreChunk {
     bytes data = 4;
     repeated StorageNodeInfo snInfo=5;
     string checksum = 6;
+    int32 primarySnId=7;
 }
 
 message FileMetadata {
@@ -54,10 +55,6 @@ message RetrieveFile {
     string fileName = 1;
 }
 
-message RetrieveFileResponse{
-	  StorageNodeInfo snInfoOfChunkZero=1;
-}
-
 message FileLocation {
     string fileName = 1;
     repeated StoreChunkLocation chunksLocation = 2;
@@ -83,7 +80,6 @@ message StorageMessageWrapper {
         ListResponse listResponse = 6;
         StoreChunkLocation storeChunkLocation=7;
         StoreChunkResponse storeChunkResponse=8;
-        RetrieveFileResponse retrieveFileResponse=9;
-        FileLocation fileLocation=10;
+        FileLocation fileLocation=9;
     }
 }
