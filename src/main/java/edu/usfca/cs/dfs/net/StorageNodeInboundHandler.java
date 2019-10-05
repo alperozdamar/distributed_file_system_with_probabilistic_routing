@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -78,7 +77,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
     }
 
     public void replicateChunk(StorageMessages.StoreChunk storeChunkMsg) {
-        int mySnId = ConfigurationManagerSn.getInstance().getSnId();
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
 
         /**
          * TODO:
@@ -110,25 +109,28 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("[SN]Received sth!");
+        System.out.println("[SN]Received msg!");
         if (msg.hasStoreChunkMsg()) {
             handleStoreChunkMsg(ctx, msg.getStoreChunkMsg());
         } else if (msg.hasHeartBeatResponse()) {
             StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
+            DfsStorageNodeStarter.getInstance().getStorageNode()
+                    .setSnId(heartBeatResponse.getSnId());
             System.out.println("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
                     + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
-
-            if (heartBeatResponse.getStatus()) {
-                // System.out.println("[SN] Creating Timer for Heart Beats:"
-                //         + heartBeatResponse.getSnId());
-                // TimerManager.getInstance().scheduleHeartBeatTimer(ConfigurationManagerSn
-                //         .getInstance().getHeartBeatPeriodInMilliseconds());
-
-            } else {
+            if (heartBeatResponse.getStatus() && DfsStorageNodeStarter.getInstance()
+                    .getHeartBeatSenderTimerHandle() == null) {
+                System.out.println("[SN] My SnId set to :" + heartBeatResponse.getSnId()
+                        + " by Controller. Saving it...");
+                DfsStorageNodeStarter.getInstance().getStorageNode()
+                        .setSnId(heartBeatResponse.getSnId());
+                System.out.println("[SN] Creating Timer for Heart Beats:"
+                        + heartBeatResponse.getSnId());
+                TimerManager.getInstance().scheduleHeartBeatTimer();
+            } else if (heartBeatResponse.getStatus() == false) {
                 TimerManager.getInstance()
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
-
         } else if (msg.hasRetrieveFileMsg()) {
 
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
@@ -136,7 +138,6 @@ public class StorageNodeInboundHandler extends InboundHandler {
         } else if (msg.hasStoreChunkResponse()) {
 
         }
-
     }
 
     @Override

@@ -21,7 +21,6 @@ public class ConfigurationManagerSn {
     private final static Object           classLock                        = new Object();
     private String                        controllerIp                     = "";
     private int                           controllerPort                   = 9090;
-    private int                           snId                             = 0;
     private int                           snPort                           = 9090;
     private int                           threadNumOfScheduledPoolExecutor = 10;
     private int                           heartBeatPeriodInMilliseconds    = 5000;
@@ -50,14 +49,6 @@ public class ConfigurationManagerSn {
         Properties props = new Properties();
         try {
             props.load(new FileInputStream(PROJECT_1_SN_CONFIG_FILE));
-
-            try {
-                String snIdString = props.getProperty("snId").trim();
-                snId = (snIdString == null) ? 8080 : Integer.parseInt(snIdString);
-            } catch (Exception e) {
-                snId = 8800;
-                e.printStackTrace();
-            }
 
             try {
                 String snPortString = props.getProperty("snPort").trim();
@@ -135,14 +126,6 @@ public class ConfigurationManagerSn {
         this.controllerPort = controllerPort;
     }
 
-    public int getSnId() {
-        return snId;
-    }
-
-    public void setSnId(int snId) {
-        this.snId = snId;
-    }
-
     public int getSnPort() {
         return snPort;
     }
@@ -178,10 +161,9 @@ public class ConfigurationManagerSn {
     @Override
     public String toString() {
         return "ConfigurationManagerSn [controllerIp=" + controllerIp + ", controllerPort="
-                + controllerPort + ", snId=" + snId + ", snPort=" + snPort
-                + ", threadNumOfScheduledPoolExecutor=" + threadNumOfScheduledPoolExecutor
-                + ", heartBeatPeriodInMilliseconds=" + heartBeatPeriodInMilliseconds + ", myIp="
-                + myIp + "]";
+                + controllerPort + ", snPort=" + snPort + ", threadNumOfScheduledPoolExecutor="
+                + threadNumOfScheduledPoolExecutor + ", heartBeatPeriodInMilliseconds="
+                + heartBeatPeriodInMilliseconds + ", myIp=" + myIp + "]";
     }
 
 }

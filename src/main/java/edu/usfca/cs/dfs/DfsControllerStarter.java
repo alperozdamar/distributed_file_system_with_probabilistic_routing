@@ -102,8 +102,8 @@ public class DfsControllerStarter {
         this.storageNodeHashMap = storageNodeHashMap;
     }
 
-    public boolean addStorageNode(HeartBeat heartBeat) {
-        StorageNode storageNode = new StorageNode(heartBeat.getSnId(),
+    public boolean addStorageNode(HeartBeat heartBeat, int newSnId) {
+        StorageNode storageNode = new StorageNode(newSnId,
                                                   null,
                                                   null,
                                                   heartBeat.getSnIp(),
@@ -112,20 +112,19 @@ public class DfsControllerStarter {
                                                   Constants.STATUS_OPERATIONAL);
         boolean result = SqlManager.getInstance().insertSN(storageNode);
         if (result) {
-            storageNodeHashMap.put(heartBeat.getSnId(), storageNode);
+            storageNodeHashMap.put(newSnId, storageNode);
             bloomFilters
-                    .put(heartBeat.getSnId(),
+                    .put(newSnId,
                          new BloomFilter(ConfigurationManagerController.getInstance()
                                  .getFilterLength(),
                                          ConfigurationManagerController.getInstance().getHashTime(),
                                          ConfigurationManagerController.getInstance().getSeed()));
 
             int maxSnId = SqlManager.getInstance().getMaxSnId();
-            int snId = storageNode.getSnId();
             System.out.println("maxSnId:" + maxSnId);
-            System.out.println("(snId % 3):" + snId % 3);
+            System.out.println("(snId % 3):" + newSnId % 3);
 
-            int value = snId % 3;
+            int value = newSnId % 3;
 
             if (value == 1) {
                 /**
@@ -137,8 +136,8 @@ public class DfsControllerStarter {
                  * snId:1   replicaId:2
                  * snId:2   replicaId:1
                  */
-                SqlManager.getInstance().insertSNReplication(snId - 1, snId, -1);
-                SqlManager.getInstance().insertSNReplication(snId, snId - 1, -1);
+                SqlManager.getInstance().insertSNReplication(newSnId - 1, newSnId, -1);
+                SqlManager.getInstance().insertSNReplication(newSnId, newSnId - 1, -1);
 
             } else if (value == 0) {
                 /**
@@ -148,10 +147,10 @@ public class DfsControllerStarter {
                  * snId:3   replicaId:1
                  * snId:3   replicaId:2
                  */
-                SqlManager.getInstance().insertSNReplication(snId - 2, snId, -1);
-                SqlManager.getInstance().insertSNReplication(snId - 1, snId, -1);
-                SqlManager.getInstance().insertSNReplication(snId, snId - 2, -1);
-                SqlManager.getInstance().insertSNReplication(snId, snId - 1, -1);
+                SqlManager.getInstance().insertSNReplication(newSnId - 2, newSnId, -1);
+                SqlManager.getInstance().insertSNReplication(newSnId - 1, newSnId, -1);
+                SqlManager.getInstance().insertSNReplication(newSnId, newSnId - 2, -1);
+                SqlManager.getInstance().insertSNReplication(newSnId, newSnId - 1, -1);
             }
 
         } else {

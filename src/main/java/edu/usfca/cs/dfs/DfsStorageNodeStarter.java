@@ -13,7 +13,6 @@ import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
 import edu.usfca.cs.dfs.net.ServerMessageRouter;
-import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -54,10 +53,10 @@ public class DfsStorageNodeStarter {
     public void start() throws IOException {
 
         try {
-            storageNode = new StorageNode(ConfigurationManagerSn.getInstance().getSnId(),
+            storageNode = new StorageNode(-1,
                                           null,
                                           null,
-                                          "localhost",
+                                          ConfigurationManagerSn.getInstance().getMyIp(),
                                           ConfigurationManagerSn.getInstance().getSnPort(),
                                           calculateTotalFreeSpaceInBytes(),
                                           Constants.STATUS_OPERATIONAL);
@@ -85,9 +84,8 @@ public class DfsStorageNodeStarter {
                              ConfigurationManagerClient.getInstance().getControllerPort());
 
             StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
-                    .setSnId(storageNode.getSnId())
-                    .setSnIp(ConfigurationManagerSn.getInstance().getMyIp())
-                    .setSnPort(ConfigurationManagerSn.getInstance().getSnPort())
+                    .setSnId(storageNode.getSnId()).setSnIp(storageNode.getSnIp())
+                    .setSnPort(storageNode.getSnPort())
                     .setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes())
                     .setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
@@ -96,9 +94,6 @@ public class DfsStorageNodeStarter {
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
             write.syncUninterruptibly();
-
-            System.out.println("[SN] Creating Timer for Heart Beats:" + storageNode.getSnId());
-            TimerManager.getInstance().scheduleHeartBeatTimer();
 
         } catch (Exception e) {
             e.printStackTrace();

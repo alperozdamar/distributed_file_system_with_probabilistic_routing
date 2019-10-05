@@ -117,8 +117,13 @@ public class ControllerInboundHandler extends InboundHandler {
     private void handleHeartBeat(ChannelHandlerContext ctx,
                                  StorageMessages.StorageMessageWrapper msg) {
         StorageMessages.HeartBeat heartBeat = msg.getHeartBeatMsg();
+        int snId = heartBeat.getSnId();
         System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
-                + heartBeat.getSnId() + "] <<<<<<<<<<<<<<----------------");
+                + heartBeat.getSnId() + "] Ip:[" + heartBeat.getSnIp() + "] Port:["
+                + heartBeat.getSnPort() + "]<<<<<<<<<<<<<<----------------");
+
+        System.out.println("[Controller] Storage Node Hash Map Size:"
+                + DfsControllerStarter.getInstance().getStorageNodeHashMap().size());
 
         /**
          * LETS ADD to DB if it is not exists in our Hash Map!!
@@ -136,29 +141,29 @@ public class ControllerInboundHandler extends InboundHandler {
              * Add to DB.
              * Schedule Timer for Heart Beat Timeouts.
              *******************************************/
-            boolean result = DfsControllerStarter.getInstance().addStorageNode(heartBeat);
+            snId = SqlManager.getInstance().getMaxSnId() + 1;
+            boolean result = DfsControllerStarter.getInstance().addStorageNode(heartBeat, snId);
             if (result) {
-                logger.debug("SN[" + heartBeat.getSnId()
-                        + "] successfully subscribed to Controller, status:"
+                logger.debug("SN[" + snId + "] successfully subscribed to Controller, status:"
                         + Constants.STATUS_OPERATIONAL);
-                System.out.println("SN[" + heartBeat.getSnId()
+                System.out.println("SN[" + snId
                         + "] successfully subscribed to Controller, status:"
                         + Constants.STATUS_OPERATIONAL);
                 /**
                  * Schedule KeepAliveChecker for heart beat timeouts...
                  */
-                TimerManager.getInstance().scheduleKeepAliveCheckTimer(heartBeat.getSnId());
+                TimerManager.getInstance().scheduleKeepAliveCheckTimer(snId);
             }
         }
 
         StorageMessages.HeartBeatResponse response = StorageMessages.HeartBeatResponse.newBuilder()
-                .setStatus(true).setSnId(heartBeat.getSnId()).build();
+                .setStatus(true).setSnId(snId).build();
 
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setHeartBeatResponse(response).build();
 
-        System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN["
-                + heartBeat.getSnId() + "] >>>>>>>>>>>--------------");
+        System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN[" + snId
+                + "] >>>>>>>>>>>--------------");
 
         Channel chan = ctx.channel();
         ChannelFuture write = chan.write(msgWrapper);
