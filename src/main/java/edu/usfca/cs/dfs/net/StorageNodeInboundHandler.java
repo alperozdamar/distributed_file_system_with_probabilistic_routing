@@ -227,6 +227,11 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
 
+            /**
+             * TODO:
+             * Retrieve chunk from File System.
+             */
+
         } else if (msg.hasStoreChunkResponse()) {
 
         }

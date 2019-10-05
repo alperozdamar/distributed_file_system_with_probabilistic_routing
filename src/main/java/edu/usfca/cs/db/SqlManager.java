@@ -43,7 +43,6 @@ public class SqlManager {
     public StorageNode getSNReplication(int snId) {
         StorageNode storageNode = null;
         ArrayList<Integer> replicateSnIdList = null;
-        ArrayList<Integer> backupIdSnList = null;
         Connection connection = null;
         String sql = "select * from sn_replication s where s.snId = ?";
         PreparedStatement selectStatement = null;
@@ -58,12 +57,10 @@ public class SqlManager {
             if (resultSet.next()) {
                 storageNode = new StorageNode();
                 replicateSnIdList = new ArrayList<>();
-                backupIdSnList = new ArrayList<>();
                 do {
                     storageNode.setSnId(resultSet.getInt("snId"));
                     replicateSnIdList.add(resultSet.getInt("replicaId"));
                 } while (resultSet.next());
-                storageNode.setBackupIdSnList(backupIdSnList);
                 storageNode.setReplicateSnIdList(replicateSnIdList);
             } else {
                 logger.debug("Storage Node can not be found in DB.");
