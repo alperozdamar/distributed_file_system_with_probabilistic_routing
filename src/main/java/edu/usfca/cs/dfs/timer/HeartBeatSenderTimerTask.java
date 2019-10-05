@@ -20,11 +20,9 @@ public class HeartBeatSenderTimerTask implements Runnable {
         try {
             StorageNode storageNode = DfsStorageNodeStarter.getInstance().getStorageNode();
             if (logger.isDebugEnabled()) {
-                logger.debug("Apply Heart Beat Timer timeout occurred with snId :"
-                        + storageNode.getSnId());
+                logger.debug("Heart Beat Timer triggered with snId :" + storageNode.getSnId());
             }
-            System.out.println("Apply Heart Beat Timer timeout occurred with snId :"
-                    + storageNode.getSnId());
+            System.out.println("Heart Beat Timer triggered with snId :" + storageNode.getSnId());
             /**
              * SN will connect to the Controller
              */
@@ -39,6 +37,10 @@ public class HeartBeatSenderTimerTask implements Runnable {
             Channel chan = DfsStorageNodeStarter.getInstance().getChannelFuture().channel();
             chan.write(msgWrapper);
             chan.flush();
+
+            System.out.println("[Controller] ---------->>>>>>>> HEART BEAT To Controller, snId["
+                    + heartBeat.getSnId() + "] >>>>>>>>>>>--------------");
+
         } catch (Exception e) {
             logger.error("Exception occured in HeartBeat:", e);
         }
