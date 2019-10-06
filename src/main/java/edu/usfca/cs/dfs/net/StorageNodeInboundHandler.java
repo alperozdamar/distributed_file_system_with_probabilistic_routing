@@ -7,9 +7,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.protobuf.ByteString;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
@@ -62,7 +63,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
         System.out.println("[SN] ----------<<<<<<<<<< STORE CHUNK , FileName["
                 + storeChunkMsg.getFileName() + "] chunkId:[" + storeChunkMsg.getChunkId()
-                + "] Data:[" + storeChunkMsg.getData().toString()
+                + "] PrimarySnId:[" + storeChunkMsg.getPrimarySnId()
                 + "]<<<<<<<<<<<<<<----------------");
 
         //Response to client, first node only
@@ -166,7 +167,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
         return directoryPath;
     }
 
-    private void sendAllFileInFileSystemByNodeId(int snId, String destinationIp, int destinationPort){
+    private void sendAllFileInFileSystemByNodeId(int snId, String destinationIp,
+                                                 int destinationPort) {
         String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
         String whoamI = System.getProperty("user.name");
         directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
@@ -175,28 +177,25 @@ public class StorageNodeInboundHandler extends InboundHandler {
         File[] listOfFiles = folder.listFiles();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
-        Bootstrap bootstrap = new Bootstrap().group(workerGroup)
-                .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
-                .handler(pipeline);
+        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 File currFile = listOfFiles[i];
                 String fileNameInSystem = currFile.getName();
                 System.out.println("File " + fileNameInSystem);
                 String fileName = fileNameInSystem.substring(0, fileNameInSystem.lastIndexOf("_"));
-                int chunkId = Integer.parseInt(fileNameInSystem.substring(fileNameInSystem.lastIndexOf("_") + 1));
-                byte[] chunkData = Utils.readFromFile(currFile.getPath(), 0, (int) currFile.length());
-                ChannelFuture cf = Utils
-                        .connect(bootstrap, destinationIp, destinationPort);
+                int chunkId = Integer.parseInt(fileNameInSystem
+                        .substring(fileNameInSystem.lastIndexOf("_") + 1));
+                byte[] chunkData = Utils
+                        .readFromFile(currFile.getPath(), 0, (int) currFile.length());
+                ChannelFuture cf = Utils.connect(bootstrap, destinationIp, destinationPort);
                 StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
-                        .setFileName(fileName)
-                        .setChunkId(chunkId)
-                        .setChunkSize(currFile.length())
+                        .setFileName(fileName).setChunkId(chunkId).setChunkSize(currFile.length())
                         .setData(ByteString.copyFrom(chunkData))
-                        .setChecksum(Utils.getMd5(chunkData))
-                        .setPrimarySnId(snId).build();
-                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
-                        .setStoreChunk(storeChunkMsg).build();
+                        .setChecksum(Utils.getMd5(chunkData)).setPrimarySnId(snId).build();
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                        .newBuilder().setStoreChunk(storeChunkMsg).build();
                 cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
             } else if (listOfFiles[i].isDirectory()) {
                 System.out.println("Directory " + listOfFiles[i].getName());
@@ -243,6 +242,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
                 StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
                         .newBuilder().setFileName(storeChunkMsg.getFileName())
+                        .setPrimarySnId(storeChunkMsg.getPrimarySnId())
                         .setChunkId(storeChunkMsg.getChunkId()).setData(storeChunkMsg.getData());
                 for (int i = 1; i < newSnList.size(); i++) {
                     storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(newSnList.get(i));
@@ -260,7 +260,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         }
     }
 
-    private void handleBackupRequest(ChannelHandlerContext ctx, StorageMessages.BackUp backUpMsg){
+    private void handleBackupRequest(ChannelHandlerContext ctx, StorageMessages.BackUp backUpMsg) {
         System.out.println("[SN]Send data to backup node!");
         String destinationIp = backUpMsg.getDestinationIp();
         int destinationPort = backUpMsg.getDestinationPort();
@@ -303,7 +303,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
         } else if (msg.hasStoreChunkResponse()) {
 
-        } else if (msg.hasBackup()){
+        } else if (msg.hasBackup()) {
             handleBackupRequest(ctx, msg.getBackup());
         }
     }
