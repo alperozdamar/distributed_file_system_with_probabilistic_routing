@@ -90,7 +90,7 @@ public class DfsClientStarter {
         System.out.format("\nThe size of chunks: %d bytes", chunkSize);
         int numOfChunks = (int) Math.ceil((float) fileSize / (float) chunkSize);
         System.out.format("\nNumber Of Chunks is %d for file size:%d bytes", numOfChunks, fileSize);
-        long lastChunkByteSize = fileSize % chunkSize;
+        long lastChunkByteSize = fileSize - ((numOfChunks-1)*chunkSize);
         System.out.format("\nlastChunkByteSize is %d for file size:%d bytes",
                           lastChunkByteSize,
                           fileSize);
