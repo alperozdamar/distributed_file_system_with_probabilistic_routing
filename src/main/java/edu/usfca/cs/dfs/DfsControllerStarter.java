@@ -37,14 +37,6 @@ public class DfsControllerStarter {
 
     public static final int                               MAX_REPLICATION_NUMBER       = 3;
 
-    public HashMap<String, StorageMessages.FileMetadata> getFileMetadataHashMap() {
-        return fileMetadataHashMap;
-    }
-
-    public void setFileMetadataHashMap(HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap) {
-        this.fileMetadataHashMap = fileMetadataHashMap;
-    }
-
     private DfsControllerStarter() {
         //TODO: Create bloom filter when add storage node to controller
         for (int i = 0; i < 12; i++) {
@@ -176,6 +168,14 @@ public class DfsControllerStarter {
 
     public void setBloomFilters(HashMap<Integer, BloomFilter> bloomFilters) {
         this.bloomFilters = bloomFilters;
+    }
+
+    public HashMap<String, StorageMessages.FileMetadata> getFileMetadataHashMap() {
+        return fileMetadataHashMap;
+    }
+
+    public void setFileMetadataHashMap(HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap) {
+        this.fileMetadataHashMap = fileMetadataHashMap;
     }
 
     static void updateLogger(String file_name, String appender_name, String package_name) {

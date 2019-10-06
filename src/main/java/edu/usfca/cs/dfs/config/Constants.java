@@ -15,5 +15,6 @@ public class Constants {
     public static final String STATUS_OPERATIONAL = "OPERATIONAL";
     public static final String STATUS_UP          = "UP";
     public static final String STATUS_DOWN        = "DOWN";
+    public static final int    MAX_REPLICA_NUMBER = 3;
 
 }
