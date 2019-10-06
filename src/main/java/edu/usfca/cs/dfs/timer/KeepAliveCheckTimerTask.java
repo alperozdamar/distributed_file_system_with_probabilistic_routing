@@ -47,6 +47,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
             backupId = sn.getSnId();
         }
         StorageNode backupNode = sqlManager.getSNInformationById(backupId);
+        sqlManager.updateSNReplication(snId, backupNode.getSnId());
 
         //Backup data of current node
         //Send current down SN data to backup ID

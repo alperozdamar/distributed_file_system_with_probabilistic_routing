@@ -1,10 +1,6 @@
 package edu.usfca.cs;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -16,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
 
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
+import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 
@@ -32,15 +29,23 @@ public class Utils {
         return cf;
     }
 
-    public static byte[] readFromFile(String filePath, int seek, int chunkSize) throws IOException {
+    public static byte[] readFromFile(String filePath, int seek, int chunkSize) {
         System.out.println("seek:" + seek);
-        RandomAccessFile file = new RandomAccessFile(filePath, "r");
-        file.seek(seek);
-        byte[] bytes = new byte[chunkSize];
+        RandomAccessFile file = null;
+        try {
+            file = new RandomAccessFile(filePath, "r");
+            file.seek(seek);
+            byte[] bytes = new byte[chunkSize];
 
-        file.read(bytes);
-        file.close();
-        return bytes;
+            file.read(bytes);
+            file.close();
+            return bytes;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static boolean writeChunkIntoFile(String directory, StoreChunk storeChunkMsg) {
@@ -176,4 +181,22 @@ public class Utils {
 
         return entropy;
     }
+
+    public static void sendAllFileInFileSystemByNodeId(int snId){
+        String directoryPath = null;
+        directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String whoamI = System.getProperty("user.name");
+        directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                + File.separator + whoamI + File.separator + snId;
+        File folder = new File(directoryPath);
+        File[] listOfFiles = folder.listFiles();
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                System.out.println("File " + listOfFiles[i].getName());
+
+            } else if (listOfFiles[i].isDirectory()) {
+                System.out.println("Directory " + listOfFiles[i].getName());
+            }
+        }
+    };
 }

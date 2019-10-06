@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.protobuf.ByteString;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -165,6 +166,44 @@ public class StorageNodeInboundHandler extends InboundHandler {
         return directoryPath;
     }
 
+    private void sendAllFileInFileSystemByNodeId(int snId, String destinationIp, int destinationPort){
+        String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String whoamI = System.getProperty("user.name");
+        directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                + File.separator + whoamI + File.separator + snId;
+        File folder = new File(directoryPath);
+        File[] listOfFiles = folder.listFiles();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+        Bootstrap bootstrap = new Bootstrap().group(workerGroup)
+                .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
+                .handler(pipeline);
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                File currFile = listOfFiles[i];
+                String fileNameInSystem = currFile.getName();
+                System.out.println("File " + fileNameInSystem);
+                String fileName = fileNameInSystem.substring(0, fileNameInSystem.lastIndexOf("_"));
+                int chunkId = Integer.parseInt(fileNameInSystem.substring(fileNameInSystem.lastIndexOf("_") + 1));
+                byte[] chunkData = Utils.readFromFile(currFile.getPath(), 0, (int) currFile.length());
+                ChannelFuture cf = Utils
+                        .connect(bootstrap, destinationIp, destinationPort);
+                StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
+                        .setFileName(fileName)
+                        .setChunkId(chunkId)
+                        .setChunkSize(currFile.length())
+                        .setData(ByteString.copyFrom(chunkData))
+                        .setChecksum(Utils.getMd5(chunkData))
+                        .setPrimarySnId(snId).build();
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
+                        .setStoreChunk(storeChunkMsg).build();
+                cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
+            } else if (listOfFiles[i].isDirectory()) {
+                System.out.println("Directory " + listOfFiles[i].getName());
+            }
+        }
+    };
+
     private void replicateChunk(StorageMessages.StoreChunk storeChunkMsg) {
         int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
         /**
@@ -221,6 +260,14 @@ public class StorageNodeInboundHandler extends InboundHandler {
         }
     }
 
+    private void handleBackupRequest(ChannelHandlerContext ctx, StorageMessages.BackUp backUpMsg){
+        System.out.println("[SN]Send data to backup node!");
+        String destinationIp = backUpMsg.getDestinationIp();
+        int destinationPort = backUpMsg.getDestinationPort();
+        int sourceId = backUpMsg.getSourceSnId();
+        sendAllFileInFileSystemByNodeId(sourceId, destinationIp, destinationPort);
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         System.out.println("[SN]Received msg!");
@@ -246,20 +293,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-            StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
-            System.out.println("[SN] Retrieve File Request come from Client for fileName:"
-                    + retrieveFile.getFileName() + ",chunkId:" + retrieveFile.getChunkId());
+
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
 
             /**
              * TODO:
              * Retrieve chunk from File System.
-             * 
-             * Mattheuw: Checksum before sending it to the Client...
              */
 
         } else if (msg.hasStoreChunkResponse()) {
 
+        } else if (msg.hasBackup()){
+            handleBackupRequest(ctx, msg.getBackup());
         }
     }
 

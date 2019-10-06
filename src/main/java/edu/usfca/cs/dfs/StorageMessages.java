@@ -6218,11 +6218,6 @@ public final class StorageMessages {
      */
     com.google.protobuf.ByteString
         getFileNameBytes();
-
-    /**
-     * <code>int32 chunkId = 2;</code>
-     */
-    int getChunkId();
   }
   /**
    * Protobuf type {@code RetrieveFile}
@@ -6274,11 +6269,6 @@ public final class StorageMessages {
               java.lang.String s = input.readStringRequireUtf8();
 
               fileName_ = s;
-              break;
-            }
-            case 16: {
-
-              chunkId_ = input.readInt32();
               break;
             }
             default: {
@@ -6347,15 +6337,6 @@ public final class StorageMessages {
       }
     }
 
-    public static final int CHUNKID_FIELD_NUMBER = 2;
-    private int chunkId_;
-    /**
-     * <code>int32 chunkId = 2;</code>
-     */
-    public int getChunkId() {
-      return chunkId_;
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -6373,9 +6354,6 @@ public final class StorageMessages {
       if (!getFileNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, fileName_);
       }
-      if (chunkId_ != 0) {
-        output.writeInt32(2, chunkId_);
-      }
       unknownFields.writeTo(output);
     }
 
@@ -6387,10 +6365,6 @@ public final class StorageMessages {
       size = 0;
       if (!getFileNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, fileName_);
-      }
-      if (chunkId_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, chunkId_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -6409,8 +6383,6 @@ public final class StorageMessages {
 
       if (!getFileName()
           .equals(other.getFileName())) return false;
-      if (getChunkId()
-          != other.getChunkId()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -6424,8 +6396,6 @@ public final class StorageMessages {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + FILENAME_FIELD_NUMBER;
       hash = (53 * hash) + getFileName().hashCode();
-      hash = (37 * hash) + CHUNKID_FIELD_NUMBER;
-      hash = (53 * hash) + getChunkId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -6561,8 +6531,6 @@ public final class StorageMessages {
         super.clear();
         fileName_ = "";
 
-        chunkId_ = 0;
-
         return this;
       }
 
@@ -6590,7 +6558,6 @@ public final class StorageMessages {
       public edu.usfca.cs.dfs.StorageMessages.RetrieveFile buildPartial() {
         edu.usfca.cs.dfs.StorageMessages.RetrieveFile result = new edu.usfca.cs.dfs.StorageMessages.RetrieveFile(this);
         result.fileName_ = fileName_;
-        result.chunkId_ = chunkId_;
         onBuilt();
         return result;
       }
@@ -6642,9 +6609,6 @@ public final class StorageMessages {
         if (!other.getFileName().isEmpty()) {
           fileName_ = other.fileName_;
           onChanged();
-        }
-        if (other.getChunkId() != 0) {
-          setChunkId(other.getChunkId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -6740,32 +6704,6 @@ public final class StorageMessages {
   checkByteStringIsUtf8(value);
         
         fileName_ = value;
-        onChanged();
-        return this;
-      }
-
-      private int chunkId_ ;
-      /**
-       * <code>int32 chunkId = 2;</code>
-       */
-      public int getChunkId() {
-        return chunkId_;
-      }
-      /**
-       * <code>int32 chunkId = 2;</code>
-       */
-      public Builder setChunkId(int value) {
-        
-        chunkId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int32 chunkId = 2;</code>
-       */
-      public Builder clearChunkId() {
-        
-        chunkId_ = 0;
         onChanged();
         return this;
       }
@@ -12102,28 +12040,27 @@ public final class StorageMessages {
       "\035\n\025numOfRetrievelRequest\030\006 \001(\005\"1\n\021HeartB" +
       "eatResponse\022\014\n\004snId\030\001 \001(\005\022\016\n\006status\030\002 \001(" +
       "\010\"\006\n\004List\"0\n\014ListResponse\022 \n\006snInfo\030\001 \003(" +
-      "\0132\020.StorageNodeInfo\"1\n\014RetrieveFile\022\020\n\010f" +
-      "ileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\"]\n\014FileLo" +
-      "cation\022\020\n\010fileName\030\001 \001(\t\022+\n\016chunksLocati" +
-      "on\030\002 \003(\0132\023.StoreChunkLocation\022\016\n\006status\030" +
-      "\003 \001(\010\"\230\001\n\017StorageNodeInfo\022\014\n\004snId\030\001 \001(\005\022" +
-      "\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025totalFr" +
-      "eeSpaceInBytes\030\004 \001(\003\022\033\n\023numOfStorageMess" +
-      "age\030\005 \001(\005\022\035\n\025numOfRetrievelRequest\030\006 \001(\005" +
-      "\"L\n\006BackUp\022\022\n\nsourceSnId\030\001 \001(\005\022\025\n\rdestin" +
-      "ationIp\030\002 \001(\t\022\027\n\017destinationPort\030\003 \001(\005\"\243" +
-      "\003\n\025StorageMessageWrapper\022!\n\nstoreChunk\030\001" +
-      " \001(\0132\013.StoreChunkH\000\022%\n\014retrieveFile\030\002 \001(" +
-      "\0132\r.RetrieveFileH\000\022\"\n\014heartBeatMsg\030\003 \001(\013" +
-      "2\n.HeartBeatH\000\022/\n\021HeartBeatResponse\030\004 \001(" +
-      "\0132\022.HeartBeatResponseH\000\022\025\n\004list\030\005 \001(\0132\005." +
-      "ListH\000\022%\n\014listResponse\030\006 \001(\0132\r.ListRespo" +
-      "nseH\000\0221\n\022storeChunkLocation\030\007 \001(\0132\023.Stor" +
-      "eChunkLocationH\000\0221\n\022storeChunkResponse\030\010" +
-      " \001(\0132\023.StoreChunkResponseH\000\022%\n\014fileLocat" +
-      "ion\030\t \001(\0132\r.FileLocationH\000\022\031\n\006backup\030\n \001" +
-      "(\0132\007.BackUpH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfs" +
-      "b\006proto3"
+      "\0132\020.StorageNodeInfo\" \n\014RetrieveFile\022\020\n\010f" +
+      "ileName\030\001 \001(\t\"]\n\014FileLocation\022\020\n\010fileNam" +
+      "e\030\001 \001(\t\022+\n\016chunksLocation\030\002 \003(\0132\023.StoreC" +
+      "hunkLocation\022\016\n\006status\030\003 \001(\010\"\230\001\n\017Storage" +
+      "NodeInfo\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006" +
+      "snPort\030\003 \001(\005\022\035\n\025totalFreeSpaceInBytes\030\004 " +
+      "\001(\003\022\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025numO" +
+      "fRetrievelRequest\030\006 \001(\005\"L\n\006BackUp\022\022\n\nsou" +
+      "rceSnId\030\001 \001(\005\022\025\n\rdestinationIp\030\002 \001(\t\022\027\n\017" +
+      "destinationPort\030\003 \001(\005\"\243\003\n\025StorageMessage" +
+      "Wrapper\022!\n\nstoreChunk\030\001 \001(\0132\013.StoreChunk" +
+      "H\000\022%\n\014retrieveFile\030\002 \001(\0132\r.RetrieveFileH" +
+      "\000\022\"\n\014heartBeatMsg\030\003 \001(\0132\n.HeartBeatH\000\022/\n" +
+      "\021HeartBeatResponse\030\004 \001(\0132\022.HeartBeatResp" +
+      "onseH\000\022\025\n\004list\030\005 \001(\0132\005.ListH\000\022%\n\014listRes" +
+      "ponse\030\006 \001(\0132\r.ListResponseH\000\0221\n\022storeChu" +
+      "nkLocation\030\007 \001(\0132\023.StoreChunkLocationH\000\022" +
+      "1\n\022storeChunkResponse\030\010 \001(\0132\023.StoreChunk" +
+      "ResponseH\000\022%\n\014fileLocation\030\t \001(\0132\r.FileL" +
+      "ocationH\000\022\031\n\006backup\030\n \001(\0132\007.BackUpH\000B\005\n\003" +
+      "msgB\022\n\020edu.usfca.cs.dfsb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -12182,7 +12119,7 @@ public final class StorageMessages {
     internal_static_RetrieveFile_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_RetrieveFile_descriptor,
-        new java.lang.String[] { "FileName", "ChunkId", });
+        new java.lang.String[] { "FileName", });
     internal_static_FileLocation_descriptor =
       getDescriptor().getMessageTypes().get(9);
     internal_static_FileLocation_fieldAccessorTable = new
