@@ -126,14 +126,13 @@ public class ControllerInboundHandler extends InboundHandler {
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                         .newBuilder().setStoreChunkLocation(chunkLocationMsgBuilder).build();
                 Channel chan = ctx.channel();
-                write = chan.write(msgWrapper);
-                chan.flush().closeFuture();
+                write = chan.writeAndFlush(msgWrapper);
                 selectedSNs = true;
             }
         }
-        if (write.isDone()) {
-            write.addListener(ChannelFutureListener.CLOSE);
-        }
+//        if (write.isDone()) {
+//            write.addListener(ChannelFutureListener.CLOSE);
+//        }
     }
 
     private void handleListMsg(ChannelHandlerContext ctx) {

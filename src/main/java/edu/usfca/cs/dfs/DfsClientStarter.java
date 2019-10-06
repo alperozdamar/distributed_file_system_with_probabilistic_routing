@@ -1,6 +1,8 @@
 package edu.usfca.cs.dfs;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
@@ -100,10 +102,17 @@ public class DfsClientStarter {
         this.metadata = StorageMessages.FileMetadata.newBuilder()
                 .setFileSize(fileSize)
                 .setNumOfChunks(numOfChunks).build();
-        ChannelFuture cf = Utils
-                .connect(bootstrap,
-                        ConfigurationManagerClient.getInstance().getControllerIp(),
-                        ConfigurationManagerClient.getInstance().getControllerPort());
+
+        int thread = 2;
+        Channel[] channels = new Channel[thread];
+        int currThread = 0;
+        for(int i=0;i<thread;i++){
+            channels[i] = Utils
+                    .connect(bootstrap,
+                            ConfigurationManagerClient.getInstance().getControllerIp(),
+                            ConfigurationManagerClient.getInstance().getControllerPort()).channel();
+        }
+
         StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
                 .setFileName(file.getName())
                 .setChunkId(0)
@@ -111,21 +120,17 @@ public class DfsClientStarter {
                 .setData(this.metadata.toByteString()).build();
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setStoreChunk(storeChunkMsg).build();
-        cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
+        channels[currThread++%thread].writeAndFlush(msgWrapper).syncUninterruptibly();
 
         //Send actual file from chunk 1
         for (int i = 0; i < numOfChunks; i++) {
-            cf = Utils
-                    .connect(bootstrap,
-                            ConfigurationManagerClient.getInstance().getControllerIp(),
-                            ConfigurationManagerClient.getInstance().getControllerPort());
             storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
                     .setFileName(file.getName())
                     .setChunkId(i + 1)
                     .setChunkSize(i==numOfChunks-1?lastChunkByteSize:chunkSize).build();
             msgWrapper = StorageMessages.StorageMessageWrapper
                     .newBuilder().setStoreChunk(storeChunkMsg).build();
-            cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
+            channels[currThread++%thread].writeAndFlush(msgWrapper).syncUninterruptibly();
         }
     }
 

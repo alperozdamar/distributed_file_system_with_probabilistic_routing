@@ -38,7 +38,7 @@ public class MessagePipeline extends ChannelInitializer<SocketChannel> {
          * chunk size of 100 MB, we'll use 128 MB here. We use a 4-byte length
          * field to give us 32 bits' worth of frame length, which should be
          * plenty for the future... */
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
         pipeline.addLast(new ProtobufDecoder(StorageMessages.StorageMessageWrapper.getDefaultInstance()));
         pipeline.addLast(inboundHandler);
 
