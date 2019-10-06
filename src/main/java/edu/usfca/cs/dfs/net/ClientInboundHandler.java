@@ -72,16 +72,12 @@ public class ClientInboundHandler extends InboundHandler {
         //Read chunk from file base on chunkId
         long configChunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
         byte[] chunk = null;
-        try {
-            if (chunkLocationMsg.getChunkId() == 0) {//metadata chunk
-                chunk = DfsClientStarter.getInstance().getMetadata().toByteArray();
-            } else {
-                chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
-                                     (int) (configChunkSize * (chunkLocationMsg.getChunkId() - 1)),
-                                     (int) chunkLocationMsg.getChunkSize());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (chunkLocationMsg.getChunkId() == 0) {//metadata chunk
+            chunk = DfsClientStarter.getInstance().getMetadata().toByteArray();
+        } else {
+            chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
+                    (int) (configChunkSize * (chunkLocationMsg.getChunkId() - 1)),
+                    (int) chunkLocationMsg.getChunkSize());
         }
         System.out.println("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
         System.out.println("[Client] Chunk checksum: " + getMd5(chunk));
