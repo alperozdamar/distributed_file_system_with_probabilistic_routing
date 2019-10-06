@@ -12,7 +12,7 @@ public class MyRandomAccessFileTest {
 
             HashMap<Integer, byte[]> chunkMap = new HashMap<Integer, byte[]>();
 
-            int chunkSize = 10;
+            int chunkSize = 30;
 
             RandomAccessFile raFile = new RandomAccessFile(filePath, "rw");
             int chunkId = 1;

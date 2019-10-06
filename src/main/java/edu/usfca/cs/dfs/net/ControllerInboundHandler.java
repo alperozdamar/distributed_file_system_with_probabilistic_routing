@@ -159,12 +159,14 @@ public class ControllerInboundHandler extends InboundHandler {
                                  StorageMessages.StorageMessageWrapper msg) {
         StorageMessages.HeartBeat heartBeat = msg.getHeartBeatMsg();
         int snId = heartBeat.getSnId();
-        System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
-                + heartBeat.getSnId() + "] Ip:[" + heartBeat.getSnIp() + "] Port:["
-                + heartBeat.getSnPort() + "]<<<<<<<<<<<<<<----------------");
 
-        System.out.println("[Controller] Storage Node Hash Map Size:"
-                + DfsControllerStarter.getInstance().getStorageNodeHashMap().size());
+        if (DfsControllerStarter.LOG_HEART_BEAT) {
+            System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
+                    + heartBeat.getSnId() + "] Ip:[" + heartBeat.getSnIp() + "] Port:["
+                    + heartBeat.getSnPort() + "]<<<<<<<<<<<<<<----------------");
+            System.out.println("[Controller] Storage Node Hash Map Size:"
+                    + DfsControllerStarter.getInstance().getStorageNodeHashMap().size());
+        }
 
         /**
          * LETS ADD to DB if it is not exists in our Hash Map!!
@@ -201,9 +203,10 @@ public class ControllerInboundHandler extends InboundHandler {
 
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setHeartBeatResponse(response).build();
-
-        System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN[" + snId
-                + "] >>>>>>>>>>>--------------");
+        if (DfsControllerStarter.LOG_HEART_BEAT) {
+            System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN[" + snId
+                    + "] >>>>>>>>>>>--------------");
+        }
 
         Channel chan = ctx.channel();
         ChannelFuture write = chan.write(msgWrapper);

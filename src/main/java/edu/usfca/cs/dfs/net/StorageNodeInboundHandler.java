@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.Utils;
+import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
@@ -70,19 +71,11 @@ public class StorageNodeInboundHandler extends InboundHandler {
         System.out.println("[SN]Sending StoreChunk response message back to Client...");
 
         /**
-         * TODO:
-         * 
          * if successfully write into File System return sucess respnse
          */
         boolean result = writeIntoFileSystem(storeChunkMsg);
-
-        if (result) {
-            result = true;
-        }
-
         StorageMessages.StoreChunkResponse responseMsg = StorageMessages.StoreChunkResponse
                 .newBuilder().setChunkId(storeChunkMsg.getChunkId()).setStatus(result).build();
-
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setStoreChunkResponse(responseMsg).build();
         Channel chan = ctx.channel();
@@ -93,12 +86,13 @@ public class StorageNodeInboundHandler extends InboundHandler {
         System.out.println("[SN] ---------->>>>>>>> STORE CHUNK RESPONSE For ChunkId"
                 + storeChunkMsg.getChunkId() + "] >>>>>>>>>>>--------------");
 
-        /**
-         * TODO: 
-         * Replication.
-         * Send this chunk to the other 2 replicas.
-         */
-        replicateChunk(storeChunkMsg);
+        if (result) {
+            /** 
+             * Replication.
+             * Send this chunk to the other 2 replicas.
+             */
+            replicateChunk(storeChunkMsg);
+        }
     }
 
     /**
@@ -120,12 +114,21 @@ public class StorageNodeInboundHandler extends InboundHandler {
              * 2-) Save into file
              */
 
-            Utils.writeChunkIntoFile(path, storeChunkMsg);
+            Utils.writeChunkIntoFileInStorageNode(path, storeChunkMsg);
 
             /**
              * 3-) Put into HASHMAP => key:(filename_chunkId) Value: (FileLocation,Checksum,FileName,ChunkId) 
              *      Also put into File System. (/bigdata/whoamI/.)
              */
+            String key = storeChunkMsg.getFileName() + "_" + storeChunkMsg.getChunkId();
+            MetaDataOfChunk metaDataOfChunk = new MetaDataOfChunk(storeChunkMsg.getChecksum(),
+                                                                  path,
+                                                                  storeChunkMsg.getChunkId(),
+                                                                  storeChunkMsg.getFileName(),
+                                                                  (int) storeChunkMsg
+                                                                          .getChunkSize());
+            DfsStorageNodeStarter.getInstance().getFileChunkToMetaDataMap().put(key,
+                                                                                metaDataOfChunk);
         }
         return result;
     }
@@ -293,13 +296,38 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
+
+            StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
+            int chunkId = retrieveFile.getChunkId();
+            int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
 
             /**
              * TODO:
              * Retrieve chunk from File System.
              */
+            String key = retrieveFile.getFileName() + "_" + chunkId;
+            MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
+                    .getFileChunkToMetaDataMap().get(key);
+
+            System.out.println("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
+
+            /**
+             * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
+             */
+            byte[] chunkByteArray = Utils
+                    .readFromFile(metaDataOfChunk.getPath(), 0, metaDataOfChunk.getChunksize());
+            ByteString data = ByteString.copyFrom(chunkByteArray);
+
+            StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
+                    .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
+                    .setData(data).setSnId(mySnId).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setRetrieveFileResponse(response).build();
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
 
         } else if (msg.hasStoreChunkResponse()) {
 

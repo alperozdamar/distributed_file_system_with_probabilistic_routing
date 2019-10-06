@@ -37,6 +37,8 @@ public class DfsControllerStarter {
 
     public static final int                               MAX_REPLICATION_NUMBER       = 3;
 
+    public static boolean                                 LOG_HEART_BEAT               = false;
+
     private DfsControllerStarter() {
         //TODO: Create bloom filter when add storage node to controller
         for (int i = 0; i < 12; i++) {

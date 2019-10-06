@@ -1,6 +1,11 @@
 package edu.usfca.cs;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,6 +15,8 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
+
+import javax.xml.bind.DatatypeConverter;
 
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
@@ -48,7 +55,8 @@ public class Utils {
         return null;
     }
 
-    public static boolean writeChunkIntoFile(String directory, StoreChunk storeChunkMsg) {
+    public static boolean writeChunkIntoFileInStorageNode(String directory,
+                                                          StoreChunk storeChunkMsg) {
         String filePath = directory + File.separator + storeChunkMsg.getFileName() + "_"
                 + storeChunkMsg.getChunkId();
         //FileOutputStream outputStream;
@@ -82,7 +90,7 @@ public class Utils {
             try (final BufferedWriter out = Files
                     .newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
                 String data = storeChunkMsg.getData().toStringUtf8();
-                System.out.println("Written chunk:" + data);
+                //System.out.println("Written chunk:" + data);
                 out.write(data, 0, data.length());
             }
         } catch (Exception e) {
@@ -182,7 +190,7 @@ public class Utils {
         return entropy;
     }
 
-    public static void sendAllFileInFileSystemByNodeId(int snId){
+    public static void sendAllFileInFileSystemByNodeId(int snId) {
         String directoryPath = null;
         directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
         String whoamI = System.getProperty("user.name");
@@ -198,5 +206,39 @@ public class Utils {
                 System.out.println("Directory " + listOfFiles[i].getName());
             }
         }
-    };
+    }
+
+    public static void writeDataIntoClientFileSystem(String filePath, String data, long seek)
+            throws IOException {
+        RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+        file.seek(seek);
+        file.write(data.getBytes());
+        file.close();
+    }
+
+    public static void compareCheckSum(String sourceFile, String destinationFile)
+            throws NoSuchAlgorithmException, IOException {
+        //String checksum = "5EB63BBBE01EEED093CB22BB8F5ACDC3";
+
+        System.out.println("GeneratingChecksum.... Please Wait!");
+
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(Files.readAllBytes(Paths.get(sourceFile)));
+        byte[] digest = md.digest();
+        String sourceChecksum = DatatypeConverter.printHexBinary(digest).toUpperCase();
+
+        MessageDigest md2 = MessageDigest.getInstance("MD5");
+        md2.update(Files.readAllBytes(Paths.get(destinationFile)));
+        byte[] digest2 = md2.digest();
+        String destChecksum = DatatypeConverter.printHexBinary(digest2).toUpperCase();
+
+        if (sourceChecksum.equals(destChecksum)) {
+            System.out.println("[SUCCESS]Files are identical!!!");
+        } else {
+            System.out.println("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
+        }
+        System.out.println("SrceCheckSum=" + sourceChecksum);
+        System.out.println("DestCheckSum=" + destChecksum);
+    }
+
 }

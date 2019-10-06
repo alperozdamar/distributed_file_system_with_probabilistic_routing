@@ -2,11 +2,13 @@ package edu.usfca.cs.dfs;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.ScheduledFuture;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
@@ -23,14 +25,15 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class DfsStorageNodeStarter {
 
-    private static Logger                logger    = LogManager
+    private static Logger                    logger                 = LogManager
             .getLogger(DfsStorageNodeStarter.class);
-    private static DfsStorageNodeStarter instance;
-    private final static Object          classLock = new Object();
-    ServerMessageRouter                  messageRouter;
-    private ScheduledFuture<?>           heartBeatSenderTimerHandle; //For Timer Manager...
-    private ChannelFuture                channelFuture;              //We will use this one in Timer Task...
-    private StorageNode                  storageNode;
+    private static DfsStorageNodeStarter     instance;
+    private final static Object              classLock              = new Object();
+    ServerMessageRouter                      messageRouter;
+    private ScheduledFuture<?>               heartBeatSenderTimerHandle;                                      //For Timer Manager...
+    private ChannelFuture                    channelFuture;                                                   //We will use this one in Timer Task...
+    private StorageNode                      storageNode;
+    private HashMap<String, MetaDataOfChunk> fileChunkToMetaDataMap = new HashMap<String, MetaDataOfChunk>(); //key:fileName_chunkId 
 
     private DfsStorageNodeStarter() {
         ConfigurationManagerSn.getInstance();
@@ -133,6 +136,14 @@ public class DfsStorageNodeStarter {
 
     public void setStorageNode(StorageNode storageNode) {
         this.storageNode = storageNode;
+    }
+
+    public HashMap<String, MetaDataOfChunk> getFileChunkToMetaDataMap() {
+        return fileChunkToMetaDataMap;
+    }
+
+    public void setFileChunkToMetaDataMap(HashMap<String, MetaDataOfChunk> fileChunkToMetaDataMap) {
+        this.fileChunkToMetaDataMap = fileChunkToMetaDataMap;
     }
 
 }
