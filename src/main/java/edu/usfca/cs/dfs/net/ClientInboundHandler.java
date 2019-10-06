@@ -3,7 +3,6 @@ package edu.usfca.cs.dfs.net;
 import static edu.usfca.cs.Utils.getMd5;
 import static edu.usfca.cs.Utils.readFromFile;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.List;
@@ -76,19 +75,16 @@ public class ClientInboundHandler extends InboundHandler {
             chunk = DfsClientStarter.getInstance().getMetadata().toByteArray();
         } else {
             chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
-                    (int) (configChunkSize * (chunkLocationMsg.getChunkId() - 1)),
-                    (int) chunkLocationMsg.getChunkSize());
+                                 (int) (configChunkSize * (chunkLocationMsg.getChunkId() - 1)),
+                                 (int) chunkLocationMsg.getChunkSize());
         }
         System.out.println("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
         System.out.println("[Client] Chunk checksum: " + getMd5(chunk));
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
-                .newBuilder()
-                .setFileName(chunkLocationMsg.getFileName())
+                .newBuilder().setFileName(chunkLocationMsg.getFileName())
                 .setPrimarySnId(chunkLocationMsg.getPrimarySnId())
-                .setChunkId(chunkLocationMsg.getChunkId())
-                .setData(data)
-                .setChecksum(getMd5(chunk));
+                .setChunkId(chunkLocationMsg.getChunkId()).setData(data).setChecksum(getMd5(chunk));
         for (int i = 1; i < listSNs.size(); i++) {
             storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(listSNs.get(i));
         }
@@ -132,6 +128,25 @@ public class ClientInboundHandler extends InboundHandler {
         }
     }
 
+    private void sendRetrieveFileRequestToSN(String fileName,
+                                             StorageMessages.StoreChunkLocation chunkLocation,
+                                             StorageNodeInfo sn) {
+        //Retrieve chunk from SN...
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
+
+        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
+        ChannelFuture cf = Utils.connect(bootstrap, sn.getSnIp(), sn.getSnPort());
+        StorageMessages.RetrieveFile retrieveFileMsg = StorageMessages.RetrieveFile.newBuilder()
+                .setFileName(fileName).setChunkId(chunkLocation.getChunkId()).build();
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setRetrieveFile(retrieveFileMsg).build();
+        Channel chan = cf.channel();
+        chan.write(msgWrapper);
+        chan.flush().closeFuture().syncUninterruptibly();
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         Utils.printHeader("[Client]Received sth!");
@@ -151,6 +166,17 @@ public class ClientInboundHandler extends InboundHandler {
         } else if (msg.hasFileLocation()) {
             StorageMessages.FileLocation fileLocationMsg = msg.getFileLocation();
             handleFileLocationMsg(ctx, fileLocationMsg);
+        } else if (msg.hasRetrieveFileResponse()) {
+            StorageMessages.RetrieveFileResponse retrieveFileResponse = msg
+                    .getRetrieveFileResponse();
+            System.out.println("[Client] File ChunkId:" + retrieveFileResponse.getChunkId()
+                    + " came from SnId:" + retrieveFileResponse.getSnInfo().getSnId()
+                    + " for fileName:" + retrieveFileResponse.getFileName());
+
+            /**
+             * Write into output folder in the Client's File System.
+             */
+
         }
 
     }
