@@ -16,6 +16,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
 
+import javax.xml.bind.DatatypeConverter;
+
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import io.netty.bootstrap.Bootstrap;
@@ -212,6 +214,31 @@ public class Utils {
         file.seek(seek);
         file.write(data.getBytes());
         file.close();
+    }
+
+    public static void compareCheckSum(String sourceFile, String destinationFile)
+            throws NoSuchAlgorithmException, IOException {
+        //String checksum = "5EB63BBBE01EEED093CB22BB8F5ACDC3";
+
+        System.out.println("GeneratingChecksum.... Please Wait!");
+
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(Files.readAllBytes(Paths.get(sourceFile)));
+        byte[] digest = md.digest();
+        String sourceChecksum = DatatypeConverter.printHexBinary(digest).toUpperCase();
+
+        MessageDigest md2 = MessageDigest.getInstance("MD5");
+        md2.update(Files.readAllBytes(Paths.get(destinationFile)));
+        byte[] digest2 = md2.digest();
+        String destChecksum = DatatypeConverter.printHexBinary(digest2).toUpperCase();
+
+        if (sourceChecksum.equals(destChecksum)) {
+            System.out.println("[SUCCESS]Files are identical!!!");
+        } else {
+            System.out.println("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
+        }
+        System.out.println("SrceCheckSum=" + sourceChecksum);
+        System.out.println("DestCheckSum=" + destChecksum);
     }
 
 }

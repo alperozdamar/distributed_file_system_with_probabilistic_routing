@@ -172,8 +172,8 @@ public class ClientInboundHandler extends InboundHandler {
             StorageMessages.RetrieveFileResponse retrieveFileResponse = msg
                     .getRetrieveFileResponse();
             System.out.println("[Client] File ChunkId:" + retrieveFileResponse.getChunkId()
-                    + " came from SnId:" + retrieveFileResponse.getSnInfo().getSnId()
-                    + " for fileName:" + retrieveFileResponse.getFileName());
+                    + " came from SnId:" + retrieveFileResponse.getSnId() + " for fileName:"
+                    + retrieveFileResponse.getFileName());
 
             /**
              * Write into output folder in the Client's File System.

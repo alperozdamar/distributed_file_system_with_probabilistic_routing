@@ -10,6 +10,18 @@ public class MetaDataOfChunk {
 
     private String fileName;
 
+    private int    chunksize;
+
+    public MetaDataOfChunk(String checksum, String path, int chunkId, String fileName,
+                           int chunksize) {
+        super();
+        this.checksum = checksum;
+        this.path = path;
+        this.chunkId = chunkId;
+        this.fileName = fileName;
+        this.chunksize = chunksize;
+    }
+
     public String getChecksum() {
         return checksum;
     }
@@ -40,6 +52,14 @@ public class MetaDataOfChunk {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public int getChunksize() {
+        return chunksize;
+    }
+
+    public void setChunksize(int chunksize) {
+        this.chunksize = chunksize;
     }
 
 }

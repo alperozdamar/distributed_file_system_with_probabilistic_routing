@@ -67,7 +67,7 @@ message FileLocation {
 message RetrieveFileResponse {	
     string fileName = 1;
     int32 chunkId = 2;
-    StorageNodeInfo snInfo=3;   
+    int32 snId=3;   
     bytes data = 4;
 }
 
