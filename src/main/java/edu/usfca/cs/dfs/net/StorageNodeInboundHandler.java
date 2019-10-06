@@ -310,25 +310,29 @@ public class StorageNodeInboundHandler extends InboundHandler {
             MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
                     .getFileChunkToMetaDataMap().get(key);
 
-            System.out.println("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
+            if (metaDataOfChunk != null) {
+                System.out.println("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
 
-            /**
-             * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
-             */
-            byte[] chunkByteArray = Utils
-                    .readFromFile(metaDataOfChunk.getPath(), 0, metaDataOfChunk.getChunksize());
-            ByteString data = ByteString.copyFrom(chunkByteArray);
+                /**
+                 * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
+                 */
+                byte[] chunkByteArray = Utils
+                        .readFromFile(metaDataOfChunk.getPath(), 0, metaDataOfChunk.getChunksize());
+                ByteString data = ByteString.copyFrom(chunkByteArray);
 
-            StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
-                    .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
-                    .setData(data).setSnId(mySnId).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                    .newBuilder().setRetrieveFileResponse(response).build();
-            Channel chan = ctx.channel();
-            ChannelFuture write = chan.write(msgWrapper);
-            chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
-
+                StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
+                        .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
+                        .setData(data).setSnId(mySnId).build();
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                        .newBuilder().setRetrieveFileResponse(response).build();
+                Channel chan = ctx.channel();
+                ChannelFuture write = chan.write(msgWrapper);
+                chan.flush();
+                write.addListener(ChannelFutureListener.CLOSE);
+            } else {
+                System.out.println("metaDataOfChunk is NULL! for chunkId:" + chunkId + " in snId:"
+                        + mySnId);
+            }
         } else if (msg.hasStoreChunkResponse()) {
 
         } else if (msg.hasBackup()) {

@@ -126,6 +126,11 @@ public class ClientInboundHandler extends InboundHandler {
             System.out.println("[Client]Chunk:" + chunkLocation.getChunkId());
             for (StorageNodeInfo sn : chunkLocation.getSnInfoList()) {
                 System.out.printf("[Client]SN Ip: %s - Port: %d\n", sn.getSnIp(), sn.getSnPort());
+
+                /**
+                 * TODO: Wait for response to send next request..
+                 */
+                sendRetrieveFileRequestToSN(fileName, chunkLocation, sn);
             }
         }
     }

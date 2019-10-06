@@ -1,8 +1,6 @@
 package edu.usfca.cs.dfs;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,13 +20,13 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class DfsClientStarter {
 
-    private static Logger           logger    = LogManager.getLogger(DfsClientStarter.class);
+    private static Logger                logger    = LogManager.getLogger(DfsClientStarter.class);
 
-    private static DfsClientStarter instance;
-    private final static Object     classLock = new Object();
+    private static DfsClientStarter      instance;
+    private final static Object          classLock = new Object();
     private StorageMessages.FileMetadata metadata;
 
-    private String fileInfo = "";
+    private String                       fileInfo  = "";
 
     public String getFileInfo() {
         return fileInfo;
@@ -92,49 +90,47 @@ public class DfsClientStarter {
         System.out.format("\nThe size of chunks: %d bytes", chunkSize);
         int numOfChunks = (int) Math.ceil((float) fileSize / (float) chunkSize);
         System.out.format("\nNumber Of Chunks is %d for file size:%d bytes", numOfChunks, fileSize);
-        long lastChunkByteSize = fileSize - ((numOfChunks-1)*chunkSize);
+        long lastChunkByteSize = fileSize - ((numOfChunks - 1) * chunkSize);
         System.out.format("\nlastChunkByteSize is %d for file size:%d bytes",
                           lastChunkByteSize,
                           fileSize);
 
         System.out.println("FileName:" + file.getName());
         //Send metadata in chunk 0
-        this.metadata = StorageMessages.FileMetadata.newBuilder()
-                .setFileSize(fileSize)
+        this.metadata = StorageMessages.FileMetadata.newBuilder().setFileSize(fileSize)
                 .setNumOfChunks(numOfChunks).build();
 
-        int thread = 2;
+        int thread = 5;
         Channel[] channels = new Channel[thread];
         int currThread = 0;
-        for(int i=0;i<thread;i++){
+        for (int i = 0; i < thread; i++) {
             channels[i] = Utils
                     .connect(bootstrap,
-                            ConfigurationManagerClient.getInstance().getControllerIp(),
-                            ConfigurationManagerClient.getInstance().getControllerPort()).channel();
+                             ConfigurationManagerClient.getInstance().getControllerIp(),
+                             ConfigurationManagerClient.getInstance().getControllerPort())
+                    .channel();
         }
 
         StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
-                .setFileName(file.getName())
-                .setChunkId(0)
+                .setFileName(file.getName()).setChunkId(0)
                 .setChunkSize(this.metadata.getSerializedSize())
                 .setData(this.metadata.toByteString()).build();
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setStoreChunk(storeChunkMsg).build();
-        channels[currThread++%thread].writeAndFlush(msgWrapper).syncUninterruptibly();
+        channels[currThread++ % thread].writeAndFlush(msgWrapper).syncUninterruptibly();
 
         //Send actual file from chunk 1
         for (int i = 0; i < numOfChunks; i++) {
-            storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
-                    .setFileName(file.getName())
+            storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName(file.getName())
                     .setChunkId(i + 1)
-                    .setChunkSize(i==numOfChunks-1?lastChunkByteSize:chunkSize).build();
-            msgWrapper = StorageMessages.StorageMessageWrapper
-                    .newBuilder().setStoreChunk(storeChunkMsg).build();
-            channels[currThread++%thread].writeAndFlush(msgWrapper).syncUninterruptibly();
+                    .setChunkSize(i == numOfChunks - 1 ? lastChunkByteSize : chunkSize).build();
+            msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
+                    .setStoreChunk(storeChunkMsg).build();
+            channels[currThread++ % thread].writeAndFlush(msgWrapper).syncUninterruptibly();
         }
     }
 
-    private void retrieveFile(Bootstrap bootstrap){
+    private void retrieveFile(Bootstrap bootstrap) {
         Scanner scanner = new Scanner(System.in);
         //  prompt for command.
         System.out.print("Enter your fileName: ");
@@ -142,8 +138,8 @@ public class DfsClientStarter {
 
         ChannelFuture cf = Utils
                 .connect(bootstrap,
-                        ConfigurationManagerClient.getInstance().getControllerIp(),
-                        ConfigurationManagerClient.getInstance().getControllerPort());
+                         ConfigurationManagerClient.getInstance().getControllerIp(),
+                         ConfigurationManagerClient.getInstance().getControllerPort());
         StorageMessages.RetrieveFile retrieveFileMsg = StorageMessages.RetrieveFile.newBuilder()
                 .setFileName(fileName).build();
 
