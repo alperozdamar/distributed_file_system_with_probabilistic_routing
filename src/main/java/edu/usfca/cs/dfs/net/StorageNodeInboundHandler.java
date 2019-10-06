@@ -125,8 +125,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                                                                   path,
                                                                   storeChunkMsg.getChunkId(),
                                                                   storeChunkMsg.getFileName(),
-                                                                  (int) storeChunkMsg
-                                                                          .getChunkSize());
+                                                                  storeChunkMsg.getData().size());
             DfsStorageNodeStarter.getInstance().getFileChunkToMetaDataMap().put(key,
                                                                                 metaDataOfChunk);
             result = true;
@@ -272,6 +271,63 @@ public class StorageNodeInboundHandler extends InboundHandler {
         sendAllFileInFileSystemByNodeId(sourceId, destinationIp, destinationPort);
     }
 
+    private void handleFileRetrieve(ChannelHandlerContext ctx,
+                                    StorageMessages.StorageMessageWrapper msg) {
+        DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
+
+        StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
+        int chunkId = retrieveFile.getChunkId();
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
+
+        /**
+         * TODO:
+         * Retrieve chunk from File System.
+         */
+        String key = retrieveFile.getFileName() + "_" + chunkId;
+        MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
+                .getFileChunkToMetaDataMap().get(key);
+
+        if (metaDataOfChunk != null) {
+            System.out.println("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
+
+            /**
+             * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
+             */
+            byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath() + File.separator
+                    + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
+                                                       0,
+                                                       metaDataOfChunk.getChunksize());
+
+            ByteString data = ByteString.copyFrom(chunkByteArray);
+
+            //System.out.println("[SN] Test.Data:" + new String(chunkByteArray));
+
+            String snReadChecksum = Utils.getMd5(chunkByteArray);
+            String snWriteChecksum = metaDataOfChunk.getChecksum();
+
+            if (snReadChecksum.equalsIgnoreCase(snWriteChecksum)) {
+                System.out
+                        .println("[SN] Checksum TEST OK! for chunkId:" + retrieveFile.getChunkId());
+            } else {
+                System.out.println("[SN] PROBLEM with Checksum! for chunkId: "
+                        + retrieveFile.getChunkId());
+            }
+
+            StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
+                    .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
+                    .setData(data).setSnId(mySnId).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setRetrieveFileResponse(response).build();
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
+        } else {
+            System.out.println("metaDataOfChunk is NULL! for chunkId:" + chunkId + " in snId:"
+                    + mySnId);
+        }
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         System.out.println("[SN]Received msg!");
@@ -297,49 +353,11 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-            System.out.printf("[SN] Retrieve File Request came from Client with fileName: %s - chunkId: %d \n",
-                    msg.getRetrieveFile().getFileName(),
-                    msg.getRetrieveFile().getChunkId());
-            DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
-
-            StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
-            int chunkId = retrieveFile.getChunkId();
-            int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
-
-            /**
-             * TODO:
-             * Retrieve chunk from File System.
-             */
-            String key = retrieveFile.getFileName() + "_" + chunkId;
-            MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
-                    .getFileChunkToMetaDataMap().get(key);
-
-            if (metaDataOfChunk != null) {
-                System.out.println("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
-
-                /**
-                 * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
-                 */
-                byte[] chunkByteArray = Utils
-                        .readFromFile(metaDataOfChunk.getPath()
-                                        +File.separator+metaDataOfChunk.getFileName()
-                                        +"_"+metaDataOfChunk.getChunkId(),
-                                0, metaDataOfChunk.getChunksize());
-                ByteString data = ByteString.copyFrom(chunkByteArray);
-
-                StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
-                        .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
-                        .setData(data).setSnId(mySnId).build();
-                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                        .newBuilder().setRetrieveFileResponse(response).build();
-                Channel chan = ctx.channel();
-                ChannelFuture write = chan.write(msgWrapper);
-                chan.flush();
-                write.addListener(ChannelFutureListener.CLOSE);
-            } else {
-                System.out.println("metaDataOfChunk is NULL! for chunkId:" + chunkId + " in snId:"
-                        + mySnId);
-            }
+            System.out
+                    .printf("[SN] Retrieve File Request came from Client with fileName: %s - chunkId: %d \n",
+                            msg.getRetrieveFile().getFileName(),
+                            msg.getRetrieveFile().getChunkId());
+            handleFileRetrieve(ctx, msg);
         } else if (msg.hasStoreChunkResponse()) {
 
         } else if (msg.hasBackup()) {

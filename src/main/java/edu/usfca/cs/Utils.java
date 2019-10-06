@@ -211,7 +211,11 @@ public class Utils {
     public static void writeDataIntoClientFileSystem(String filePath, String data, long seek)
             throws IOException {
         RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+
         file.seek(seek);
+
+        //System.out.println("Test:" + new String(data.getBytes()));
+
         file.write(data.getBytes());
         file.close();
     }

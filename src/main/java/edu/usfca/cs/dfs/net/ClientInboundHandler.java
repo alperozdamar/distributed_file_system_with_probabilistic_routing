@@ -168,7 +168,7 @@ public class ClientInboundHandler extends InboundHandler {
          * We will merge into Appropriate space in file. 
          */
         String data = retrieveFileResponse.getData().toStringUtf8();
-        long seek = retrieveFileResponse.getChunkId()
+        long seek = (retrieveFileResponse.getChunkId() - 1)
                 * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
 
         System.out.println("[Client] Writing into File System with fileName:"
