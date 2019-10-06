@@ -1,5 +1,6 @@
 package edu.usfca.cs.dfs.net;
 
+import static edu.usfca.cs.Utils.getMd5;
 import static edu.usfca.cs.Utils.readFromFile;
 
 import java.io.IOException;
@@ -76,18 +77,22 @@ public class ClientInboundHandler extends InboundHandler {
                 chunk = DfsClientStarter.getInstance().getMetadata().toByteArray();
             } else {
                 chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
-                                     (int) (configChunkSize * chunkLocationMsg.getChunkId() - 1),
+                                     (int) (configChunkSize * (chunkLocationMsg.getChunkId() - 1)),
                                      (int) chunkLocationMsg.getChunkSize());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
+        System.out.println("[Client] Chunk checksum: " + getMd5(chunk));
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
-                .newBuilder().setFileName(chunkLocationMsg.getFileName())
+                .newBuilder()
+                .setFileName(chunkLocationMsg.getFileName())
                 .setPrimarySnId(chunkLocationMsg.getPrimarySnId())
-                .setChunkId(chunkLocationMsg.getChunkId()).setData(data);
+                .setChunkId(chunkLocationMsg.getChunkId())
+                .setData(data)
+                .setChecksum(getMd5(chunk));
         for (int i = 1; i < listSNs.size(); i++) {
             storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(listSNs.get(i));
         }

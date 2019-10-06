@@ -11,6 +11,8 @@ public class StorageNode {
 
     private ArrayList<Integer> replicateSnIdList;
 
+    private ArrayList<Integer> sourceSnIdList;
+
     private ArrayList<Integer> backupIdSnList;
 
     private String             snIp;
@@ -67,6 +69,14 @@ public class StorageNode {
 
     public void setSnId(int snId) {
         this.snId = snId;
+    }
+
+    public ArrayList<Integer> getSourceSnIdList() {
+        return sourceSnIdList;
+    }
+
+    public void setSourceSnIdList(ArrayList<Integer> sourceSnIdList) {
+        this.sourceSnIdList = sourceSnIdList;
     }
 
     public ArrayList<Integer> getReplicateSnIdList() {

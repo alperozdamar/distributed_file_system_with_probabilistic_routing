@@ -146,7 +146,6 @@ public class SqlManager {
     /**
      * 
      * @param snId
-     * @param replicaId
      * @param backupId
      * @return
      */
@@ -511,6 +510,60 @@ public class SqlManager {
             }
         }
         return maxSnId;
+    }
+
+
+    /**
+     *
+     * @param snId
+     * @return
+     */
+    public StorageNode getSourceReplicationSnId(int snId) {
+        StorageNode storageNode = null;
+        ArrayList<Integer> sourceSnId = null;
+        Connection connection = null;
+        String sql = "select * from sn_replication s where s.replicaId = ?";
+        PreparedStatement selectStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            selectStatement = connection.prepareStatement(sql);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Queried replicaId:" + snId);
+            }
+            selectStatement.setInt(1, snId);
+            ResultSet resultSet = selectStatement.executeQuery();
+            if (resultSet.next()) {
+                storageNode = new StorageNode();
+                sourceSnId = new ArrayList<>();
+                do {
+                    storageNode.setSnId(resultSet.getInt("snId"));
+                    sourceSnId.add(resultSet.getInt("replicaId"));
+                } while (resultSet.next());
+                storageNode.setSourceSnIdList(sourceSnId);
+            } else {
+                logger.debug("Storage Node can not be found in DB.");
+            }
+            selectStatement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (selectStatement != null)
+                    selectStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return storageNode;
     }
 
 }

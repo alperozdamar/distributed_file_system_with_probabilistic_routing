@@ -71,6 +71,12 @@ message StorageNodeInfo{
     int32 numOfRetrievelRequest=6;
 }
 
+message BackUp {
+    int32 sourceSnId = 1;
+    string destinationIp = 2;
+    int32 destinationPort = 3;
+}
+
 message StorageMessageWrapper {
     oneof msg {
         StoreChunk storeChunk = 1;
@@ -82,5 +88,6 @@ message StorageMessageWrapper {
         StoreChunkLocation storeChunkLocation=7;
         StoreChunkResponse storeChunkResponse=8;
         FileLocation fileLocation=9;
+        BackUp backup = 10;
     }
 }

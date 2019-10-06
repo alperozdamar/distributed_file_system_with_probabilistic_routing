@@ -74,8 +74,8 @@ public class ControllerInboundHandler extends InboundHandler {
 
         //loop until find a list of SNs
         boolean selectedSNs = false;
+        List<StorageNode> listSN = new ArrayList<StorageNode>(listSNMap.values());
         while(!selectedSNs){
-            List<StorageNode> listSN = new ArrayList<StorageNode>(listSNMap.values());
             //Chose random primary node in list of available
             int index = rand.nextInt(listSN.size());
             StorageNode primarySN = listSN.get(index);
