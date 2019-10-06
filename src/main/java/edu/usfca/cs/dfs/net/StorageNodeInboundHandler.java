@@ -246,12 +246,16 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-
+            StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
+            System.out.println("[SN] Retrieve File Request come from Client for fileName:"
+                    + retrieveFile.getFileName() + ",chunkId:" + retrieveFile.getChunkId());
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
 
             /**
              * TODO:
              * Retrieve chunk from File System.
+             * 
+             * Mattheuw: Checksum before sending it to the Client...
              */
 
         } else if (msg.hasStoreChunkResponse()) {
