@@ -54,12 +54,20 @@ message ListResponse{
 
 message RetrieveFile {
     string fileName = 1;
+    int32 chunkId = 2;
+    string checksum = 3;
 }
 
 message FileLocation {
     string fileName = 1;
     repeated StoreChunkLocation chunksLocation = 2;
     bool status = 3;
+}
+
+message RetrieveFileResponse {	
+    string fileName = 1;
+    int32 chunkId = 2;
+    StorageNodeInfo snInfo=3;   
 }
 
 message StorageNodeInfo{
@@ -89,5 +97,6 @@ message StorageMessageWrapper {
         StoreChunkResponse storeChunkResponse=8;
         FileLocation fileLocation=9;
         BackUp backup = 10;
+        RetrieveFileResponse retrieveFileResponse=11;
     }
 }
