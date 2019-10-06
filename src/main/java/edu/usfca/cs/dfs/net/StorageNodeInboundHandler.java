@@ -129,6 +129,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                                                                           .getChunkSize());
             DfsStorageNodeStarter.getInstance().getFileChunkToMetaDataMap().put(key,
                                                                                 metaDataOfChunk);
+            result = true;
         }
         return result;
     }
@@ -296,6 +297,9 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
+            System.out.printf("[SN] Retrieve File Request came from Client with fileName: %s - chunkId: %d \n",
+                    msg.getRetrieveFile().getFileName(),
+                    msg.getRetrieveFile().getChunkId());
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
 
             StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
@@ -317,7 +321,10 @@ public class StorageNodeInboundHandler extends InboundHandler {
                  * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
                  */
                 byte[] chunkByteArray = Utils
-                        .readFromFile(metaDataOfChunk.getPath(), 0, metaDataOfChunk.getChunksize());
+                        .readFromFile(metaDataOfChunk.getPath()
+                                        +File.separator+metaDataOfChunk.getFileName()
+                                        +"_"+metaDataOfChunk.getChunkId(),
+                                0, metaDataOfChunk.getChunksize());
                 ByteString data = ByteString.copyFrom(chunkByteArray);
 
                 StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse

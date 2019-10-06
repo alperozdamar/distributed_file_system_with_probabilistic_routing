@@ -78,8 +78,15 @@ public class ControllerInboundHandler extends InboundHandler {
         Random rand = new Random();
 
         //loop until find a list of SNs
+        int requiredReplicaNo = Constants.MAX_REPLICA_NUMBER; // It should also work with 1/2 SNs.
+        if (DfsControllerStarter.getInstance().getStorageNodeHashMap()
+                .size() < Constants.MAX_REPLICA_NUMBER) {
+            requiredReplicaNo = DfsControllerStarter.getInstance().getStorageNodeHashMap()
+                    .size();
+        }
         boolean selectedSNs = false;
         List<StorageNode> listSN = new ArrayList<StorageNode>(listSNMap.values());
+        System.out.println("[Controller]Required replica number: "+requiredReplicaNo);
         while (!selectedSNs) {
             //Chose random primary node in list of available
             int index = rand.nextInt(listSN.size());
@@ -101,12 +108,6 @@ public class ControllerInboundHandler extends InboundHandler {
                 } else {
                     selectedIds.add(replicaId);
                 }
-            }
-            int requiredReplicaNo = Constants.MAX_REPLICA_NUMBER; // It should also work with 1/2 SNs.
-            if (DfsControllerStarter.getInstance().getStorageNodeHashMap()
-                    .size() < Constants.MAX_REPLICA_NUMBER) {
-                requiredReplicaNo = DfsControllerStarter.getInstance().getStorageNodeHashMap()
-                        .size();
             }
             if (selectedIds.size() == requiredReplicaNo) {//Enough SNs
                 StorageMessages.StoreChunkLocation.Builder chunkLocationMsgBuilder = StorageMessages.StoreChunkLocation
