@@ -154,6 +154,34 @@ public class ClientInboundHandler extends InboundHandler {
         chan.flush().closeFuture().syncUninterruptibly();
     }
 
+    private void handleRetrieveFileResponse(StorageMessages.RetrieveFileResponse retrieveFileResponse) {
+        System.out.println("[Client] File ChunkId:" + retrieveFileResponse.getChunkId()
+                + " came from SnId:" + retrieveFileResponse.getSnId() + " for fileName:"
+                + retrieveFileResponse.getFileName());
+
+        /**
+         * Write into output folder in the Client's File System.
+         */
+        String filePath = "output" + File.separator + retrieveFileResponse.getFileName();
+
+        /**
+         * We will merge into Appropriate space in file. 
+         */
+        String data = retrieveFileResponse.getData().toStringUtf8();
+        long seek = retrieveFileResponse.getChunkId()
+                * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+
+        System.out.println("[Client] Writing into File System with fileName:"
+                + retrieveFileResponse.getFileName() + "ChunkId:"
+                + retrieveFileResponse.getChunkId() + " seek:" + seek + " ,Data Size:"
+                + retrieveFileResponse.getData().size());
+        try {
+            Utils.writeDataIntoClientFileSystem(filePath, data, seek);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         Utils.printHeader("[Client]Received sth!");
@@ -176,32 +204,7 @@ public class ClientInboundHandler extends InboundHandler {
         } else if (msg.hasRetrieveFileResponse()) {
             StorageMessages.RetrieveFileResponse retrieveFileResponse = msg
                     .getRetrieveFileResponse();
-            System.out.println("[Client] File ChunkId:" + retrieveFileResponse.getChunkId()
-                    + " came from SnId:" + retrieveFileResponse.getSnId() + " for fileName:"
-                    + retrieveFileResponse.getFileName());
-
-            /**
-             * Write into output folder in the Client's File System.
-             */
-            String filePath = "output" + File.separator + retrieveFileResponse.getFileName();
-
-            /**
-             * We will merge into Appropriate space in file. 
-             */
-            String data = retrieveFileResponse.getData().toStringUtf8();
-            long seek = retrieveFileResponse.getChunkId()
-                    * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
-
-            System.out.println("[Client] Writing into File System with fileName:"
-                    + retrieveFileResponse.getFileName() + "ChunkId:"
-                    + retrieveFileResponse.getChunkId() + " seek:" + seek + " ,Data Size:"
-                    + retrieveFileResponse.getData().size());
-            try {
-                Utils.writeDataIntoClientFileSystem(filePath, data, seek);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            handleRetrieveFileResponse(retrieveFileResponse);
         }
 
     }
