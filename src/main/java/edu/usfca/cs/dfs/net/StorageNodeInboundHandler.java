@@ -111,7 +111,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         /**
          * 1-) Create Directory if not exists. bigdata/whoamI/primaryId/
          */
-        String path = createDirectoryIfNecessary();
+        String path = createDirectoryIfNecessary(storeChunkMsg.getPrimarySnId());
 
         if (path != null) {
             /**
@@ -133,14 +133,14 @@ public class StorageNodeInboundHandler extends InboundHandler {
      * bigdata/whoamI/primaryId/ data
      * 
      */
-    private String createDirectoryIfNecessary() {
+    private String createDirectoryIfNecessary(int snId) {
         String directoryPath = null;
         try {
             System.out.println("Working Directory = " + System.getProperty("user.dir"));
             directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
             String whoamI = System.getProperty("user.name");
             directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
-                    + File.separator + whoamI + File.separator + 3;
+                    + File.separator + whoamI + File.separator + snId;
 
             System.out.println("Path:" + directoryPath);
             File directory = new File(directoryPath);
