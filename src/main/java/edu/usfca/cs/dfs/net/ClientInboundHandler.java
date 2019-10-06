@@ -3,6 +3,8 @@ package edu.usfca.cs.dfs.net;
 import static edu.usfca.cs.Utils.getMd5;
 import static edu.usfca.cs.Utils.readFromFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.List;
@@ -176,6 +178,24 @@ public class ClientInboundHandler extends InboundHandler {
             /**
              * Write into output folder in the Client's File System.
              */
+            String filePath = "output" + File.separator + retrieveFileResponse.getFileName();
+
+            /**
+             * We will merge into Appropriate space in file. 
+             */
+            String data = retrieveFileResponse.getData().toStringUtf8();
+            long seek = retrieveFileResponse.getChunkId()
+                    * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+
+            System.out.println("[Client] Writing into File System with fileName:"
+                    + retrieveFileResponse.getFileName() + "ChunkId:"
+                    + retrieveFileResponse.getChunkId() + " seek:" + seek + " ,Data Size:"
+                    + retrieveFileResponse.getData().size());
+            try {
+                Utils.writeDataIntoClientFileSystem(filePath, data, seek);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
         }
 

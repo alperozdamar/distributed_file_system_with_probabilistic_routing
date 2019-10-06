@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import com.google.protobuf.ByteString;
 
 import edu.usfca.cs.Utils;
+import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
@@ -120,7 +121,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
              * 2-) Save into file
              */
 
-            Utils.writeChunkIntoFile(path, storeChunkMsg);
+            Utils.writeChunkIntoFileInStorageNode(path, storeChunkMsg);
 
             /**
              * 3-) Put into HASHMAP => key:(filename_chunkId) Value: (FileLocation,Checksum,FileName,ChunkId) 
@@ -296,10 +297,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
             DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
 
+            StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
+
             /**
              * TODO:
              * Retrieve chunk from File System.
              */
+            String key = retrieveFile.getFileName() + "_" + retrieveFile.getChunkId();
+            MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
+                    .getFileChunkToMetaDataMap().get(key);
+
+            //  System.out.println("Path:" + directoryPath);
+            //Utils.readFromFile(filePath, seek, chunkSize);
 
         } else if (msg.hasStoreChunkResponse()) {
 

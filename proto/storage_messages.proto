@@ -68,6 +68,7 @@ message RetrieveFileResponse {
     string fileName = 1;
     int32 chunkId = 2;
     StorageNodeInfo snInfo=3;   
+    bytes data = 4;
 }
 
 message StorageNodeInfo{
