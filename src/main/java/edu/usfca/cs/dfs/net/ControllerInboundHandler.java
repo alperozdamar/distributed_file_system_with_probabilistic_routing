@@ -45,7 +45,9 @@ public class ControllerInboundHandler extends InboundHandler {
     public void channelInactive(ChannelHandlerContext ctx) {
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
+        InetSocketAddress localAaddr = (InetSocketAddress) ctx.channel().localAddress();
         logger.info("[Controller]Connection lost: " + addr);
+        NetUtils.getInstance(Constants.CLIENT).releasePort(localAaddr.getPort());
     }
 
     @Override
@@ -131,9 +133,6 @@ public class ControllerInboundHandler extends InboundHandler {
                 selectedSNs = true;
             }
         }
-        //        if (write.isDone()) {
-        //            write.addListener(ChannelFutureListener.CLOSE);
-        //        }
     }
 
     private void handleListMsg(ChannelHandlerContext ctx) {

@@ -347,7 +347,7 @@ public class SqlManager {
             updateStatement.setInt(2, snId);
             updateStatement.execute();
             result = true;
-            System.out.println("SN info is updated from DB.");
+            logger.info("SN info is updated from DB.");
         } catch (SQLException e) {
             logger.error("Error:", e);
             e.printStackTrace();
@@ -585,7 +585,7 @@ public class SqlManager {
             updateStatement.setInt(4, snId);
             updateStatement.execute();
             result = true;
-            System.out.println("SN info is updated from DB.");
+            logger.info("SN info is updated from DB.");
         } catch (SQLException e) {
             logger.error("Error:", e);
             e.printStackTrace();

@@ -49,7 +49,9 @@ public class ClientInboundHandler extends InboundHandler {
     public void channelInactive(ChannelHandlerContext ctx) {
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
+        InetSocketAddress localAaddr = (InetSocketAddress) ctx.channel().localAddress();
         logger.info("Connection lost: " + addr);
+        NetUtils.getInstance(Constants.CLIENT).releasePort(localAaddr.getPort());
     }
 
     @Override
@@ -59,7 +61,7 @@ public class ClientInboundHandler extends InboundHandler {
 
     private void handleStoreChunkLocationMsg(ChannelHandlerContext ctx,
                                              StorageMessages.StoreChunkLocation chunkLocationMsg) {
-        logger.info("[Client]This is Store Chunk Location Message...");
+        logger.info("[Client]This is Store Chunk Location Message...:"+chunkLocationMsg.getChunkId());
         List<StorageMessages.StorageNodeInfo> listSNs = chunkLocationMsg.getSnInfoList();
         StorageMessages.StorageNodeInfo firstNode = listSNs.get(0);
         //Send chunk to SN
@@ -68,7 +70,7 @@ public class ClientInboundHandler extends InboundHandler {
 
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        ChannelFuture cf = Utils.connect(bootstrap, firstNode.getSnIp(), firstNode.getSnPort());
+        ChannelFuture cf = NetUtils.getInstance(Constants.CLIENT).connect(bootstrap, firstNode.getSnIp(), firstNode.getSnPort());
 
         //Read chunk from file base on chunkId
         long configChunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
@@ -96,6 +98,12 @@ public class ClientInboundHandler extends InboundHandler {
         ChannelFuture write = chan.write(msgWrapper);
         chan.flush();
         write.syncUninterruptibly();
+        DfsClientStarter dfsClientStarter = DfsClientStarter.getInstance();
+        dfsClientStarter.setNumOfSentChunk(dfsClientStarter.getNumOfSentChunk()+1);
+        if(dfsClientStarter.getNumOfSentChunk()==dfsClientStarter.getMetadata().getNumOfChunks()){
+            ctx.close();
+        }
+        workerGroup.shutdownGracefully();
     }
 
     private void handleStoreChunkResponseMsg(ChannelHandlerContext ctx,
@@ -145,7 +153,7 @@ public class ClientInboundHandler extends InboundHandler {
 
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        ChannelFuture cf = Utils.connect(bootstrap, sn.getSnIp(), sn.getSnPort());
+        ChannelFuture cf = NetUtils.getInstance(Constants.CLIENT).connect(bootstrap, sn.getSnIp(), sn.getSnPort());
         StorageMessages.RetrieveFile retrieveFileMsg = StorageMessages.RetrieveFile.newBuilder()
                 .setFileName(fileName).setChunkId(chunkLocation.getChunkId()).build();
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
@@ -153,6 +161,7 @@ public class ClientInboundHandler extends InboundHandler {
         Channel chan = cf.channel();
         chan.write(msgWrapper);
         chan.flush().closeFuture().syncUninterruptibly();
+        workerGroup.shutdownGracefully();
     }
 
     private void handleRetrieveFileResponse(StorageMessages.RetrieveFileResponse retrieveFileResponse) {

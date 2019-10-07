@@ -26,6 +26,7 @@ public class ConfigurationManagerSn {
     private int                           heartBeatPeriodInMilliseconds    = 5000;
     private String                        storeLocation                    = "bigdata";
     private String                        myIp;
+    private int fromPort = 0;
 
     private ConfigurationManagerSn() {
         readConfigFile();
@@ -111,6 +112,13 @@ public class ConfigurationManagerSn {
                 storeLocation = storeLocation.trim();
             }
 
+            try {
+                String fromPortString = props.getProperty("fromPort").trim();
+                fromPort = (fromPortString == null) ? 0
+                        : Integer.parseInt(fromPortString);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_SN_CONFIG_FILE);
@@ -184,4 +192,11 @@ public class ConfigurationManagerSn {
                 + myIp + "]";
     }
 
+    public int getFromPort() {
+        return fromPort;
+    }
+
+    public void setFromPort(int fromPort) {
+        this.fromPort = fromPort;
+    }
 }

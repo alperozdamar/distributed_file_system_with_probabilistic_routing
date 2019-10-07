@@ -7,11 +7,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
@@ -19,6 +23,7 @@ import javax.xml.bind.DatatypeConverter;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.StorageMessages;
+import edu.usfca.cs.dfs.net.NetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,12 +45,6 @@ public class Utils {
     public static void printHeader(String header) {
         logger.info("\n-----------------------");
         logger.info(header);
-    }
-
-    public static ChannelFuture connect(Bootstrap bootstrap, String ip, int port) {
-        ChannelFuture cf = bootstrap.connect(ip, port);
-        cf.syncUninterruptibly();
-        return cf;
     }
 
     public static byte[] readFromFile(String filePath, int seek, int chunkSize) {
@@ -282,7 +281,7 @@ public class Utils {
             if (snNode.getStatus().equals("DOWN")) {
                 continue;
             } else {
-                ChannelFuture cf = Utils.connect(bootstrap, snNode.getSnIp(), snNode.getSnPort());
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, snNode.getSnIp(), snNode.getSnPort());
                 StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
                         .setDestinationIp(destinationNode.getSnIp())
                         .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceSnId).build();
@@ -320,7 +319,7 @@ public class Utils {
                 fromPort = sourceNode.getSnPort();
             }
             if (!fromIp.isEmpty() && fromPort != 0) {
-                ChannelFuture cf = Utils.connect(bootstrap, fromIp, fromPort);
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, fromIp, fromPort);
                 StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
                         .setDestinationIp(destinationNode.getSnIp())
                         .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceId).build();
@@ -333,6 +332,8 @@ public class Utils {
                 System.out.printf("[Controller][BackUp] All source of data %d down!\n", sourceId);
             }
         }
+
+        workerGroup.shutdownGracefully();
     }
 
 }

@@ -51,7 +51,9 @@ public class StorageNodeInboundHandler extends InboundHandler {
         int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
+        InetSocketAddress localAaddr = (InetSocketAddress) ctx.channel().localAddress();
         logger.info("[SN" + mySnId + "] Connection lost: " + addr);
+        NetUtils.getInstance(Constants.STORAGENODE).releasePort(localAaddr.getPort());
     }
 
     @Override
@@ -188,7 +190,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        ChannelFuture cf = Utils.connect(bootstrap, destinationIp, destinationPort);
+        ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, destinationIp, destinationPort);
         for (int i = 0; listOfFiles != null && i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 File currFile = listOfFiles[i];
@@ -210,6 +212,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 logger.info("Directory " + listOfFiles[i].getName());
             }
         }
+        workerGroup.shutdownGracefully();
     };
 
     private void replicateChunk(StorageMessages.StoreChunk storeChunkMsg) {
@@ -242,7 +245,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 Bootstrap bootstrap = new Bootstrap().group(workerGroup)
                         .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
                         .handler(pipeline);
-                ChannelFuture cf = Utils
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
                         .connect(bootstrap, nextSnNode.getSnIp(), nextSnNode.getSnPort());
                 //                StorageMessages.ReplicaRequest replicaRequest = StorageMessages.ReplicaRequest
                 //                        .newBuilder().setStoreChunk(storeChunkMsg).setPrimarySnId(mySnId).build();
@@ -266,6 +269,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 logger.info("[SN] ---------->>>>>>>> REPLICA To SN, snId[" + nextSnNode.getSnId()
                         + "] ,  snIp:[" + nextSnNode.getSnIp() + "] , snPort:["
                         + nextSnNode.getSnPort() + "] >>>>>>>>>>>--------------");
+
+                workerGroup.shutdownGracefully();
             }
         }
     }

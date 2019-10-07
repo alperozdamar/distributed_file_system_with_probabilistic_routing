@@ -3,8 +3,11 @@ package edu.usfca.cs.dfs;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
+import edu.usfca.cs.dfs.net.NetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,6 +30,7 @@ public class DfsClientStarter {
     private static DfsClientStarter      instance;
     private final static Object          classLock = new Object();
     private StorageMessages.FileMetadata metadata;
+    private int numOfSentChunk = -1;
 
     private String                       fileInfo  = "";
 
@@ -44,6 +48,14 @@ public class DfsClientStarter {
 
     public void setMetadata(StorageMessages.FileMetadata metadata) {
         this.metadata = metadata;
+    }
+
+    public int getNumOfSentChunk() {
+        return numOfSentChunk;
+    }
+
+    public void setNumOfSentChunk(int numOfSentChunk) {
+        this.numOfSentChunk = numOfSentChunk;
     }
 
     private DfsClientStarter() {
@@ -66,7 +78,7 @@ public class DfsClientStarter {
         System.out.println("Client will be connected to Controller<"
                 + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
                 + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
-        ChannelFuture cf = Utils
+        ChannelFuture cf = NetUtils.getInstance(Constants.CLIENT)
                 .connect(bootstrap,
                          ConfigurationManagerClient.getInstance().getControllerIp(),
                          ConfigurationManagerClient.getInstance().getControllerPort());
@@ -101,15 +113,16 @@ public class DfsClientStarter {
         //Send metadata in chunk 0
         this.metadata = StorageMessages.FileMetadata.newBuilder().setFileSize(fileSize)
                 .setNumOfChunks(numOfChunks).build();
+        this.numOfSentChunk = -1;
 
         int thread = 1;
         Channel[] channels = new Channel[thread];
         int currThread = 0;
         for (int i = 0; i < thread; i++) {
-            channels[i] = Utils
+            channels[i] = NetUtils.getInstance(Constants.CLIENT)
                     .connect(bootstrap,
-                             ConfigurationManagerClient.getInstance().getControllerIp(),
-                             ConfigurationManagerClient.getInstance().getControllerPort())
+                            ConfigurationManagerClient.getInstance().getControllerIp(),
+                            ConfigurationManagerClient.getInstance().getControllerPort())
                     .channel();
         }
 
@@ -138,7 +151,7 @@ public class DfsClientStarter {
         System.out.print("Enter your fileName: ");
         String fileName = scanner.next().trim();
 
-        ChannelFuture cf = Utils
+        ChannelFuture cf = NetUtils.getInstance(Constants.CLIENT)
                 .connect(bootstrap,
                          ConfigurationManagerClient.getInstance().getControllerIp(),
                          ConfigurationManagerClient.getInstance().getControllerPort());

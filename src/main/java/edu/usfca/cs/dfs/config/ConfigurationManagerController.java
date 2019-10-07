@@ -33,6 +33,7 @@ public class ConfigurationManagerController {
     private long                                  seed                                  = defaultHashSeed;
     private int                                   keepAlivePeriodInMilliseconds         = defaultKeepAlivePeriodInMilliseconds;
     private int                                   heartBeatTimeoutInMilliseconds        = defaultHeartBeatTimeoutInMilliseconds;
+    private int fromPort = 0;
 
     private ConfigurationManagerController() {
         readClientConfigFile();
@@ -112,6 +113,14 @@ public class ConfigurationManagerController {
                 e.printStackTrace();
             }
 
+            try {
+                String fromPortString = props.getProperty("fromPort").trim();
+                fromPort = (fromPortString == null) ? 0
+                        : Integer.parseInt(fromPortString);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_CONTROLLER_CONFIG_FILE);
@@ -174,6 +183,14 @@ public class ConfigurationManagerController {
 
     public void setHeartBeatTimeoutInMilliseconds(int heartBeatTimeoutInMilliseconds) {
         this.heartBeatTimeoutInMilliseconds = heartBeatTimeoutInMilliseconds;
+    }
+
+    public int getFromPort() {
+        return fromPort;
+    }
+
+    public void setFromPort(int fromPort) {
+        this.fromPort = fromPort;
     }
 
     @Override
