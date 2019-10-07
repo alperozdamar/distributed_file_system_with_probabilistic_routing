@@ -22,4 +22,6 @@ public class SqlConstants {
 
     public static final String UPDATE_SN                     = "UPDATE sn_information SET status=? WHERE snId=?";
 
+    public static final String UPDATE_SN_STATISTICS          = "UPDATE sn_information SET totalFreeSpace=?,totalStorageReq=?,totalRetrievelReq=? WHERE snId=?";
+
 }

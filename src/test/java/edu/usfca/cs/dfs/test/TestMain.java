@@ -10,6 +10,7 @@ import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsControllerStarter;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.Constants;
 
 public class TestMain {
 
@@ -64,7 +65,8 @@ public class TestMain {
     @Test
     public void testGetAllOperationalSNList() {
         System.out.println("******** TEST START GET ALL SNs *************************");
-        HashMap<Integer, StorageNode> SnMap = SqlManager.getInstance().getAllOperationalSNList();
+        HashMap<Integer, StorageNode> SnMap = SqlManager.getInstance()
+                .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
 
         for (StorageNode storage : SnMap.values()) {
             System.out.println(storage.toString());
