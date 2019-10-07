@@ -1,6 +1,8 @@
 package edu.usfca.cs.dfs;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
@@ -182,6 +184,8 @@ public class DfsClientStarter {
                 dfsClient.retrieveFile(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.STORE)) {
                 dfsClient.storeFile(bootstrap);
+            } else if (command.equalsIgnoreCase(Constants.CHECKSUM)) {
+                dfsClient.checkFilesIntegrity(bootstrap);
             } else if (command.equalsIgnoreCase(Constants.EXIT)) {
                 System.out.println("Client will be shutdown....");
                 workerGroup.shutdownGracefully();
@@ -192,5 +196,24 @@ public class DfsClientStarter {
 
         }
 
+    }
+
+    private void checkFilesIntegrity(Bootstrap bootstrap) {
+        Scanner scanner = new Scanner(System.in);
+        //  prompt for command.
+        System.out.print("Enter your First File: ");
+        String fileName = scanner.next().trim();
+        System.out.print("Enter your Second File: ");
+        String fileName2 = scanner.next().trim();
+        try {
+            if (Utils.givenFileGeneratingChecksumThenVerifying(fileName, fileName2)) {
+                logger.debug("[SUCCESS] Transfer successfully! These 2 files are IDENTICAL!");
+            } else {
+                logger.debug("[ERROR] Problem in transfer successfully! These 2 files are NOT IDENTICAL!");
+            }
+        } catch (NoSuchAlgorithmException | IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }
