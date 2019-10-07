@@ -11,7 +11,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.config.Constants;
 
 /**
  * SqlManager is for querying,inserting or updating sql tables. Main class for all SQL operations.
@@ -371,13 +370,18 @@ public class SqlManager {
 
     }
 
-    public HashMap<Integer, StorageNode> getAllOperationalSNList() {
+    public HashMap<Integer, StorageNode> getAllSNByStatusList(String status) {
         HashMap<Integer, StorageNode> availableStorageNodeMap = new HashMap<Integer, StorageNode>();
         ArrayList<Integer> replicateSnIdList = null;
         ArrayList<Integer> backupIdSnList = null;
         Connection connection = null;
-        String sql = "select * from sn_information sn, sn_replication sr where status = '"
-                + Constants.STATUS_OPERATIONAL + "' and sn.snId=sr.snId";
+        String sql = "";
+        if (status != null) {
+            sql = "select * from sn_information sn, sn_replication sr where status = '" + status
+                    + "' and sn.snId=sr.snId";
+        } else {
+            sql = "select * from sn_information sn, sn_replication sr where sn.snId=sr.snId";
+        }
         PreparedStatement selectStatement = null;
         try {
             connection = DbManager.getInstance().getBds().getConnection();
@@ -512,7 +516,6 @@ public class SqlManager {
         return maxSnId;
     }
 
-
     /**
      *
      * @param snId
@@ -564,6 +567,45 @@ public class SqlManager {
             }
         }
         return storageNode;
+    }
+
+    public boolean updateSnStatistics(int totalRetrievelRequest, int totalStorageRequest,
+                                      long totalFreeSpaceInBytes, int snId) {
+
+        boolean result = false;
+        Connection connection = null;
+        String sql = SqlConstants.UPDATE_SN_STATISTICS;
+        PreparedStatement updateStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            updateStatement = connection.prepareStatement(sql);
+            updateStatement.setLong(1, totalFreeSpaceInBytes);
+            updateStatement.setInt(2, totalStorageRequest);
+            updateStatement.setInt(3, totalRetrievelRequest);
+            updateStatement.setInt(4, snId);
+            updateStatement.execute();
+            result = true;
+            System.out.println("SN info is updated from DB.");
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (updateStatement != null)
+                    updateStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+
     }
 
 }

@@ -30,8 +30,13 @@ public class HeartBeatSenderTimerTask implements Runnable {
                     .setSnId(storageNode.getSnId())
                     .setSnIp(ConfigurationManagerSn.getInstance().getMyIp())
                     .setSnPort(ConfigurationManagerSn.getInstance().getSnPort())
-                    .setTotalFreeSpaceInBytes(storageNode.getTotalFreeSpaceInBytes())
-                    .setNumOfRetrievelRequest(0).setNumOfStorageMessage(0).build();
+                    .setTotalFreeSpaceInBytes(DfsStorageNodeStarter.getInstance()
+                            .calculateTotalFreeSpaceInBytes())
+                    .setNumOfRetrievelRequest((int) DfsStorageNodeStarter.getInstance()
+                            .getStorageNode().getTotalRetrievelRequest())
+                    .setNumOfStorageMessage((int) DfsStorageNodeStarter.getInstance()
+                            .getStorageNode().getTotalStorageRequest())
+                    .build();
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                     .newBuilder().setHeartBeatMsg(heartBeat).build();
             Channel chan = DfsStorageNodeStarter.getInstance().getChannelFuture().channel();

@@ -74,19 +74,19 @@ public class ControllerInboundHandler extends InboundHandler {
         }
         ChannelFuture write = null;
         SqlManager sqlManager = SqlManager.getInstance();
-        HashMap<Integer, StorageNode> listSNMap = sqlManager.getAllOperationalSNList();
+        HashMap<Integer, StorageNode> listSNMap = sqlManager
+                .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
         Random rand = new Random();
 
         //loop until find a list of SNs
         int requiredReplicaNo = Constants.MAX_REPLICA_NUMBER; // It should also work with 1/2 SNs.
         if (DfsControllerStarter.getInstance().getStorageNodeHashMap()
                 .size() < Constants.MAX_REPLICA_NUMBER) {
-            requiredReplicaNo = DfsControllerStarter.getInstance().getStorageNodeHashMap()
-                    .size();
+            requiredReplicaNo = DfsControllerStarter.getInstance().getStorageNodeHashMap().size();
         }
         boolean selectedSNs = false;
         List<StorageNode> listSN = new ArrayList<StorageNode>(listSNMap.values());
-        logger.info("[Controller]Required replica number: "+requiredReplicaNo);
+        logger.info("[Controller]Required replica number: " + requiredReplicaNo);
         while (!selectedSNs) {
             //Chose random primary node in list of available
             int index = rand.nextInt(listSN.size());
@@ -131,28 +131,44 @@ public class ControllerInboundHandler extends InboundHandler {
                 selectedSNs = true;
             }
         }
-//        if (write.isDone()) {
-//            write.addListener(ChannelFutureListener.CLOSE);
-//        }
+        //        if (write.isDone()) {
+        //            write.addListener(ChannelFutureListener.CLOSE);
+        //        }
     }
 
     private void handleListMsg(ChannelHandlerContext ctx) {
         /**
          * Get the list of SN from DB and return to client
          */
-        logger.info("[Controller]Sending back list of SNs information");
-        //TODO: Get information from database
-        StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
-                .setSnId(1).setSnIp("192.168.0.1").setSnPort(6666).setTotalFreeSpaceInBytes(10000)
-                .setNumOfRetrievelRequest(10).setNumOfStorageMessage(10).build();
-        StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder()
-                .addSnInfo(snInfo).build();
-        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                .newBuilder().setListResponse(response).build();
-        Channel chan = ctx.channel();
-        ChannelFuture write = chan.write(msgWrapper);
-        chan.flush();
-        write.addListener(ChannelFutureListener.CLOSE);
+        logger.info("[Controller] Sending back list of SNs information...");
+
+        HashMap<Integer, StorageNode> snMap = DfsControllerStarter.getInstance()
+                .getStorageNodeHashMap();
+
+        for (StorageNode sn : snMap.values()) {
+            SqlManager.getInstance().updateSnStatistics((int) sn.getTotalRetrievelRequest(),
+                                                        (int) sn.getTotalStorageRequest(),
+                                                        sn.getTotalFreeSpaceInBytes(),
+                                                        sn.getSnId());
+        }
+
+        snMap = SqlManager.getInstance().getAllSNByStatusList(null);
+
+        for (StorageNode sn : snMap.values()) {
+            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
+                    .setSnId(sn.getSnId()).setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort())
+                    .setTotalFreeSpaceInBytes(sn.getTotalFreeSpace())
+                    .setNumOfRetrievelRequest((int) sn.getTotalRetrievelRequest())
+                    .setNumOfStorageMessage((int) sn.getTotalStorageRequest()).build();
+            StorageMessages.ListResponse response = StorageMessages.ListResponse.newBuilder()
+                    .addSnInfo(snInfo).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setListResponse(response).build();
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
+        }
 
     }
 
@@ -175,10 +191,19 @@ public class ControllerInboundHandler extends InboundHandler {
         StorageNode storageNode = DfsControllerStarter.getInstance().getStorageNodeHashMap()
                 .get(heartBeat.getSnId());
         if (storageNode != null) {
+
+            System.out.println("Test.heartBeat.getNumOfRetrievelRequest():"
+                    + heartBeat.getNumOfRetrievelRequest());
+            System.out.println("Test.heartBeat.getNumOfStorageMessage():"
+                    + heartBeat.getNumOfStorageMessage());
+
             /**
              * Update lastHeartBeatTime!
              */
             storageNode.setLastHeartBeatTime(System.currentTimeMillis());
+            storageNode.setTotalRetrievelRequest(heartBeat.getNumOfRetrievelRequest());
+            storageNode.setTotalFreeSpace(heartBeat.getTotalFreeSpaceInBytes());
+            storageNode.setTotalStorageRequest(heartBeat.getNumOfStorageMessage());
         } else {
             /********************************************
              * Add to HashMap. 
@@ -228,7 +253,8 @@ public class ControllerInboundHandler extends InboundHandler {
                 .newBuilder().setFileName(fileName).setStatus(true);
 
         SqlManager sqlManager = SqlManager.getInstance();
-        HashMap<Integer, StorageNode> listSN = sqlManager.getAllOperationalSNList();
+        HashMap<Integer, StorageNode> listSN = sqlManager
+                .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
         //Get information of all chunk
         for (int i = 1; i <= fileMetadata.getNumOfChunks(); i++) {
             StorageMessages.StoreChunkLocation.Builder chunkLocationBuilder = StorageMessages.StoreChunkLocation

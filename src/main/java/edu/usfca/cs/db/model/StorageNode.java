@@ -175,11 +175,11 @@ public class StorageNode {
     }
 
     public long incrementTotalStorageRequest() {
-        return this.totalStorageRequest;
+        return this.totalStorageRequest++;
     }
 
     public long incrementTotalRetrievelRequest() {
-        return this.totalRetrievelRequest;
+        return this.totalRetrievelRequest++;
     }
 
     public long getTotalFreeSpace() {
