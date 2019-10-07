@@ -247,51 +247,65 @@ public class ControllerInboundHandler extends InboundHandler {
         logger.info("[Controller]Retrieve all chunk location for file:" + fileName);
         StorageMessages.FileMetadata fileMetadata = DfsControllerStarter.getInstance()
                 .getFileMetadataHashMap().get(fileName);
-        logger.info("[Controller] File size: " + fileMetadata.getFileSize());
-        logger.info("[Controller] Number of chunk: " + fileMetadata.getNumOfChunks());
 
-        StorageMessages.FileLocation.Builder fileLocationBuilder = StorageMessages.FileLocation
-                .newBuilder().setFileName(fileName).setStatus(true);
+        if (fileMetadata != null) {
 
-        SqlManager sqlManager = SqlManager.getInstance();
-        HashMap<Integer, StorageNode> listSN = sqlManager
-                .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
-        //Get information of all chunk
-        for (int i = 1; i <= fileMetadata.getNumOfChunks(); i++) {
-            StorageMessages.StoreChunkLocation.Builder chunkLocationBuilder = StorageMessages.StoreChunkLocation
-                    .newBuilder().setChunkId(i);
-            boolean available = false;
-            for (Map.Entry<Integer, BloomFilter> snBloomFilter : DfsControllerStarter.getInstance()
-                    .getBloomFilters().entrySet()) {
-                int snId = snBloomFilter.getKey();
-                BloomFilter bloomFilter = snBloomFilter.getValue();
-                if (bloomFilter.get((fileName + i).getBytes())) {
-                    available = true;
-                    StorageNode sn = listSN.get(snId);
-                    //Select backup node in case selected sn is die
-                    if (sn == null) {
-                        int backupId = sqlManager.getSNInformationById(snId).getBackupId();
-                        sn = sqlManager.getSNInformationById(backupId);
+            logger.info("[Controller] File size: " + fileMetadata.getFileSize());
+            logger.info("[Controller] Number of chunk: " + fileMetadata.getNumOfChunks());
+
+            StorageMessages.FileLocation.Builder fileLocationBuilder = StorageMessages.FileLocation
+                    .newBuilder().setFileName(fileName).setStatus(true);
+
+            SqlManager sqlManager = SqlManager.getInstance();
+            HashMap<Integer, StorageNode> listSN = sqlManager
+                    .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
+            //Get information of all chunk
+            for (int i = 1; i <= fileMetadata.getNumOfChunks(); i++) {
+                StorageMessages.StoreChunkLocation.Builder chunkLocationBuilder = StorageMessages.StoreChunkLocation
+                        .newBuilder().setChunkId(i);
+                boolean available = false;
+                for (Map.Entry<Integer, BloomFilter> snBloomFilter : DfsControllerStarter
+                        .getInstance().getBloomFilters().entrySet()) {
+                    int snId = snBloomFilter.getKey();
+                    BloomFilter bloomFilter = snBloomFilter.getValue();
+                    if (bloomFilter.get((fileName + i).getBytes())) {
+                        available = true;
+                        StorageNode sn = listSN.get(snId);
+                        //Select backup node in case selected sn is die
+                        if (sn == null) {
+                            int backupId = sqlManager.getSNInformationById(snId).getBackupId();
+                            sn = sqlManager.getSNInformationById(backupId);
+                        }
+                        StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
+                                .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort())
+                                .build();
+                        chunkLocationBuilder.addSnInfo(snInfo);
                     }
-                    StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
-                            .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
-                    chunkLocationBuilder.addSnInfo(snInfo);
+                }
+                if (!available) {//TODO: chunk have no data in SN, return not found
+                    logger.info("[Controller]Not Available");
+                    fileLocationBuilder.setStatus(false);
+                    break;
+                } else {
+                    logger.info("[Controller]Available");
+                    fileLocationBuilder.addChunksLocation(chunkLocationBuilder);
                 }
             }
-            if (!available) {//TODO: chunk have no data in SN, return not found
-                logger.info("[Controller]Not Available");
-                fileLocationBuilder.setStatus(false);
-                break;
-            } else {
-                logger.info("[Controller]Available");
-                fileLocationBuilder.addChunksLocation(chunkLocationBuilder);
-            }
-        }
 
-        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                .newBuilder().setFileLocation(fileLocationBuilder).build();
-        Channel chan = ctx.channel();
-        chan.writeAndFlush(msgWrapper);
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setFileLocation(fileLocationBuilder).build();
+            Channel chan = ctx.channel();
+            chan.writeAndFlush(msgWrapper);
+        } else {
+            logger.info("[Controller] FileName does NOT exists! Filename:" + fileName);
+
+            StorageMessages.FileLocation.Builder fileLocationBuilder = StorageMessages.FileLocation
+                    .newBuilder().setFileName(fileName).setStatus(false);
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setFileLocation(fileLocationBuilder).build();
+            Channel chan = ctx.channel();
+            chan.writeAndFlush(msgWrapper);
+        }
     }
 
     @Override

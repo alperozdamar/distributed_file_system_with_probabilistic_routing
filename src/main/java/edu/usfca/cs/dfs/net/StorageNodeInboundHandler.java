@@ -319,7 +319,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
             }
             StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
                     .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
-                    .setData(data).setSnId(mySnId).build();
+                    .setData(data).setSnId(mySnId).setResult(true).build();
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                     .newBuilder().setRetrieveFileResponse(response).build();
             Channel chan = ctx.channel();
