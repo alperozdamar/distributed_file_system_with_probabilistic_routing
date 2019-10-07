@@ -7,6 +7,7 @@ public class Constants {
     public static final String RETRIEVE           = "retrieve";
     public static final String CONNECT            = "connect";
     public static final String EXIT               = "exit";
+    public static final String CHECKSUM           = "checksum";
 
     public static final String CLIENT             = "CLIENT";
     public static final String CONTROLLER         = "CONTROLLER";
