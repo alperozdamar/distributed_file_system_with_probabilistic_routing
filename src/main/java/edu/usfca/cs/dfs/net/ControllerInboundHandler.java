@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsControllerStarter;
@@ -199,11 +198,13 @@ public class ControllerInboundHandler extends InboundHandler {
 
             /**
              * Update lastHeartBeatTime!
+             * Update heartBeatStatus
              */
             storageNode.setLastHeartBeatTime(System.currentTimeMillis());
             storageNode.setTotalRetrievelRequest(heartBeat.getNumOfRetrievelRequest());
             storageNode.setTotalFreeSpace(heartBeat.getTotalFreeSpaceInBytes());
             storageNode.setTotalStorageRequest(heartBeat.getNumOfStorageMessage());
+            storageNode.setStatus(Constants.STATUS_OPERATIONAL);
         } else {
             /********************************************
              * Add to HashMap. 
@@ -267,6 +268,11 @@ public class ControllerInboundHandler extends InboundHandler {
                 if (bloomFilter.get((fileName + i).getBytes())) {
                     available = true;
                     StorageNode sn = listSN.get(snId);
+                    //Select backup node in case selected sn is die
+                    if (sn == null) {
+                        int backupId = sqlManager.getSNInformationById(snId).getBackupId();
+                        sn = sqlManager.getSNInformationById(backupId);
+                    }
                     StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
                             .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
                     chunkLocationBuilder.addSnInfo(snInfo);
@@ -290,7 +296,7 @@ public class ControllerInboundHandler extends InboundHandler {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        Utils.printHeader("[Controller]Received sth!");
+        logger.info("[Controller]Received sth!");
 
         /***
          * STORE
