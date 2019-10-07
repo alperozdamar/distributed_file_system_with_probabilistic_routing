@@ -38,14 +38,14 @@ public class ControllerInboundHandler extends InboundHandler {
     public void channelActive(ChannelHandlerContext ctx) {
         /* A connection has been established */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("[Controller]Connection established: " + addr);
+        logger.info("[Controller]Connection established: " + addr);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("[Controller]Connection lost: " + addr);
+        logger.info("[Controller]Connection lost: " + addr);
     }
 
     @Override
@@ -57,8 +57,8 @@ public class ControllerInboundHandler extends InboundHandler {
                                      StorageMessages.StoreChunk storeChunkMsg) {
         String fileName = storeChunkMsg.getFileName();
         int chunkId = storeChunkMsg.getChunkId();
-        System.out.println("[Controller]This is Store Chunk Message...");
-        System.out.println("[Controller]Storing file name: " + fileName + " - Chunk Id:"
+        logger.info("[Controller]This is Store Chunk Message...");
+        logger.info("[Controller]Storing file name: " + fileName + " - Chunk Id:"
                 + storeChunkMsg.getChunkId());
 
         if (storeChunkMsg.getChunkId() == 0) { //Metadata chunk
@@ -86,7 +86,7 @@ public class ControllerInboundHandler extends InboundHandler {
         }
         boolean selectedSNs = false;
         List<StorageNode> listSN = new ArrayList<StorageNode>(listSNMap.values());
-        System.out.println("[Controller]Required replica number: "+requiredReplicaNo);
+        logger.info("[Controller]Required replica number: "+requiredReplicaNo);
         while (!selectedSNs) {
             //Chose random primary node in list of available
             int index = rand.nextInt(listSN.size());
@@ -162,10 +162,10 @@ public class ControllerInboundHandler extends InboundHandler {
         int snId = heartBeat.getSnId();
 
         if (DfsControllerStarter.LOG_HEART_BEAT) {
-            System.out.println("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
+            logger.info("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
                     + heartBeat.getSnId() + "] Ip:[" + heartBeat.getSnIp() + "] Port:["
                     + heartBeat.getSnPort() + "]<<<<<<<<<<<<<<----------------");
-            System.out.println("[Controller] Storage Node Hash Map Size:"
+            logger.info("[Controller] Storage Node Hash Map Size:"
                     + DfsControllerStarter.getInstance().getStorageNodeHashMap().size());
         }
 
@@ -190,7 +190,7 @@ public class ControllerInboundHandler extends InboundHandler {
             if (result) {
                 logger.debug("SN[" + snId + "] successfully subscribed to Controller, status:"
                         + Constants.STATUS_OPERATIONAL);
-                System.out.println("SN[" + snId + "] successfully subscribed to Controller, status:"
+                logger.info("SN[" + snId + "] successfully subscribed to Controller, status:"
                         + Constants.STATUS_OPERATIONAL);
                 /**
                  * Schedule KeepAliveChecker for heart beat timeouts...
@@ -205,7 +205,7 @@ public class ControllerInboundHandler extends InboundHandler {
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setHeartBeatResponse(response).build();
         if (DfsControllerStarter.LOG_HEART_BEAT) {
-            System.out.println("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN[" + snId
+            logger.info("[Controller] ---------->>>>>>>> HEART BEAT RESPONSE To:SN[" + snId
                     + "] >>>>>>>>>>>--------------");
         }
 
@@ -218,11 +218,11 @@ public class ControllerInboundHandler extends InboundHandler {
     private void handleRetrieveFile(ChannelHandlerContext ctx,
                                     StorageMessages.RetrieveFile retrieveFileMsg) {
         String fileName = retrieveFileMsg.getFileName();
-        System.out.println("[Controller]Retrieve all chunk location for file:" + fileName);
+        logger.info("[Controller]Retrieve all chunk location for file:" + fileName);
         StorageMessages.FileMetadata fileMetadata = DfsControllerStarter.getInstance()
                 .getFileMetadataHashMap().get(fileName);
-        System.out.println("[Controller] File size: " + fileMetadata.getFileSize());
-        System.out.println("[Controller] Number of chunk: " + fileMetadata.getNumOfChunks());
+        logger.info("[Controller] File size: " + fileMetadata.getFileSize());
+        logger.info("[Controller] Number of chunk: " + fileMetadata.getNumOfChunks());
 
         StorageMessages.FileLocation.Builder fileLocationBuilder = StorageMessages.FileLocation
                 .newBuilder().setFileName(fileName).setStatus(true);
@@ -247,11 +247,11 @@ public class ControllerInboundHandler extends InboundHandler {
                 }
             }
             if (!available) {//TODO: chunk have no data in SN, return not found
-                System.out.println("[Controller]Not Available");
+                logger.info("[Controller]Not Available");
                 fileLocationBuilder.setStatus(false);
                 break;
             } else {
-                System.out.println("[Controller]Available");
+                logger.info("[Controller]Available");
                 fileLocationBuilder.addChunksLocation(chunkLocationBuilder);
             }
         }

@@ -100,7 +100,7 @@ public class DfsClientStarter {
         this.metadata = StorageMessages.FileMetadata.newBuilder().setFileSize(fileSize)
                 .setNumOfChunks(numOfChunks).build();
 
-        int thread = 5;
+        int thread = 1;
         Channel[] channels = new Channel[thread];
         int currThread = 0;
         for (int i = 0; i < thread; i++) {

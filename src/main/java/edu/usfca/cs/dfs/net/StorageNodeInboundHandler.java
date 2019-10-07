@@ -43,14 +43,14 @@ public class StorageNodeInboundHandler extends InboundHandler {
     public void channelActive(ChannelHandlerContext ctx) {
         /* A connection has been established */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("[SN]Connection established: " + addr);
+        logger.info("[SN]Connection established: " + addr);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("[SN]Connection lost: " + addr);
+        logger.info("[SN]Connection lost: " + addr);
     }
 
     @Override
@@ -62,13 +62,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
                                      StorageMessages.StoreChunk storeChunkMsg) {
         DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalStorageRequest();
 
-        System.out.println("[SN] ----------<<<<<<<<<< STORE CHUNK , FileName["
+        logger.info("[SN] ----------<<<<<<<<<< STORE CHUNK , FileName["
                 + storeChunkMsg.getFileName() + "] chunkId:[" + storeChunkMsg.getChunkId()
                 + "] PrimarySnId:[" + storeChunkMsg.getPrimarySnId()
                 + "]<<<<<<<<<<<<<<----------------");
+        String dataChecksum = Utils.getMd5(storeChunkMsg.getData().toByteArray());
+        logger.info("Receive checksum: %s\n", storeChunkMsg.getChecksum());
+        logger.info("dataChecksum: %s\n", dataChecksum);
+
 
         //Response to client, first node only
-        System.out.println("[SN]Sending StoreChunk response message back to Client...");
+        logger.info("[SN]Sending StoreChunk response message back to Client...");
+        
 
         /**
          * if successfully write into File System return sucess respnse
@@ -83,7 +88,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         chan.flush();
         write.addListener(ChannelFutureListener.CLOSE);
 
-        System.out.println("[SN] ---------->>>>>>>> STORE CHUNK RESPONSE For ChunkId"
+        logger.info("[SN] ---------->>>>>>>> STORE CHUNK RESPONSE For ChunkId"
                 + storeChunkMsg.getChunkId() + "] >>>>>>>>>>>--------------");
 
         if (result) {
@@ -141,27 +146,27 @@ public class StorageNodeInboundHandler extends InboundHandler {
     private String createDirectoryIfNecessary(int snId) {
         String directoryPath = null;
         try {
-            System.out.println("Working Directory = " + System.getProperty("user.dir"));
+            logger.info("Working Directory = " + System.getProperty("user.dir"));
             directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
             String whoamI = System.getProperty("user.name");
             directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                     + File.separator + whoamI + File.separator + snId;
 
-            System.out.println("Path:" + directoryPath);
+            logger.info("Path:" + directoryPath);
             File directory = new File(directoryPath);
             if (!directory.exists()) {
-                System.out.println("No Folder");
+                logger.info("No Folder");
 
                 Files.createDirectories(Paths.get(directoryPath));
 
                 directory = new File(directoryPath);
                 if (!directory.exists()) {
-                    System.out.println("Folder is created,successfully.");
+                    logger.info("Folder is created,successfully.");
                 } else {
-                    System.out.println("Folder could not be created!");
+                    logger.info("Folder could not be created!");
                 }
             } else {
-                System.out.println("No need to create folder already exists.");
+                logger.info("No need to create folder already exists.");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -186,7 +191,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
             if (listOfFiles[i].isFile()) {
                 File currFile = listOfFiles[i];
                 String fileNameInSystem = currFile.getName();
-                System.out.println("File " + fileNameInSystem);
+                logger.info("File " + fileNameInSystem);
                 String fileName = fileNameInSystem.substring(0, fileNameInSystem.lastIndexOf("_"));
                 int chunkId = Integer.parseInt(fileNameInSystem
                         .substring(fileNameInSystem.lastIndexOf("_") + 1));
@@ -201,7 +206,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .newBuilder().setStoreChunk(storeChunkMsg).build();
                 cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
             } else if (listOfFiles[i].isDirectory()) {
-                System.out.println("Directory " + listOfFiles[i].getName());
+                logger.info("Directory " + listOfFiles[i].getName());
             }
         }
     };
@@ -246,7 +251,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
                         .newBuilder().setFileName(storeChunkMsg.getFileName())
                         .setPrimarySnId(storeChunkMsg.getPrimarySnId())
-                        .setChunkId(storeChunkMsg.getChunkId()).setData(storeChunkMsg.getData());
+                        .setChunkId(storeChunkMsg.getChunkId()).setData(storeChunkMsg.getData())
+                        .setChecksum(storeChunkMsg.getChecksum());
                 for (int i = 1; i < newSnList.size(); i++) {
                     storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(newSnList.get(i));
                 }
@@ -256,7 +262,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 Channel chan = cf.channel();
                 chan.write(msgWrapper);
                 chan.flush().closeFuture().syncUninterruptibly();
-                System.out.println("[SN] ---------->>>>>>>> REPLICA To SN, snId["
+                logger.info("[SN] ---------->>>>>>>> REPLICA To SN, snId["
                         + nextSnNode.getSnId() + "] ,  snIp:[" + nextSnNode.getSnIp()
                         + "] , snPort:[" + nextSnNode.getSnPort() + "] >>>>>>>>>>>--------------");
             }
@@ -264,7 +270,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
     }
 
     private void handleBackupRequest(ChannelHandlerContext ctx, StorageMessages.BackUp backUpMsg) {
-        System.out.println("[SN]Send data to backup node!");
+        logger.info("[SN]Send data to backup node!");
         String destinationIp = backUpMsg.getDestinationIp();
         int destinationPort = backUpMsg.getDestinationPort();
         int sourceId = backUpMsg.getSourceSnId();
@@ -288,7 +294,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 .getFileChunkToMetaDataMap().get(key);
 
         if (metaDataOfChunk != null) {
-            System.out.println("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
+            logger.info("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
+            logger.info("[SN]Receive chunk size: "+metaDataOfChunk.getChunksize());
 
             /**
              * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
@@ -300,16 +307,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
             ByteString data = ByteString.copyFrom(chunkByteArray);
 
-            //System.out.println("[SN] Test.Data:" + new String(chunkByteArray));
+            //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
 
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
+            logger.info("Receive checksum: %s\n", snWriteChecksum);
+            logger.info("dataChecksum: %s\n", snReadChecksum);
 
             if (snReadChecksum.equalsIgnoreCase(snWriteChecksum)) {
                 System.out
                         .println("[SN] Checksum TEST OK! for chunkId:" + retrieveFile.getChunkId());
             } else {
-                System.out.println("[SN] PROBLEM with Checksum! for chunkId: "
+                logger.info("[SN] PROBLEM with Checksum! for chunkId: "
                         + retrieveFile.getChunkId());
             }
 
@@ -323,29 +332,29 @@ public class StorageNodeInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
         } else {
-            System.out.println("metaDataOfChunk is NULL! for chunkId:" + chunkId + " in snId:"
+            logger.info("metaDataOfChunk is NULL! for chunkId:" + chunkId + " in snId:"
                     + mySnId);
         }
     }
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("[SN]Received msg!");
+        logger.info("[SN]Received msg!");
         if (msg.hasStoreChunk()) {
             handleStoreChunkMsg(ctx, msg.getStoreChunk());
         } else if (msg.hasHeartBeatResponse()) {
             StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
             DfsStorageNodeStarter.getInstance().getStorageNode()
                     .setSnId(heartBeatResponse.getSnId());
-            System.out.println("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
+            logger.info("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
                     + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
             if (heartBeatResponse.getStatus() && DfsStorageNodeStarter.getInstance()
                     .getHeartBeatSenderTimerHandle() == null) {
-                System.out.println("[SN] My SnId set to :" + heartBeatResponse.getSnId()
+                logger.info("[SN] My SnId set to :" + heartBeatResponse.getSnId()
                         + " by Controller. Saving it...");
                 DfsStorageNodeStarter.getInstance().getStorageNode()
                         .setSnId(heartBeatResponse.getSnId());
-                System.out.println("[SN] Creating Timer for Heart Beats:"
+                logger.info("[SN] Creating Timer for Heart Beats:"
                         + heartBeatResponse.getSnId());
                 TimerManager.getInstance().scheduleHeartBeatTimer();
             } else if (heartBeatResponse.getStatus() == false) {

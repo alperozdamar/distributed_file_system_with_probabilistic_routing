@@ -42,14 +42,14 @@ public class ClientInboundHandler extends InboundHandler {
     public void channelActive(ChannelHandlerContext ctx) {
         /* A connection has been established */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("Connection established: " + addr);
+        logger.info("Connection established: " + addr);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        System.out.println("Connection lost: " + addr);
+        logger.info("Connection lost: " + addr);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class ClientInboundHandler extends InboundHandler {
 
     private void handleStoreChunkLocationMsg(ChannelHandlerContext ctx,
                                              StorageMessages.StoreChunkLocation chunkLocationMsg) {
-        System.out.println("[Client]This is Store Chunk Location Message...");
+        logger.info("[Client]This is Store Chunk Location Message...");
         List<StorageMessages.StorageNodeInfo> listSNs = chunkLocationMsg.getSnInfoList();
         StorageMessages.StorageNodeInfo firstNode = listSNs.get(0);
         //Send chunk to SN
@@ -80,8 +80,8 @@ public class ClientInboundHandler extends InboundHandler {
                                  (int) (configChunkSize * (chunkLocationMsg.getChunkId() - 1)),
                                  (int) chunkLocationMsg.getChunkSize());
         }
-        System.out.println("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
-        System.out.println("[Client] Chunk checksum: " + getMd5(chunk));
+        logger.info("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
+        logger.info("[Client] Chunk checksum: " + getMd5(chunk));
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
                 .newBuilder().setFileName(chunkLocationMsg.getFileName())
@@ -93,8 +93,9 @@ public class ClientInboundHandler extends InboundHandler {
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setStoreChunk(storeChunkMsgBuilder).build();
         Channel chan = cf.channel();
-        chan.write(msgWrapper);
-        chan.flush().closeFuture().syncUninterruptibly();
+        ChannelFuture write = chan.write(msgWrapper);
+        chan.flush();
+        write.syncUninterruptibly();
     }
 
     private void handleStoreChunkResponseMsg(ChannelHandlerContext ctx,
@@ -103,29 +104,29 @@ public class ClientInboundHandler extends InboundHandler {
          * TODO:
          * For now for testing...
          */
-        System.out.println("[Client]This is Store Chunk Message Response...");
+        logger.info("[Client]This is Store Chunk Message Response...");
 
         if (storeChunkResponseMsg.getStatus()) {
-            System.out.println("[Client] Chunk stored successfully, chunkId:"
+            logger.info("[Client] Chunk stored successfully, chunkId:"
                     + storeChunkResponseMsg.getChunkId());
         }
-        System.out.println("[Client]  : " + storeChunkResponseMsg.getStatus());
+        logger.info("[Client]  : " + storeChunkResponseMsg.getStatus());
     }
 
     private void handleFileLocationMsg(ChannelHandlerContext ctx,
                                        StorageMessages.FileLocation fileLocationMsg) {
-        System.out.println("[Client]This is File Location Message Response...");
+        logger.info("[Client]This is File Location Message Response...");
         if (!fileLocationMsg.getStatus()) {
-            System.out.println("[Client]File not found!!!");
+            logger.info("[Client]File not found!!!");
             return;
         }
         String fileName = fileLocationMsg.getFileName();
         List<StorageMessages.StoreChunkLocation> chunksLocations = fileLocationMsg
                 .getChunksLocationList();
         for (StorageMessages.StoreChunkLocation chunkLocation : chunksLocations) {
-            System.out.println("[Client]Chunk:" + chunkLocation.getChunkId());
+            logger.info("[Client]Chunk:" + chunkLocation.getChunkId());
             for (StorageNodeInfo sn : chunkLocation.getSnInfoList()) {
-                System.out.printf("[Client]SN Ip: %s - Port: %d\n", sn.getSnIp(), sn.getSnPort());
+                logger.info("[Client]SN Ip: %s - Port: %d\n", sn.getSnIp(), sn.getSnPort());
 
                 /**
                  * TODO: Wait for response to send next request..
@@ -155,7 +156,7 @@ public class ClientInboundHandler extends InboundHandler {
     }
 
     private void handleRetrieveFileResponse(StorageMessages.RetrieveFileResponse retrieveFileResponse) {
-        System.out.println("[Client] File ChunkId:" + retrieveFileResponse.getChunkId()
+        logger.info("[Client] File ChunkId:" + retrieveFileResponse.getChunkId()
                 + " came from SnId:" + retrieveFileResponse.getSnId() + " for fileName:"
                 + retrieveFileResponse.getFileName());
 
@@ -167,11 +168,11 @@ public class ClientInboundHandler extends InboundHandler {
         /**
          * We will merge into Appropriate space in file. 
          */
-        String data = retrieveFileResponse.getData().toStringUtf8();
+        byte[] data = retrieveFileResponse.getData().toByteArray();
         long seek = (retrieveFileResponse.getChunkId() - 1)
                 * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
 
-        System.out.println("[Client] Writing into File System with fileName:"
+        logger.info("[Client] Writing into File System with fileName:"
                 + retrieveFileResponse.getFileName() + "ChunkId:"
                 + retrieveFileResponse.getChunkId() + " seek:" + seek + " ,Data Size:"
                 + retrieveFileResponse.getData().size());
@@ -195,8 +196,8 @@ public class ClientInboundHandler extends InboundHandler {
                     .getSnInfoList();
             for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
                 StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
-                System.out.println("[Client]Sn.id:" + storageNodeInfo.getSnId());
-                System.out.println("[Client]Sn.ip:" + storageNodeInfo.getSnIp());
+                logger.info("[Client]Sn.id:" + storageNodeInfo.getSnId());
+                logger.info("[Client]Sn.ip:" + storageNodeInfo.getSnIp());
             }
         } else if (msg.hasFileLocation()) {
             StorageMessages.FileLocation fileLocationMsg = msg.getFileLocation();

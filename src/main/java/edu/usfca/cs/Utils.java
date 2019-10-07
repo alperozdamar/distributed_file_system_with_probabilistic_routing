@@ -1,12 +1,8 @@
 package edu.usfca.cs;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,7 +12,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
 
-import javax.xml.bind.DatatypeConverter;
+//import javax.xml.bind.DatatypeConverter;
 
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
@@ -59,43 +55,44 @@ public class Utils {
                                                           StoreChunk storeChunkMsg) {
         String filePath = directory + File.separator + storeChunkMsg.getFileName() + "_"
                 + storeChunkMsg.getChunkId();
-        //FileOutputStream outputStream;
-        //        try {
-        //
-        //            Path path = Paths.get(filePath);
-        //            BufferedWriter writer = Files.newBufferedWriter(path,
-        //                                                            Charset.forName("UTF-8"),
-        //                                                            StandardOpenOption.CREATE,
-        //                                                            StandardOpenOption.APPEND);
-        //            String data = storeChunkMsg.getData().toStringUtf8();
-        //            System.out.println("Written chunk:" + data);
-        //            writer.write(data, 0, data.length());
-        //            writer.flush();
-        //            writer.close();
-        //            // outputStream = new FileOutputStream(filePath);
-        //            //storeChunkMsg.getData().writeTo(outputStream);
-        //            //outputStream.write(storeChunkMsg.getData().toByteArray());
-        //            //outputStream.close();
-        //
-        //        } catch (FileNotFoundException e) {
-        //            e.printStackTrace();
-        //            return false;
-        //        } catch (IOException e) {
-        //            e.printStackTrace();
-        //            return false;
-        //        }
-        try {
-            Path path = Paths.get(filePath);
-            // Open the file, creating it if it doesn't exist
-            try (final BufferedWriter out = Files
-                    .newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
-                String data = storeChunkMsg.getData().toStringUtf8();
-                //System.out.println("Written chunk:" + data);
-                out.write(data, 0, data.length());
-            }
-        } catch (Exception e) {
+        FileOutputStream outputStream;
+                try {
 
-        }
+//                    Path path = Paths.get(filePath);
+//                    BufferedWriter writer = Files.newBufferedWriter(path,
+//                                                                    Charset.forName("UTF-8"),
+//                                                                    StandardOpenOption.CREATE,
+//                                                                    StandardOpenOption.APPEND);
+//                    String data = storeChunkMsg.getData().toStringUtf8();
+//                    System.out.println("Written chunk:" + data);
+//                    writer.write(data, 0, data.length());
+//                    writer.flush();
+//                    writer.close();
+                    outputStream = new FileOutputStream(filePath);
+                    outputStream.write(storeChunkMsg.getData().toByteArray());
+                    System.out.println("Written chunk checksum: "
+                            + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
+                    outputStream.close();
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    return false;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+//        try {
+//            Path path = Paths.get(filePath);
+//            // Open the file, creating it if it doesn't exist
+//            try (final BufferedWriter out = Files
+//                    .newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
+//                String data = storeChunkMsg.getData().toStringUtf8();
+//                System.out.println("Written chunk checksum: " + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
+//                out.write(data, 0, data.length());
+//            }
+//        } catch (Exception e) {
+//
+//        }
 
         return true;
     }
@@ -208,41 +205,41 @@ public class Utils {
         }
     }
 
-    public static void writeDataIntoClientFileSystem(String filePath, String data, long seek)
+    public static void writeDataIntoClientFileSystem(String filePath, byte[] data, long seek)
             throws IOException {
         RandomAccessFile file = new RandomAccessFile(filePath, "rw");
 
         file.seek(seek);
 
-        //System.out.println("Test:" + new String(data.getBytes()));
+        System.out.println("[Client] Receive data checksum:" + Utils.getMd5(data));
 
-        file.write(data.getBytes());
+        file.write(data);
         file.close();
     }
 
-    public static void compareCheckSum(String sourceFile, String destinationFile)
-            throws NoSuchAlgorithmException, IOException {
-        //String checksum = "5EB63BBBE01EEED093CB22BB8F5ACDC3";
-
-        System.out.println("GeneratingChecksum.... Please Wait!");
-
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(Files.readAllBytes(Paths.get(sourceFile)));
-        byte[] digest = md.digest();
-        String sourceChecksum = DatatypeConverter.printHexBinary(digest).toUpperCase();
-
-        MessageDigest md2 = MessageDigest.getInstance("MD5");
-        md2.update(Files.readAllBytes(Paths.get(destinationFile)));
-        byte[] digest2 = md2.digest();
-        String destChecksum = DatatypeConverter.printHexBinary(digest2).toUpperCase();
-
-        if (sourceChecksum.equals(destChecksum)) {
-            System.out.println("[SUCCESS]Files are identical!!!");
-        } else {
-            System.out.println("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
-        }
-        System.out.println("SrceCheckSum=" + sourceChecksum);
-        System.out.println("DestCheckSum=" + destChecksum);
-    }
+//    public static void compareCheckSum(String sourceFile, String destinationFile)
+//            throws NoSuchAlgorithmException, IOException {
+//        //String checksum = "5EB63BBBE01EEED093CB22BB8F5ACDC3";
+//
+//        System.out.println("GeneratingChecksum.... Please Wait!");
+//
+//        MessageDigest md = MessageDigest.getInstance("MD5");
+//        md.update(Files.readAllBytes(Paths.get(sourceFile)));
+//        byte[] digest = md.digest();
+//        String sourceChecksum = DatatypeConverter.printHexBinary(digest).toUpperCase();
+//
+//        MessageDigest md2 = MessageDigest.getInstance("MD5");
+//        md2.update(Files.readAllBytes(Paths.get(destinationFile)));
+//        byte[] digest2 = md2.digest();
+//        String destChecksum = DatatypeConverter.printHexBinary(digest2).toUpperCase();
+//
+//        if (sourceChecksum.equals(destChecksum)) {
+//            System.out.println("[SUCCESS]Files are identical!!!");
+//        } else {
+//            System.out.println("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
+//        }
+//        System.out.println("SrceCheckSum=" + sourceChecksum);
+//        System.out.println("DestCheckSum=" + destChecksum);
+//    }
 
 }
