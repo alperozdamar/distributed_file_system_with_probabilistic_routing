@@ -11,22 +11,34 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
 
-//import javax.xml.bind.DatatypeConverter;
-
+import edu.usfca.cs.db.SqlManager;
+import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.Constants;
+import edu.usfca.cs.dfs.net.MessagePipeline;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Utils {
 
+    private static Logger logger = LogManager.getLogger(Utils.class);
+
     public static void printHeader(String header) {
-        System.out.println("\n-----------------------");
-        System.out.println(header);
+        logger.info("\n-----------------------");
+        logger.info(header);
     }
 
     public static ChannelFuture connect(Bootstrap bootstrap, String ip, int port) {
@@ -36,7 +48,7 @@ public class Utils {
     }
 
     public static byte[] readFromFile(String filePath, int seek, int chunkSize) {
-        System.out.println("seek:" + seek);
+        logger.info("seek:" + seek);
         RandomAccessFile file = null;
         try {
             file = new RandomAccessFile(filePath, "r");
@@ -60,20 +72,9 @@ public class Utils {
                 + storeChunkMsg.getChunkId();
         FileOutputStream outputStream;
         try {
-
-            //                    Path path = Paths.get(filePath);
-            //                    BufferedWriter writer = Files.newBufferedWriter(path,
-            //                                                                    Charset.forName("UTF-8"),
-            //                                                                    StandardOpenOption.CREATE,
-            //                                                                    StandardOpenOption.APPEND);
-            //                    String data = storeChunkMsg.getData().toStringUtf8();
-            //                    System.out.println("Written chunk:" + data);
-            //                    writer.write(data, 0, data.length());
-            //                    writer.flush();
-            //                    writer.close();
             outputStream = new FileOutputStream(filePath);
             outputStream.write(storeChunkMsg.getData().toByteArray());
-            System.out.println("Written chunk checksum: "
+            logger.info("Written chunk checksum: "
                     + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
             outputStream.close();
 
@@ -84,18 +85,6 @@ public class Utils {
             e.printStackTrace();
             return false;
         }
-        //        try {
-        //            Path path = Paths.get(filePath);
-        //            // Open the file, creating it if it doesn't exist
-        //            try (final BufferedWriter out = Files
-        //                    .newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
-        //                String data = storeChunkMsg.getData().toStringUtf8();
-        //                System.out.println("Written chunk checksum: " + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
-        //                out.write(data, 0, data.length());
-        //            }
-        //        } catch (Exception e) {
-        //
-        //        }
 
         return true;
     }
@@ -132,7 +121,7 @@ public class Utils {
             throws NoSuchAlgorithmException, IOException {
         //String checksum = "5EB63BBBE01EEED093CB22BB8F5ACDC3";
 
-        System.out.println("GeneratingChecksum.... Please Wait!");
+        logger.info("GeneratingChecksum.... Please Wait!");
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         md.update(Files.readAllBytes(Paths.get(sourceFile)));
@@ -144,14 +133,14 @@ public class Utils {
         byte[] digest2 = md2.digest();
         String destChecksum = DatatypeConverter.printHexBinary(digest2).toUpperCase();
 
-        System.out.println("Source CheckSum=" + sourceChecksum);
-        System.out.println("Dest. CheckSum=" + destChecksum);
+        logger.info("Source CheckSum=" + sourceChecksum);
+        logger.info("Dest. CheckSum=" + destChecksum);
 
         if (sourceChecksum.equals(destChecksum)) {
-            System.out.println("[SUCCESS]Files are identical!!!");
+            logger.info("[SUCCESS]Files are identical!!!");
             return true;
         } else {
-            System.out.println("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
+            logger.info("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
             return false;
         }
 
@@ -230,10 +219,10 @@ public class Utils {
         File[] listOfFiles = folder.listFiles();
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
-                System.out.println("File " + listOfFiles[i].getName());
+                logger.info("File " + listOfFiles[i].getName());
 
             } else if (listOfFiles[i].isDirectory()) {
-                System.out.println("Directory " + listOfFiles[i].getName());
+                logger.info("Directory " + listOfFiles[i].getName());
             }
         }
     }
@@ -244,7 +233,7 @@ public class Utils {
 
         file.seek(seek);
 
-        System.out.println("[Client] Receive data checksum:" + Utils.getMd5(data));
+        logger.info("[Client] Receive data checksum:" + Utils.getMd5(data));
 
         file.write(data);
         file.close();
@@ -254,7 +243,7 @@ public class Utils {
     //            throws NoSuchAlgorithmException, IOException {
     //        //String checksum = "5EB63BBBE01EEED093CB22BB8F5ACDC3";
     //
-    //        System.out.println("GeneratingChecksum.... Please Wait!");
+    //        logger.info("GeneratingChecksum.... Please Wait!");
     //
     //        MessageDigest md = MessageDigest.getInstance("MD5");
     //        md.update(Files.readAllBytes(Paths.get(sourceFile)));
@@ -267,12 +256,82 @@ public class Utils {
     //        String destChecksum = DatatypeConverter.printHexBinary(digest2).toUpperCase();
     //
     //        if (sourceChecksum.equals(destChecksum)) {
-    //            System.out.println("[SUCCESS]Files are identical!!!");
+    //            logger.info("[SUCCESS]Files are identical!!!");
     //        } else {
-    //            System.out.println("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
+    //            logger.info("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
     //        }
-    //        System.out.println("SrceCheckSum=" + sourceChecksum);
-    //        System.out.println("DestCheckSum=" + destChecksum);
+    //        logger.info("SrceCheckSum=" + sourceChecksum);
+    //        logger.info("DestCheckSum=" + destChecksum);
     //    }
+
+    public static void sendChunkOfSourceSnToDestinationSn(int sourceSnId, int destinationSnId){
+        SqlManager sqlManager = SqlManager.getInstance();
+        //Backup data of current node
+        //Send current down SN data to backup ID
+        StorageNode sourceNode = sqlManager.getSNReplication(sourceSnId);
+        StorageNode destinationNode = sqlManager.getSNInformationById(destinationSnId);
+        ArrayList<Integer> replicateIdList = sourceNode.getReplicateSnIdList();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+
+        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
+        for (int replicateId : replicateIdList) {
+            StorageNode snNode = sqlManager.getSNInformationById(replicateId);
+            if (snNode.getStatus().equals("DOWN")) {
+                continue;
+            } else {
+                ChannelFuture cf = Utils.connect(bootstrap, snNode.getSnIp(), snNode.getSnPort());
+                StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
+                        .setDestinationIp(destinationNode.getSnIp())
+                        .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceSnId).build();
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                        .newBuilder().setBackup(backUpMsg).build();
+                System.out.printf("Request data of %d send to replica: %d\n", sourceSnId, replicateId);
+                cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
+                break;
+            }
+        }
+
+        //Source of replication
+        //Send replicate data of current down SN to backup ID
+        sourceNode = sqlManager.getSourceReplicationSnId(sourceSnId);
+        ArrayList<Integer> sourceIdList = sourceNode.getSourceSnIdList();
+        for (int sourceId : sourceIdList) {
+            System.out.println("Source Id: " + sourceId);
+            sourceNode = sqlManager.getSNInformationById(sourceId);
+            String fromIp = "";
+            int fromPort = 0;
+            if (sourceNode.getStatus().equals("DOWN")) {//SourceNode down, get data from sourceNode replica
+                ArrayList<Integer> sourceReplicaIdList = sqlManager.getSNReplication(sourceId)
+                        .getReplicateSnIdList();
+                for (int sourceReplicaId : sourceReplicaIdList) {
+                    StorageNode sourceReplication = sqlManager
+                            .getSNInformationById(sourceReplicaId);
+                    if (!sourceReplication.getStatus().equals("DOWN")) {
+                        fromIp = sourceReplication.getSnIp();
+                        fromPort = sourceReplication.getSnPort();
+                        break;
+                    }
+                }
+            } else {
+                fromIp = sourceNode.getSnIp();
+                fromPort = sourceNode.getSnPort();
+            }
+            if (!fromIp.isEmpty() && fromPort != 0) {
+                ChannelFuture cf = Utils.connect(bootstrap, fromIp, fromPort);
+                StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
+                        .setDestinationIp(destinationNode.getSnIp())
+                        .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceId).build();
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                        .newBuilder().setBackup(backUpMsg).build();
+                System.out
+                        .printf("Request data of %d send to source port %d\n", sourceId, fromPort);
+                cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
+            } else {
+                System.out.printf("[Controller][BackUp] All source of data %d down!\n", sourceId);
+            }
+        }
+    }
 
 }

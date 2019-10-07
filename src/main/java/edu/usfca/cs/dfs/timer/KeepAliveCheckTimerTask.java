@@ -48,71 +48,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
         StorageNode backupNode = sqlManager.getSNInformationById(backupId);
         sqlManager.updateSNReplication(snId, backupNode.getSnId());
 
-        //Backup data of current node
-        //Send current down SN data to backup ID
-        StorageNode downNode = sqlManager.getSNReplication(snId);
-        ArrayList<Integer> replicateIdList = downNode.getReplicateSnIdList();
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-        MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
-
-        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
-                .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        for (int replicateId : replicateIdList) {
-            StorageNode snNode = sqlManager.getSNInformationById(replicateId);
-            if (snNode.getStatus().equals("DOWN")) {
-                continue;
-            } else {
-                ChannelFuture cf = Utils.connect(bootstrap, snNode.getSnIp(), snNode.getSnPort());
-                StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
-                        .setDestinationIp(backupNode.getSnIp())
-                        .setDestinationPort(backupNode.getSnPort()).setSourceSnId(snId).build();
-                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                        .newBuilder().setBackup(backUpMsg).build();
-                System.out.printf("Request data of %d send to replica: %d\n", snId, replicateId);
-                cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
-                break;
-            }
-        }
-
-        //Source of replication
-        //Send replicate data of current down SN to backup ID
-        downNode = sqlManager.getSourceReplicationSnId(snId);
-        ArrayList<Integer> sourceIdList = downNode.getSourceSnIdList();
-        for (int sourceId : sourceIdList) {
-            System.out.println("Source Id: " + sourceId);
-            StorageNode sourceNode = sqlManager.getSNInformationById(sourceId);
-            String fromIp = "";
-            int fromPort = 0;
-            if (sourceNode.getStatus().equals("DOWN")) {//SourceNode down, get data from sourceNode replica
-                ArrayList<Integer> sourceReplicaIdList = sqlManager.getSNReplication(sourceId)
-                        .getReplicateSnIdList();
-                for (int sourceReplicaId : sourceReplicaIdList) {
-                    StorageNode sourceReplication = sqlManager
-                            .getSNInformationById(sourceReplicaId);
-                    if (!sourceReplication.getStatus().equals("DOWN")) {
-                        fromIp = sourceReplication.getSnIp();
-                        fromPort = sourceReplication.getSnPort();
-                        break;
-                    }
-                }
-            } else {
-                fromIp = sourceNode.getSnIp();
-                fromPort = sourceNode.getSnPort();
-            }
-            if (!fromIp.isEmpty() && fromPort != 0) {
-                ChannelFuture cf = Utils.connect(bootstrap, fromIp, fromPort);
-                StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
-                        .setDestinationIp(backupNode.getSnIp())
-                        .setDestinationPort(backupNode.getSnPort()).setSourceSnId(sourceId).build();
-                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                        .newBuilder().setBackup(backUpMsg).build();
-                System.out
-                        .printf("Request data of %d send to source port %d\n", sourceId, fromPort);
-                cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
-            } else {
-                System.out.printf("[Controller][BackUp] All source of data %d down!\n", sourceId);
-            }
-        }
+        Utils.sendChunkOfSourceSnToDestinationSn(snId, backupId);
     }
 
     public void run() {

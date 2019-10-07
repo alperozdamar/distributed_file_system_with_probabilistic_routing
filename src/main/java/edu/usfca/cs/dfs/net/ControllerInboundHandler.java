@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import edu.usfca.cs.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -174,7 +175,17 @@ public class ControllerInboundHandler extends InboundHandler {
     private void handleHeartBeat(ChannelHandlerContext ctx,
                                  StorageMessages.StorageMessageWrapper msg) {
         StorageMessages.HeartBeat heartBeat = msg.getHeartBeatMsg();
+        //Fix in here when SN go DOWN and OPERATIONAL again, it will receive old Id instead create new old
         int snId = heartBeat.getSnId();
+        if(snId==-1){
+            StorageNode sn = SqlManager.getInstance().getSnByIpAndPort(heartBeat.getSnIp(), heartBeat.getSnPort());
+            if(sn!=null){
+                System.out.println("SN in db");
+                snId = sn.getSnId();
+            } else{
+                System.out.println("SN not in db");
+            }
+        }
 
         if (DfsControllerStarter.LOG_HEART_BEAT) {
             logger.info("[Controller] ----------<<<<<<<<<< HEART BEAT From:SN["
@@ -188,12 +199,12 @@ public class ControllerInboundHandler extends InboundHandler {
          * LETS ADD to DB if it is not exists in our Hash Map!!
          */
         StorageNode storageNode = DfsControllerStarter.getInstance().getStorageNodeHashMap()
-                .get(heartBeat.getSnId());
+                .get(snId);
         if (storageNode != null) {
 
-            System.out.println("Test.heartBeat.getNumOfRetrievelRequest():"
+            logger.info("Test.heartBeat.getNumOfRetrievelRequest():"
                     + heartBeat.getNumOfRetrievelRequest());
-            System.out.println("Test.heartBeat.getNumOfStorageMessage():"
+            logger.info("Test.heartBeat.getNumOfStorageMessage():"
                     + heartBeat.getNumOfStorageMessage());
 
             /**
@@ -204,7 +215,16 @@ public class ControllerInboundHandler extends InboundHandler {
             storageNode.setTotalRetrievelRequest(heartBeat.getNumOfRetrievelRequest());
             storageNode.setTotalFreeSpace(heartBeat.getTotalFreeSpaceInBytes());
             storageNode.setTotalStorageRequest(heartBeat.getNumOfStorageMessage());
+
+            //Receive Heartbeat from STATUS_DOWN node
+            if(storageNode.getStatus().equals(Constants.STATUS_DOWN)){
+                Utils.sendChunkOfSourceSnToDestinationSn(snId, snId);
+            }
             storageNode.setStatus(Constants.STATUS_OPERATIONAL);
+            SqlManager.getInstance().updateSNInformation(snId, Constants.STATUS_OPERATIONAL);
+            SqlManager.getInstance().updateSnStatistics(heartBeat.getNumOfRetrievelRequest(), heartBeat.getNumOfStorageMessage(),
+                    heartBeat.getTotalFreeSpaceInBytes(), snId);
+            SqlManager.getInstance().updateSNReplication(snId, -1);
         } else {
             /********************************************
              * Add to HashMap. 

@@ -608,4 +608,55 @@ public class SqlManager {
 
     }
 
+    public StorageNode getSnByIpAndPort(String snIp, int snPort){
+        StorageNode storageNode = null;
+        Connection connection = null;
+        String sql = "select * from sn_information s where s.snIp = ? and s.snPort=?";
+        PreparedStatement selectStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            selectStatement = connection.prepareStatement(sql);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Queried snIp:%s - snPort:%d",snIp,snPort);
+            }
+            selectStatement.setString(1, snIp);
+            selectStatement.setInt(2, snPort);
+            ResultSet resultSet = selectStatement.executeQuery();
+            if (resultSet.next()) {
+                storageNode = new StorageNode();
+                do {
+                    storageNode.setSnId(resultSet.getInt("snId"));
+                    storageNode.setSnIp(resultSet.getString("snIP"));
+                    storageNode.setSnPort(resultSet.getInt("snPort"));
+                    storageNode.setTotalFreeSpace(resultSet.getLong("totalFreeSpace"));
+                    storageNode.setTotalStorageRequest(resultSet.getInt("totalStorageReq"));
+                    storageNode.setTotalRetrievelRequest(resultSet.getInt("totalRetrievelReq"));
+                    storageNode.setStatus(resultSet.getString("status"));
+                } while (resultSet.next());
+            } else {
+                logger.debug("Storage Node can not be found in DB.");
+            }
+            selectStatement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (selectStatement != null)
+                    selectStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return storageNode;
+    }
+
 }
