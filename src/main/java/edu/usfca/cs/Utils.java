@@ -19,6 +19,9 @@ import javax.xml.bind.DatatypeConverter;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.StorageMessages;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
@@ -29,8 +32,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class Utils {
 
@@ -74,7 +75,7 @@ public class Utils {
         try {
             outputStream = new FileOutputStream(filePath);
             outputStream.write(storeChunkMsg.getData().toByteArray());
-            logger.info("Written chunk checksum: "
+            logger.debug("Written chunk checksum: "
                     + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
             outputStream.close();
 

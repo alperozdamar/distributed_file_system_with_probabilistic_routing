@@ -7838,6 +7838,11 @@ public final class StorageMessages {
      * <code>bytes data = 4;</code>
      */
     com.google.protobuf.ByteString getData();
+
+    /**
+     * <code>bool result = 5;</code>
+     */
+    boolean getResult();
   }
   /**
    * Protobuf type {@code RetrieveFileResponse}
@@ -7905,6 +7910,11 @@ public final class StorageMessages {
             case 34: {
 
               data_ = input.readBytes();
+              break;
+            }
+            case 40: {
+
+              result_ = input.readBool();
               break;
             }
             default: {
@@ -8000,6 +8010,15 @@ public final class StorageMessages {
       return data_;
     }
 
+    public static final int RESULT_FIELD_NUMBER = 5;
+    private boolean result_;
+    /**
+     * <code>bool result = 5;</code>
+     */
+    public boolean getResult() {
+      return result_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -8026,6 +8045,9 @@ public final class StorageMessages {
       if (!data_.isEmpty()) {
         output.writeBytes(4, data_);
       }
+      if (result_ != false) {
+        output.writeBool(5, result_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -8050,6 +8072,10 @@ public final class StorageMessages {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(4, data_);
       }
+      if (result_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, result_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -8073,6 +8099,8 @@ public final class StorageMessages {
           != other.getSnId()) return false;
       if (!getData()
           .equals(other.getData())) return false;
+      if (getResult()
+          != other.getResult()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -8092,6 +8120,9 @@ public final class StorageMessages {
       hash = (53 * hash) + getSnId();
       hash = (37 * hash) + DATA_FIELD_NUMBER;
       hash = (53 * hash) + getData().hashCode();
+      hash = (37 * hash) + RESULT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getResult());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -8233,6 +8264,8 @@ public final class StorageMessages {
 
         data_ = com.google.protobuf.ByteString.EMPTY;
 
+        result_ = false;
+
         return this;
       }
 
@@ -8263,6 +8296,7 @@ public final class StorageMessages {
         result.chunkId_ = chunkId_;
         result.snId_ = snId_;
         result.data_ = data_;
+        result.result_ = result_;
         onBuilt();
         return result;
       }
@@ -8323,6 +8357,9 @@ public final class StorageMessages {
         }
         if (other.getData() != com.google.protobuf.ByteString.EMPTY) {
           setData(other.getData());
+        }
+        if (other.getResult() != false) {
+          setResult(other.getResult());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -8499,6 +8536,32 @@ public final class StorageMessages {
       public Builder clearData() {
         
         data_ = getDefaultInstance().getData();
+        onChanged();
+        return this;
+      }
+
+      private boolean result_ ;
+      /**
+       * <code>bool result = 5;</code>
+       */
+      public boolean getResult() {
+        return result_;
+      }
+      /**
+       * <code>bool result = 5;</code>
+       */
+      public Builder setResult(boolean value) {
+        
+        result_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool result = 5;</code>
+       */
+      public Builder clearResult() {
+        
+        result_ = false;
         onChanged();
         return this;
       }
@@ -13073,27 +13136,28 @@ public final class StorageMessages {
       "ileName\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\"]\n\014FileLo" +
       "cation\022\020\n\010fileName\030\001 \001(\t\022+\n\016chunksLocati" +
       "on\030\002 \003(\0132\023.StoreChunkLocation\022\016\n\006status\030" +
-      "\003 \001(\010\"U\n\024RetrieveFileResponse\022\020\n\010fileNam" +
+      "\003 \001(\010\"e\n\024RetrieveFileResponse\022\020\n\010fileNam" +
       "e\030\001 \001(\t\022\017\n\007chunkId\030\002 \001(\005\022\014\n\004snId\030\003 \001(\005\022\014" +
-      "\n\004data\030\004 \001(\014\"\230\001\n\017StorageNodeInfo\022\014\n\004snId" +
-      "\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006snPort\030\003 \001(\005\022\035\n\025" +
-      "totalFreeSpaceInBytes\030\004 \001(\003\022\033\n\023numOfStor" +
-      "ageMessage\030\005 \001(\005\022\035\n\025numOfRetrievelReques" +
-      "t\030\006 \001(\005\"L\n\006BackUp\022\022\n\nsourceSnId\030\001 \001(\005\022\025\n" +
-      "\rdestinationIp\030\002 \001(\t\022\027\n\017destinationPort\030" +
-      "\003 \001(\005\"\332\003\n\025StorageMessageWrapper\022!\n\nstore" +
-      "Chunk\030\001 \001(\0132\013.StoreChunkH\000\022%\n\014retrieveFi" +
-      "le\030\002 \001(\0132\r.RetrieveFileH\000\022\"\n\014heartBeatMs" +
-      "g\030\003 \001(\0132\n.HeartBeatH\000\022/\n\021HeartBeatRespon" +
-      "se\030\004 \001(\0132\022.HeartBeatResponseH\000\022\025\n\004list\030\005" +
-      " \001(\0132\005.ListH\000\022%\n\014listResponse\030\006 \001(\0132\r.Li" +
-      "stResponseH\000\0221\n\022storeChunkLocation\030\007 \001(\013" +
-      "2\023.StoreChunkLocationH\000\0221\n\022storeChunkRes" +
-      "ponse\030\010 \001(\0132\023.StoreChunkResponseH\000\022%\n\014fi" +
-      "leLocation\030\t \001(\0132\r.FileLocationH\000\022\031\n\006bac" +
-      "kup\030\n \001(\0132\007.BackUpH\000\0225\n\024retrieveFileResp" +
-      "onse\030\013 \001(\0132\025.RetrieveFileResponseH\000B\005\n\003m" +
-      "sgB\022\n\020edu.usfca.cs.dfsb\006proto3"
+      "\n\004data\030\004 \001(\014\022\016\n\006result\030\005 \001(\010\"\230\001\n\017Storage" +
+      "NodeInfo\022\014\n\004snId\030\001 \001(\005\022\014\n\004snIp\030\002 \001(\t\022\016\n\006" +
+      "snPort\030\003 \001(\005\022\035\n\025totalFreeSpaceInBytes\030\004 " +
+      "\001(\003\022\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025numO" +
+      "fRetrievelRequest\030\006 \001(\005\"L\n\006BackUp\022\022\n\nsou" +
+      "rceSnId\030\001 \001(\005\022\025\n\rdestinationIp\030\002 \001(\t\022\027\n\017" +
+      "destinationPort\030\003 \001(\005\"\332\003\n\025StorageMessage" +
+      "Wrapper\022!\n\nstoreChunk\030\001 \001(\0132\013.StoreChunk" +
+      "H\000\022%\n\014retrieveFile\030\002 \001(\0132\r.RetrieveFileH" +
+      "\000\022\"\n\014heartBeatMsg\030\003 \001(\0132\n.HeartBeatH\000\022/\n" +
+      "\021HeartBeatResponse\030\004 \001(\0132\022.HeartBeatResp" +
+      "onseH\000\022\025\n\004list\030\005 \001(\0132\005.ListH\000\022%\n\014listRes" +
+      "ponse\030\006 \001(\0132\r.ListResponseH\000\0221\n\022storeChu" +
+      "nkLocation\030\007 \001(\0132\023.StoreChunkLocationH\000\022" +
+      "1\n\022storeChunkResponse\030\010 \001(\0132\023.StoreChunk" +
+      "ResponseH\000\022%\n\014fileLocation\030\t \001(\0132\r.FileL" +
+      "ocationH\000\022\031\n\006backup\030\n \001(\0132\007.BackUpH\000\0225\n\024" +
+      "retrieveFileResponse\030\013 \001(\0132\025.RetrieveFil" +
+      "eResponseH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb\006" +
+      "proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -13164,7 +13228,7 @@ public final class StorageMessages {
     internal_static_RetrieveFileResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_RetrieveFileResponse_descriptor,
-        new java.lang.String[] { "FileName", "ChunkId", "SnId", "Data", });
+        new java.lang.String[] { "FileName", "ChunkId", "SnId", "Data", "Result", });
     internal_static_StorageNodeInfo_descriptor =
       getDescriptor().getMessageTypes().get(11);
     internal_static_StorageNodeInfo_fieldAccessorTable = new

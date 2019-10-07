@@ -126,7 +126,7 @@ public class ClientInboundHandler extends InboundHandler {
         for (StorageMessages.StoreChunkLocation chunkLocation : chunksLocations) {
             logger.info("[Client]Chunk:" + chunkLocation.getChunkId());
             for (StorageNodeInfo sn : chunkLocation.getSnInfoList()) {
-                logger.info("[Client]SN Ip: %s - Port: %d\n", sn.getSnIp(), sn.getSnPort());
+                logger.info("[Client]SN Ip: " + sn.getSnIp() + " - Port: " + sn.getSnPort());
 
                 /**
                  * TODO: Wait for response to send next request..
@@ -158,28 +158,32 @@ public class ClientInboundHandler extends InboundHandler {
     private void handleRetrieveFileResponse(StorageMessages.RetrieveFileResponse retrieveFileResponse) {
         logger.info("[Client] File ChunkId:" + retrieveFileResponse.getChunkId()
                 + " came from SnId:" + retrieveFileResponse.getSnId() + " for fileName:"
-                + retrieveFileResponse.getFileName());
+                + retrieveFileResponse.getFileName() + ", result: "
+                + retrieveFileResponse.getResult());
 
-        /**
-         * Write into output folder in the Client's File System.
-         */
-        String filePath = "output" + File.separator + retrieveFileResponse.getFileName();
-
-        /**
-         * We will merge into Appropriate space in file. 
-         */
-        byte[] data = retrieveFileResponse.getData().toByteArray();
-        long seek = (retrieveFileResponse.getChunkId() - 1)
-                * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
-
-        logger.info("[Client] Writing into File System with fileName:"
-                + retrieveFileResponse.getFileName() + "ChunkId:"
-                + retrieveFileResponse.getChunkId() + " seek:" + seek + " ,Data Size:"
-                + retrieveFileResponse.getData().size());
-        try {
-            Utils.writeDataIntoClientFileSystem(filePath, data, seek);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (retrieveFileResponse.getResult()) {
+            /**
+             * Write into output folder in the Client's File System.
+             */
+            String filePath = "output" + File.separator + retrieveFileResponse.getFileName();
+            /**
+             * We will merge into Appropriate space in file. 
+             */
+            byte[] data = retrieveFileResponse.getData().toByteArray();
+            long seek = (retrieveFileResponse.getChunkId() - 1)
+                    * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+            logger.info("[Client] Writing into File System with fileName:"
+                    + retrieveFileResponse.getFileName() + "ChunkId:"
+                    + retrieveFileResponse.getChunkId() + " seek:" + seek + " ,Data Size:"
+                    + retrieveFileResponse.getData().size());
+            try {
+                Utils.writeDataIntoClientFileSystem(filePath, data, seek);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            logger.debug("[Client] ChunkId:" + retrieveFileResponse.getChunkId()
+                    + " doesn't exist in this SN:" + retrieveFileResponse.getSnId());
         }
     }
 
@@ -196,8 +200,15 @@ public class ClientInboundHandler extends InboundHandler {
                     .getSnInfoList();
             for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
                 StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
-                logger.info("[Client]Sn.id:" + storageNodeInfo.getSnId());
-                logger.info("[Client]Sn.ip:" + storageNodeInfo.getSnIp());
+                logger.info("[Client]Sn.Id:" + storageNodeInfo.getSnId());
+                logger.info("[Client]Sn.Ip:" + storageNodeInfo.getSnIp());
+                logger.info("[Client]Sn.Port:" + storageNodeInfo.getSnPort());
+                logger.info("[Client]Sn.NumOfRetrievelRequest:"
+                        + storageNodeInfo.getNumOfRetrievelRequest());
+                logger.info("[Client]Sn.NumOfStorageRequest:"
+                        + storageNodeInfo.getNumOfStorageMessage());
+                logger.info("[Client]Sn.TotalFreeSpace:"
+                        + storageNodeInfo.getTotalFreeSpaceInBytes());
             }
         } else if (msg.hasFileLocation()) {
             StorageMessages.FileLocation fileLocationMsg = msg.getFileLocation();
