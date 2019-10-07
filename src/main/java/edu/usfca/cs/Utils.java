@@ -15,6 +15,9 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 //import javax.xml.bind.DatatypeConverter;
 
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
@@ -23,6 +26,8 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 
 public class Utils {
+
+    private static Logger logger = LogManager.getLogger(Utils.class);
 
     public static void printHeader(String header) {
         System.out.println("\n-----------------------");
@@ -73,7 +78,7 @@ public class Utils {
             //                    writer.close();
             outputStream = new FileOutputStream(filePath);
             outputStream.write(storeChunkMsg.getData().toByteArray());
-            System.out.println("Written chunk checksum: "
+            logger.debug("Written chunk checksum: "
                     + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
             outputStream.close();
 

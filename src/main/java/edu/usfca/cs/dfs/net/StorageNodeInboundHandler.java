@@ -48,9 +48,10 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        logger.info("[SN]Connection lost: " + addr);
+        logger.info("[SN" + mySnId + "] Connection lost: " + addr);
     }
 
     @Override
@@ -60,20 +61,17 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
     private void handleStoreChunkMsg(ChannelHandlerContext ctx,
                                      StorageMessages.StoreChunk storeChunkMsg) {
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
+
         DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalStorageRequest();
 
-        logger.info("[SN] ----------<<<<<<<<<< STORE CHUNK , FileName["
+        logger.info("[SN" + mySnId + "] ----------<<<<<<<<<< STORE CHUNK , FileName["
                 + storeChunkMsg.getFileName() + "] chunkId:[" + storeChunkMsg.getChunkId()
                 + "] PrimarySnId:[" + storeChunkMsg.getPrimarySnId()
                 + "]<<<<<<<<<<<<<<----------------");
         String dataChecksum = Utils.getMd5(storeChunkMsg.getData().toByteArray());
-        logger.info("Receive checksum: %s\n", storeChunkMsg.getChecksum());
-        logger.info("dataChecksum: %s\n", dataChecksum);
-
-
-        //Response to client, first node only
-        logger.info("[SN]Sending StoreChunk response message back to Client...");
-        
+        logger.info("[SN" + mySnId + "]Receive checksum: " + storeChunkMsg.getChecksum());
+        logger.info("[SN" + mySnId + "]dataChecksum: " + dataChecksum);
 
         /**
          * if successfully write into File System return sucess respnse
@@ -88,8 +86,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
         chan.flush();
         write.addListener(ChannelFutureListener.CLOSE);
 
-        logger.info("[SN] ---------->>>>>>>> STORE CHUNK RESPONSE For ChunkId"
-                + storeChunkMsg.getChunkId() + "] >>>>>>>>>>>--------------");
+        logger.info("[SN" + mySnId + "] ---------->>>>>>>> STORE CHUNK RESPONSE For ChunkId"
+                + storeChunkMsg.getChunkId() + "result:" + result + "] >>>>>>>>>>>--------------");
 
         if (result) {
             /** 
@@ -108,6 +106,9 @@ public class StorageNodeInboundHandler extends InboundHandler {
      * @return
      */
     private boolean writeIntoFileSystem(StorageMessages.StoreChunk storeChunkMsg) {
+
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
+
         boolean result = false;
         /**
          * 1-) Create Directory if not exists. bigdata/whoamI/primaryId/
@@ -188,7 +189,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
         ChannelFuture cf = Utils.connect(bootstrap, destinationIp, destinationPort);
-        for (int i = 0; listOfFiles!=null && i < listOfFiles.length; i++) {
+        for (int i = 0; listOfFiles != null && i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 File currFile = listOfFiles[i];
                 String fileNameInSystem = currFile.getName();
@@ -262,15 +263,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 Channel chan = cf.channel();
                 chan.write(msgWrapper);
                 chan.flush().closeFuture().syncUninterruptibly();
-                logger.info("[SN] ---------->>>>>>>> REPLICA To SN, snId["
-                        + nextSnNode.getSnId() + "] ,  snIp:[" + nextSnNode.getSnIp()
-                        + "] , snPort:[" + nextSnNode.getSnPort() + "] >>>>>>>>>>>--------------");
+                logger.info("[SN] ---------->>>>>>>> REPLICA To SN, snId[" + nextSnNode.getSnId()
+                        + "] ,  snIp:[" + nextSnNode.getSnIp() + "] , snPort:["
+                        + nextSnNode.getSnPort() + "] >>>>>>>>>>>--------------");
             }
         }
     }
 
     private void handleBackupRequest(ChannelHandlerContext ctx, StorageMessages.BackUp backUpMsg) {
-        System.out.printf("[SN]Send data of %s to backup node port %s!\n", backUpMsg.getSourceSnId(), backUpMsg.getDestinationPort());
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
+        System.out.printf("[SN" + mySnId + "]Send data of %s to backup node port %s!\n",
+                          backUpMsg.getSourceSnId(),
+                          backUpMsg.getDestinationPort());
         String destinationIp = backUpMsg.getDestinationIp();
         int destinationPort = backUpMsg.getDestinationPort();
         int sourceId = backUpMsg.getSourceSnId();
@@ -280,23 +284,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
     private void handleFileRetrieve(ChannelHandlerContext ctx,
                                     StorageMessages.StorageMessageWrapper msg) {
         DfsStorageNodeStarter.getInstance().getStorageNode().incrementTotalRetrievelRequest();
-
         StorageMessages.RetrieveFile retrieveFile = msg.getRetrieveFile();
         int chunkId = retrieveFile.getChunkId();
         int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
-
         /**
-         * TODO:
          * Retrieve chunk from File System.
          */
         String key = retrieveFile.getFileName() + "_" + chunkId;
         MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
                 .getFileChunkToMetaDataMap().get(key);
-
         if (metaDataOfChunk != null) {
-            logger.info("[SN] Retrieve File from Path:" + metaDataOfChunk.getPath());
-            logger.info("[SN]Receive chunk size: "+metaDataOfChunk.getChunksize());
-
+            logger.info("[SN" + mySnId + "] Retrieve File from Path:" + metaDataOfChunk.getPath());
+            logger.info("[SN" + mySnId + "] Receive chunk size: " + metaDataOfChunk.getChunksize());
             /**
              * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
              */
@@ -304,24 +303,20 @@ public class StorageNodeInboundHandler extends InboundHandler {
                     + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
                                                        0,
                                                        metaDataOfChunk.getChunksize());
-
             ByteString data = ByteString.copyFrom(chunkByteArray);
-
             //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
-
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
             logger.info("Receive checksum: %s\n", snWriteChecksum);
             logger.info("dataChecksum: %s\n", snReadChecksum);
 
             if (snReadChecksum.equalsIgnoreCase(snWriteChecksum)) {
-                System.out
-                        .println("[SN] Checksum TEST OK! for chunkId:" + retrieveFile.getChunkId());
+                logger.debug("[SN" + mySnId + "] Checksum TEST OK! for chunkId:"
+                        + retrieveFile.getChunkId());
             } else {
-                logger.info("[SN] PROBLEM with Checksum! for chunkId: "
+                logger.debug("[SN" + mySnId + "] PROBLEM with Checksum! for chunkId: "
                         + retrieveFile.getChunkId());
             }
-
             StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
                     .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
                     .setData(data).setSnId(mySnId).build();
@@ -332,29 +327,41 @@ public class StorageNodeInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
         } else {
-            logger.info("metaDataOfChunk is NULL! for chunkId:" + chunkId + " in snId:"
-                    + mySnId);
+            logger.info("[SN" + mySnId + "] MetaDataOfChunk is NULL! for chunkId:" + chunkId
+                    + " in snId:" + mySnId + "Chunk is not in this SN!");
+
+            StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
+                    .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
+                    .setData(null).setSnId(mySnId).setResult(false).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                    .newBuilder().setRetrieveFileResponse(response).build();
+            Channel chan = ctx.channel();
+            ChannelFuture write = chan.write(msgWrapper);
+            chan.flush();
+            write.addListener(ChannelFutureListener.CLOSE);
         }
     }
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        logger.info("[SN]Received msg!");
+        int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
+        logger.info("[SN" + mySnId + "]Received msg!");
         if (msg.hasStoreChunk()) {
             handleStoreChunkMsg(ctx, msg.getStoreChunk());
         } else if (msg.hasHeartBeatResponse()) {
             StorageMessages.HeartBeatResponse heartBeatResponse = msg.getHeartBeatResponse();
             DfsStorageNodeStarter.getInstance().getStorageNode()
                     .setSnId(heartBeatResponse.getSnId());
-            logger.info("[SN] Heart Beat Response came from Controller... from me. SN-Id:"
+            logger.info("[SN" + mySnId
+                    + "] Heart Beat Response came from Controller... from me. SN-Id:"
                     + heartBeatResponse.getSnId() + ", status:" + heartBeatResponse.getStatus());
             if (heartBeatResponse.getStatus() && DfsStorageNodeStarter.getInstance()
                     .getHeartBeatSenderTimerHandle() == null) {
-                logger.info("[SN] My SnId set to :" + heartBeatResponse.getSnId()
+                logger.info("[SN" + mySnId + "] My SnId set to :" + heartBeatResponse.getSnId()
                         + " by Controller. Saving it...");
                 DfsStorageNodeStarter.getInstance().getStorageNode()
                         .setSnId(heartBeatResponse.getSnId());
-                logger.info("[SN] Creating Timer for Heart Beats:"
+                logger.info("[SN" + mySnId + "] Creating Timer for Heart Beats:"
                         + heartBeatResponse.getSnId());
                 TimerManager.getInstance().scheduleHeartBeatTimer();
             } else if (heartBeatResponse.getStatus() == false) {
@@ -362,10 +369,10 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-            System.out
-                    .printf("[SN] Retrieve File Request came from Client with fileName: %s - chunkId: %d \n",
-                            msg.getRetrieveFile().getFileName(),
-                            msg.getRetrieveFile().getChunkId());
+            System.out.printf("[SN" + mySnId
+                    + "] Retrieve File Request came from Client with fileName: "
+                    + msg.getRetrieveFile().getFileName() + " - chunkId: "
+                    + msg.getRetrieveFile().getChunkId());
             handleFileRetrieve(ctx, msg);
         } else if (msg.hasStoreChunkResponse()) {
 

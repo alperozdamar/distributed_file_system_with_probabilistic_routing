@@ -68,6 +68,7 @@ message RetrieveFileResponse {
     int32 chunkId = 2;
     int32 snId=3;   
     bytes data = 4;
+    bool result = 5;
 }
 
 message StorageNodeInfo{

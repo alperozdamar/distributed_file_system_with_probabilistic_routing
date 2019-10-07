@@ -129,17 +129,17 @@ public class KeepAliveCheckTimerTask implements Runnable {
                 long currentTime = System.currentTimeMillis();
 
                 if (logger.isDebugEnabled()) {
-                    logger.info("SnId :" + snId + ",LastHeartBeatTime:"
-                            + storageNode.getLastHeartBeatTime() + ",currenTime:" + currentTime
-                            + ",timeout:" + timeOut);
-                    logger.info("(currentTime - timeOut) :" + (currentTime - timeOut));
-                    logger.debug("CurrenTime :" + currentTime);
-                    logger.debug("LastHeartBeatTime:" + storageNode.getLastHeartBeatTime());
-                    logger.debug("Timeout:" + timeOut);
-                    logger.debug("(currentTime - timeOut) :" + (currentTime - timeOut));
+                    //                    logger.debug("SnId :" + snId + ",LastHeartBeatTime:"
+                    //                            + storageNode.getLastHeartBeatTime() + ",currenTime:" + currentTime
+                    //                            + ",timeout:" + timeOut);
+                    //                    logger.debug("(currentTime - timeOut) :" + (currentTime - timeOut));
+                    //                    logger.debug("CurrenTime :" + currentTime);
+                    //                    logger.debug("LastHeartBeatTime:" + storageNode.getLastHeartBeatTime());
+                    //                    logger.debug("Timeout:" + timeOut);
+                    //                    logger.debug("(currentTime - timeOut) :" + (currentTime - timeOut));
                 }
                 if ((currentTime - timeOut) > storageNode.getLastHeartBeatTime()) {
-                    System.out.println("Timeout occured for SN[" + snId + "], No heart beat since "
+                    logger.error("Timeout occured for SN[" + snId + "], No heart beat since "
                             + timeOut + " milliseconds!");
                     storageNode.setStatus(Constants.STATUS_DOWN);
                     sqlManager.updateSNInformation(snId, Constants.STATUS_DOWN);
