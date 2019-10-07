@@ -536,8 +536,8 @@ public class SqlManager {
                 storageNode = new StorageNode();
                 sourceSnId = new ArrayList<>();
                 do {
-                    storageNode.setSnId(resultSet.getInt("snId"));
-                    sourceSnId.add(resultSet.getInt("replicaId"));
+                    storageNode.setSnId(resultSet.getInt("replicaId"));
+                    sourceSnId.add(resultSet.getInt("snId"));
                 } while (resultSet.next());
                 storageNode.setSourceSnIdList(sourceSnId);
             } else {

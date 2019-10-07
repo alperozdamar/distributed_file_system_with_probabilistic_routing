@@ -187,7 +187,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
         MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        for (int i = 0; i < listOfFiles.length; i++) {
+        ChannelFuture cf = Utils.connect(bootstrap, destinationIp, destinationPort);
+        for (int i = 0; listOfFiles!=null && i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 File currFile = listOfFiles[i];
                 String fileNameInSystem = currFile.getName();
@@ -197,7 +198,6 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .substring(fileNameInSystem.lastIndexOf("_") + 1));
                 byte[] chunkData = Utils
                         .readFromFile(currFile.getPath(), 0, (int) currFile.length());
-                ChannelFuture cf = Utils.connect(bootstrap, destinationIp, destinationPort);
                 StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
                         .setFileName(fileName).setChunkId(chunkId).setChunkSize(currFile.length())
                         .setData(ByteString.copyFrom(chunkData))
@@ -270,7 +270,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
     }
 
     private void handleBackupRequest(ChannelHandlerContext ctx, StorageMessages.BackUp backUpMsg) {
-        logger.info("[SN]Send data to backup node!");
+        System.out.printf("[SN]Send data of %s to backup node port %s!\n", backUpMsg.getSourceSnId(), backUpMsg.getDestinationPort());
         String destinationIp = backUpMsg.getDestinationIp();
         int destinationPort = backUpMsg.getDestinationPort();
         int sourceId = backUpMsg.getSourceSnId();

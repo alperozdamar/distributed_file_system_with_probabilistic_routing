@@ -22,7 +22,7 @@ public class HeartBeatSenderTimerTask implements Runnable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Heart Beat Timer triggered with snId :" + storageNode.getSnId());
             }
-            System.out.println("Heart Beat Timer triggered with snId :" + storageNode.getSnId());
+            logger.info("Heart Beat Timer triggered with snId :" + storageNode.getSnId());
             /**
              * SN will connect to the Controller
              */
@@ -38,7 +38,7 @@ public class HeartBeatSenderTimerTask implements Runnable {
             chan.write(msgWrapper);
             chan.flush();
 
-            System.out.println("[Controller] ---------->>>>>>>> HEART BEAT To Controller, snId["
+            logger.info("[Controller] ---------->>>>>>>> HEART BEAT To Controller, snId["
                     + heartBeat.getSnId() + "] >>>>>>>>>>>--------------");
 
         } catch (Exception e) {

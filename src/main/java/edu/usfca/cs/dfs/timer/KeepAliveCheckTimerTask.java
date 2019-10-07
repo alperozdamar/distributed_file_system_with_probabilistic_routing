@@ -73,6 +73,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
                         .setSourceSnId(snId).build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                         .newBuilder().setBackup(backUpMsg).build();
+                System.out.printf("Request data of %d send to replica: %d\n", snId, replicateId);
                 cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
                 break;
             }
@@ -83,6 +84,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
         downNode = sqlManager.getSourceReplicationSnId(snId);
         ArrayList<Integer> sourceIdList = downNode.getSourceSnIdList();
         for(int sourceId : sourceIdList){
+            System.out.println("Source Id: " + sourceId);
             StorageNode sourceNode = sqlManager.getSNInformationById(sourceId);
             String fromIp = "";
             int fromPort = 0;
@@ -109,6 +111,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
                         .setSourceSnId(sourceId).build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                         .newBuilder().setBackup(backUpMsg).build();
+                System.out.printf("Request data of %d send to source port %d\n",sourceId,fromPort);
                 cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
             } else {
                 System.out.printf("[Controller][BackUp] All source of data %d down!\n",sourceId);
@@ -124,7 +127,8 @@ public class KeepAliveCheckTimerTask implements Runnable {
             DfsControllerStarter dfsControllerStarter = DfsControllerStarter.getInstance();
             StorageNode storageNode = dfsControllerStarter.getStorageNodeHashMap()
                     .get(snId);
-            if (storageNode != null) {
+            //Only check if SN is OPERATIONAL
+            if (storageNode != null && storageNode.getStatus().equals(Constants.STATUS_OPERATIONAL)) {
                 SqlManager sqlManager = SqlManager.getInstance();
                 long currentTime = System.currentTimeMillis();
 
@@ -139,22 +143,32 @@ public class KeepAliveCheckTimerTask implements Runnable {
                     logger.debug("(currentTime - timeOut) :" + (currentTime - timeOut));
                 }
                 if ((currentTime - timeOut) > storageNode.getLastHeartBeatTime()) {
-                    logger.debug("Timeout occured for SN[" + snId + "], No heart beat since "
+                    System.out.println("Timeout occured for SN[" + snId + "], No heart beat since "
                             + timeOut + " milliseconds!");
                     storageNode.setStatus(Constants.STATUS_DOWN);
                     sqlManager.updateSNInformation(snId, Constants.STATUS_DOWN);
                     HashMap<Integer,StorageNode> availableSNs = sqlManager.getAllOperationalSNList();
-                    int lowerBound = (snId-2)%dfsControllerStarter.getStorageNodeHashMap().size();
-                    int upperBound = (snId+2)%dfsControllerStarter.getStorageNodeHashMap().size();
+                    int numOfSn = dfsControllerStarter.getStorageNodeHashMap().size();
+                    int lowerBound = Math.floorMod(snId-2,numOfSn) == 0
+                            ? numOfSn
+                            : Math.floorMod(snId-2,numOfSn);
+                    int upperBound = Math.floorMod(snId+2,numOfSn) == 0
+                            ? numOfSn
+                            : Math.floorMod(snId+2,numOfSn);
+                    System.out.println("Upper bound:" + upperBound);
+                    System.out.println("Lower bound:" + lowerBound);
                     if(lowerBound<upperBound){
                         for(int i=lowerBound;i<=upperBound;i++){
+                            System.out.println("Remove: "+i);
                             availableSNs.remove(i);
                         }
                     } else {
                         for(int i=lowerBound;i<=dfsControllerStarter.getStorageNodeHashMap().size();i++){
+                            System.out.println("Remove: "+i);
                             availableSNs.remove(i);
                         }
-                        for(int i=1;i<=lowerBound;i++) {
+                        for(int i=1;i<=upperBound;i++) {
+                            System.out.println("Remove: "+i);
                             availableSNs.remove(i);
                         }
                     }
