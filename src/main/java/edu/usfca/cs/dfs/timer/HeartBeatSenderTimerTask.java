@@ -17,10 +17,11 @@ public class HeartBeatSenderTimerTask implements Runnable {
     }
 
     public void run() {
+        StorageNode storageNode = DfsStorageNodeStarter.getInstance().getStorageNode();
         try {
-            StorageNode storageNode = DfsStorageNodeStarter.getInstance().getStorageNode();
             if (logger.isDebugEnabled()) {
-                logger.debug("Heart Beat Timer triggered with snId :" + storageNode.getSnId());
+                logger.debug("[SN" + storageNode.getSnId()
+                        + "]Heart Beat Timer triggered with snId :" + storageNode.getSnId());
             }
 
             /**
@@ -43,11 +44,12 @@ public class HeartBeatSenderTimerTask implements Runnable {
             chan.write(msgWrapper);
             chan.flush();
 
-            logger.info("[Controller] ---------->>>>>>>> HEART BEAT To Controller, snId["
-                    + heartBeat.getSnId() + "] >>>>>>>>>>>--------------");
+            logger.info("[SN" + storageNode.getSnId()
+                    + "] ---------->>>>>>>> HEART BEAT To Controller, snId[" + heartBeat.getSnId()
+                    + "] >>>>>>>>>>>--------------");
 
         } catch (Exception e) {
-            logger.error("Exception occured in HeartBeat:", e);
+            logger.error("[SN" + storageNode.getSnId() + "]Exception occured in HeartBeat:", e);
         }
     }
 }

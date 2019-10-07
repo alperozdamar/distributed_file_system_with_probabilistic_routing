@@ -307,8 +307,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
             //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
-            logger.info("Receive checksum: %s\n", snWriteChecksum);
-            logger.info("dataChecksum: %s\n", snReadChecksum);
+            logger.info("[SN" + mySnId + "]Receive checksum: " + snWriteChecksum);
+            logger.info("[SN" + mySnId + "]dataChecksum: " + snReadChecksum);
 
             if (snReadChecksum.equalsIgnoreCase(snWriteChecksum)) {
                 logger.debug("[SN" + mySnId + "] Checksum TEST OK! for chunkId:"

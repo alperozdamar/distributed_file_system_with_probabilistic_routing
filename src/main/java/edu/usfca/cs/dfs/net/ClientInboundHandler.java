@@ -196,8 +196,15 @@ public class ClientInboundHandler extends InboundHandler {
                     .getSnInfoList();
             for (Iterator iterator = snInfoList.iterator(); iterator.hasNext();) {
                 StorageNodeInfo storageNodeInfo = (StorageNodeInfo) iterator.next();
-                logger.info("[Client]Sn.id:" + storageNodeInfo.getSnId());
-                logger.info("[Client]Sn.ip:" + storageNodeInfo.getSnIp());
+                logger.info("[Client]Sn.Id:" + storageNodeInfo.getSnId());
+                logger.info("[Client]Sn.Ip:" + storageNodeInfo.getSnIp());
+                logger.info("[Client]Sn.Port:" + storageNodeInfo.getSnPort());
+                logger.info("[Client]Sn.NumOfRetrievelRequest:"
+                        + storageNodeInfo.getNumOfRetrievelRequest());
+                logger.info("[Client]Sn.NumOfStorageRequest:"
+                        + storageNodeInfo.getNumOfStorageMessage());
+                logger.info("[Client]Sn.TotalFreeSpace:"
+                        + storageNodeInfo.getTotalFreeSpaceInBytes());
             }
         } else if (msg.hasFileLocation()) {
             StorageMessages.FileLocation fileLocationMsg = msg.getFileLocation();
