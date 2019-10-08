@@ -86,6 +86,16 @@ message BackUp {
     int32 destinationPort = 3;
 }
 
+message HealMyChunk {
+    string fileName = 1;
+    int32 chunkId = 2;
+    int64 chunkSize = 3;       
+    int32 healSnId=4;
+    string healSnIp =5;
+    int32 healSnPort=6;
+    repeated StorageNodeInfo snInfo=7;
+}
+
 message StorageMessageWrapper {
     oneof msg {
         StoreChunk storeChunk = 1;
@@ -99,5 +109,6 @@ message StorageMessageWrapper {
         FileLocation fileLocation=9;
         BackUp backup = 10;
         RetrieveFileResponse retrieveFileResponse=11;
+        HealMyChunk healMyChunk=12;
     }
 }

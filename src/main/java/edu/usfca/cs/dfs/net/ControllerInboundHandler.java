@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import edu.usfca.cs.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsControllerStarter;
@@ -176,12 +176,13 @@ public class ControllerInboundHandler extends InboundHandler {
         StorageMessages.HeartBeat heartBeat = msg.getHeartBeatMsg();
         //Fix in here when SN go DOWN and OPERATIONAL again, it will receive old Id instead create new old
         int snId = heartBeat.getSnId();
-        if(snId==-1){
-            StorageNode sn = SqlManager.getInstance().getSnByIpAndPort(heartBeat.getSnIp(), heartBeat.getSnPort());
-            if(sn!=null){
+        if (snId == -1) {
+            StorageNode sn = SqlManager.getInstance().getSnByIpAndPort(heartBeat.getSnIp(),
+                                                                       heartBeat.getSnPort());
+            if (sn != null) {
                 System.out.println("SN in db");
                 snId = sn.getSnId();
-            } else{
+            } else {
                 System.out.println("SN not in db");
             }
         }
@@ -216,13 +217,15 @@ public class ControllerInboundHandler extends InboundHandler {
             storageNode.setTotalStorageRequest(heartBeat.getNumOfStorageMessage());
 
             //Receive Heartbeat from STATUS_DOWN node
-            if(storageNode.getStatus().equals(Constants.STATUS_DOWN)){
+            if (storageNode.getStatus().equals(Constants.STATUS_DOWN)) {
                 Utils.sendChunkOfSourceSnToDestinationSn(snId, snId);
             }
             storageNode.setStatus(Constants.STATUS_OPERATIONAL);
             SqlManager.getInstance().updateSNInformation(snId, Constants.STATUS_OPERATIONAL);
-            SqlManager.getInstance().updateSnStatistics(heartBeat.getNumOfRetrievelRequest(), heartBeat.getNumOfStorageMessage(),
-                    heartBeat.getTotalFreeSpaceInBytes(), snId);
+            SqlManager.getInstance().updateSnStatistics(heartBeat.getNumOfRetrievelRequest(),
+                                                        heartBeat.getNumOfStorageMessage(),
+                                                        heartBeat.getTotalFreeSpaceInBytes(),
+                                                        snId);
             SqlManager.getInstance().updateSNReplication(snId, -1);
         } else {
             /********************************************
@@ -327,6 +330,54 @@ public class ControllerInboundHandler extends InboundHandler {
         }
     }
 
+    private void askForMissingChunk(StorageMessages.HealMyChunk healMyChunk) {
+        String fileName = healMyChunk.getFileName();
+        int missingChunkId = healMyChunk.getChunkId();
+        logger.info("[Controller] Retrieve chunk locations for file:" + fileName + ", chunkId:"
+                + missingChunkId);
+        StorageMessages.FileMetadata fileMetadata = DfsControllerStarter.getInstance()
+                .getFileMetadataHashMap().get(fileName);
+
+        SqlManager sqlManager = SqlManager.getInstance();
+        HashMap<Integer, StorageNode> listSN = sqlManager
+                .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
+
+        /**
+         * TODO: Question-1)...
+         * What if we ask all SNs to heal the chunk???
+         * 
+         * 
+         */
+
+        //        boolean available = false;
+        //        for (Map.Entry<Integer, BloomFilter> snBloomFilter : DfsControllerStarter.getInstance()
+        //                .getBloomFilters().entrySet()) {
+        //            int snId = snBloomFilter.getKey();
+        //            BloomFilter bloomFilter = snBloomFilter.getValue();
+        //            if (bloomFilter.get((fileName + missingChunkId).getBytes())) {
+        //                available = true;
+        //                StorageNode sn = listSN.get(snId);
+        //                //Select backup node in case selected sn is die
+        //                if (sn == null) {
+        //                    int backupId = sqlManager.getSNInformationById(snId).getBackupId();
+        //                    sn = sqlManager.getSNInformationById(backupId);
+        //                }
+        //                StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
+        //                        .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
+        //                healMyChunkBuilder.addSnInfo(snInfo);
+        //            }
+        //        }
+        //        if (!available) {//TODO: chunk have no data in SN, return not found
+        //            logger.info("[Controller]Not Available");
+        //            fileLocationBuilder.setStatus(false);
+        //            break;
+        //        } else {
+        //            logger.info("[Controller]Available");
+        //            fileLocationBuilder.addChunksLocation(healMyChunkBuilder);
+        //        }
+
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         logger.info("[Controller]Received sth!");
@@ -361,6 +412,16 @@ public class ControllerInboundHandler extends InboundHandler {
              */
 
             handleListMsg(ctx);
+        } else if (msg.hasHealMyChunk()) {
+            StorageMessages.HealMyChunk healMyChunk = msg.getHealMyChunk();
+            String fileName = healMyChunk.getFileName();
+            int missingChunkId = healMyChunk.getChunkId();
+            logger.info("[Controller] ----------<<<<<<<<<< HEAL MY CHUNK MESSAGE From:SN["
+                    + healMyChunk.getHealSnId() + "] FileName:[" + fileName + "] MissingChunkId:["
+                    + missingChunkId + "]<<<<<<<<<<<<<<----------------");
+
+            askForMissingChunk(healMyChunk);
+
         }
 
     }
