@@ -408,7 +408,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         String controllerIp = ConfigurationManagerSn.getInstance().getControllerIp();
         int controllerPort = ConfigurationManagerSn.getInstance().getControllerPort();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
+        MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
         ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
@@ -474,7 +474,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .newBuilder().setStoreChunk(storeChunkMsgBuilder).build();
 
                 EventLoopGroup workerGroup = new NioEventLoopGroup();
-                MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
+                MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
                 Bootstrap bootstrap = new Bootstrap().group(workerGroup)
                         .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
                         .handler(pipeline);

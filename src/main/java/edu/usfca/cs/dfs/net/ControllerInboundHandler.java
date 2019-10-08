@@ -48,7 +48,7 @@ public class ControllerInboundHandler extends InboundHandler {
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
         InetSocketAddress localAaddr = (InetSocketAddress) ctx.channel().localAddress();
         logger.info("[Controller]Connection lost: " + addr);
-        NetUtils.getInstance(Constants.CLIENT).releasePort(localAaddr.getPort());
+        NetUtils.getInstance(Constants.CONTROLLER).releasePort(localAaddr.getPort());
     }
 
     @Override
