@@ -343,38 +343,34 @@ public class ControllerInboundHandler extends InboundHandler {
                 .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
 
         /**
-         * TODO: Question-1)...
-         * What if we ask all SNs to heal the chunk???
-         * 
-         * 
+         * TODO:Heal
          */
-
-        //        boolean available = false;
-        //        for (Map.Entry<Integer, BloomFilter> snBloomFilter : DfsControllerStarter.getInstance()
-        //                .getBloomFilters().entrySet()) {
-        //            int snId = snBloomFilter.getKey();
-        //            BloomFilter bloomFilter = snBloomFilter.getValue();
-        //            if (bloomFilter.get((fileName + missingChunkId).getBytes())) {
-        //                available = true;
-        //                StorageNode sn = listSN.get(snId);
-        //                //Select backup node in case selected sn is die
-        //                if (sn == null) {
-        //                    int backupId = sqlManager.getSNInformationById(snId).getBackupId();
-        //                    sn = sqlManager.getSNInformationById(backupId);
-        //                }
-        //                StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
-        //                        .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort()).build();
-        //                healMyChunkBuilder.addSnInfo(snInfo);
-        //            }
-        //        }
-        //        if (!available) {//TODO: chunk have no data in SN, return not found
-        //            logger.info("[Controller]Not Available");
-        //            fileLocationBuilder.setStatus(false);
-        //            break;
-        //        } else {
-        //            logger.info("[Controller]Available");
-        //            fileLocationBuilder.addChunksLocation(healMyChunkBuilder);
-        //        }
+        boolean available = false;
+        for (Map.Entry<Integer, BloomFilter> snBloomFilter : DfsControllerStarter.getInstance()
+                .getBloomFilters().entrySet()) {
+            int snId = snBloomFilter.getKey();
+            BloomFilter bloomFilter = snBloomFilter.getValue();
+            if (bloomFilter.get((fileName + missingChunkId).getBytes())) {
+                available = true;
+                StorageNode sn = listSN.get(snId);
+                //Select backup node in case selected sn is die
+                if (sn == null) {
+                    int backupId = sqlManager.getSNInformationById(snId).getBackupId();
+                    sn = sqlManager.getSNInformationById(backupId);
+                }
+            }
+        }
+        if (!available) {//TODO: chunk have no data in SN, return not found
+            logger.info("[Controller]Not Available");
+            /**
+             * TODO:
+             */
+        } else {
+            logger.info("[Controller]Available");
+            /**
+             * TODO:
+             */
+        }
 
     }
 

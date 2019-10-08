@@ -92,8 +92,7 @@ message HealMyChunk {
     int64 chunkSize = 3;       
     int32 healSnId=4;
     string healSnIp =5;
-    int32 healSnPort=6;
-    repeated StorageNodeInfo snInfo=7;
+    int32 healSnPort=6;    
 }
 
 message StorageMessageWrapper {

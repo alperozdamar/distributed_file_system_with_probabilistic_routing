@@ -7,30 +7,26 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
 
-import edu.usfca.cs.db.SqlManager;
-import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.StorageMessages;
-import edu.usfca.cs.dfs.net.NetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.usfca.cs.db.SqlManager;
+import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
+import edu.usfca.cs.dfs.net.NetUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -264,7 +260,7 @@ public class Utils {
     //        logger.info("DestCheckSum=" + destChecksum);
     //    }
 
-    public static void sendChunkOfSourceSnToDestinationSn(int sourceSnId, int destinationSnId){
+    public static void sendChunkOfSourceSnToDestinationSn(int sourceSnId, int destinationSnId) {
         SqlManager sqlManager = SqlManager.getInstance();
         //Backup data of current node
         //Send current down SN data to backup ID
@@ -281,13 +277,17 @@ public class Utils {
             if (snNode.getStatus().equals("DOWN")) {
                 continue;
             } else {
-                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, snNode.getSnIp(), snNode.getSnPort());
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
+                        .connect(bootstrap, snNode.getSnIp(), snNode.getSnPort());
                 StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
                         .setDestinationIp(destinationNode.getSnIp())
-                        .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceSnId).build();
+                        .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceSnId)
+                        .build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                         .newBuilder().setBackup(backUpMsg).build();
-                System.out.printf("Request data of %d send to replica: %d\n", sourceSnId, replicateId);
+                System.out.printf("Request data of %d send to replica: %d\n",
+                                  sourceSnId,
+                                  replicateId);
                 cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
                 break;
             }
@@ -319,10 +319,12 @@ public class Utils {
                 fromPort = sourceNode.getSnPort();
             }
             if (!fromIp.isEmpty() && fromPort != 0) {
-                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, fromIp, fromPort);
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
+                        .connect(bootstrap, fromIp, fromPort);
                 StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
                         .setDestinationIp(destinationNode.getSnIp())
-                        .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceId).build();
+                        .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceId)
+                        .build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                         .newBuilder().setBackup(backUpMsg).build();
                 System.out
@@ -334,6 +336,40 @@ public class Utils {
         }
 
         workerGroup.shutdownGracefully();
+    }
+
+    public static int parsePathToGetPrimarySnId(String path) {
+        try {
+
+            logger.debug("Parsing path for primary Sn id.");
+
+            String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            String whoamI = System.getProperty("user.name");
+            directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                    + File.separator + whoamI + File.separator;
+
+            //            System.out.println(directoryPath.length());
+            //            System.out.println(path.length());
+
+            path = path.substring(directoryPath.length(), path.length());
+
+            int result = Integer.parseInt(path);
+
+            return result;
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public static void main(String[] args) {
+
+        String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String whoamI = System.getProperty("user.name");
+        directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                + File.separator + whoamI + File.separator;
+
+        System.out.println(parsePathToGetPrimarySnId(directoryPath + "130"));
     }
 
 }

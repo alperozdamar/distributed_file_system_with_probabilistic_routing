@@ -1,5 +1,7 @@
 package edu.usfca.cs.dfs.net;
 
+import static edu.usfca.cs.Utils.getMd5;
+
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
@@ -328,7 +330,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 /**
                 * 1-) Send Error message to Client for this chunkId!
                 * 2-) Delete existing chunkId from file system and remove from hashmap.
-                * 3-) Send RecoverChunk(snId,filename,chunkId) message to Controller!
+                * 3-) Send HealMyChunk(snId,filename,chunkId) message to Controller!
                 */
                 handleHealMyMissingChunk(ctx, retrieveFile.getFileName(), chunkId, mySnId);
 
@@ -446,7 +448,6 @@ public class StorageNodeInboundHandler extends InboundHandler {
                                                        0,
                                                        metaDataOfChunk.getChunksize());
             ByteString data = ByteString.copyFrom(chunkByteArray);
-            //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
             logger.info("[SN" + mySnId + "]Receive checksum: " + snWriteChecksum);
@@ -457,11 +458,41 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
                 /**
                  * Send StoreChunkMessage to other SN...
+                 * TODO:Heal..
                  */
 
-                /**
-                 * TODO:QUESTION???
-                 */
+                int primarySnId = Utils.parsePathToGetPrimarySnId(metaDataOfChunk.getPath());
+
+                logger.debug("[SN" + mySnId + "] primarySnId: " + primarySnId);
+
+                StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
+                        .newBuilder().setFileName(healFileName).setPrimarySnId(primarySnId) //?? get from hashmap
+                        .setChunkId(healChunkId).setData(data).setChecksum(getMd5(chunkByteArray));
+                StorageMessages.StorageNodeInfo healedSnInfo = StorageMessages.StorageNodeInfo
+                        .newBuilder().setSnIp(healMyChunk.getHealSnIp())
+                        .setSnPort(healMyChunk.getHealSnPort()).build();
+                storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(healedSnInfo);
+
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                        .newBuilder().setStoreChunk(storeChunkMsgBuilder).build();
+
+                EventLoopGroup workerGroup = new NioEventLoopGroup();
+                MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
+                Bootstrap bootstrap = new Bootstrap().group(workerGroup)
+                        .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
+                        .handler(pipeline);
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
+                        .connect(bootstrap,
+                                 ConfigurationManagerSn.getInstance().getControllerIp(),
+                                 ConfigurationManagerSn.getInstance().getControllerPort());
+                Channel controllerChannel = cf.channel();
+                controllerChannel.write(msgWrapper);
+                controllerChannel.flush();
+
+                logger.info("[SN" + mySnId + "] ---------->>>>>>>> STORE CHUNK MESSAGE(HEAL) To SN["
+                        + healedSnInfo.getSnId() + "], chunkId[" + healChunkId + "], controllerIp["
+                        + healMyChunk.getHealSnIp() + "], controllerPort:["
+                        + healMyChunk.getHealSnPort() + "] >>>>>>>>>>>--------------");
 
             } else {
                 logger.error("[SN" + mySnId + "] PROBLEM with Checksum! for chunkId: "
