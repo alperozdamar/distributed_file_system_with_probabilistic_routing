@@ -2,9 +2,12 @@ package edu.usfca.cs.dfs;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledFuture;
 
+import edu.usfca.cs.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -53,6 +56,27 @@ public class DfsStorageNodeStarter {
         }
     }
 
+    private void deleteStorageDirectory(){
+
+        String directoryPath = null;
+        try {
+            logger.info("Working Directory = " + System.getProperty("user.dir"));
+            directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            String whoamI = System.getProperty("user.name");
+            directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                    + File.separator + whoamI;
+
+            logger.info("Path:" + directoryPath);
+            File directory = new File(directoryPath);
+            if (directory.exists()) {
+                Utils.deleteDirectory(directory);
+                logger.info("[SN] Clear directory");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void start() throws IOException {
 
         try {
@@ -66,6 +90,7 @@ public class DfsStorageNodeStarter {
                                           -1);
 
             System.out.println(storageNode.toString());
+            this.deleteStorageDirectory();
 
             //InetAddress myLocalIp = InetAddress.getLocalHost();
             //System.out.println("System IP Address : " + (myLocalIp.getHostAddress()).trim());

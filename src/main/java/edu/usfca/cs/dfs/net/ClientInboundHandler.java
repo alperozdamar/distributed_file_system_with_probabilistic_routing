@@ -80,7 +80,7 @@ public class ClientInboundHandler extends InboundHandler {
         } else {
             chunk = readFromFile(DfsClientStarter.getInstance().getFileInfo(),
                                  (int) (configChunkSize * (chunkLocationMsg.getChunkId() - 1)),
-                                 (int) chunkLocationMsg.getChunkSize());
+                                 (int) chunkLocationMsg.getChunkSize(), false);
         }
         logger.info("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
         logger.info("[Client] Chunk checksum: " + getMd5(chunk));

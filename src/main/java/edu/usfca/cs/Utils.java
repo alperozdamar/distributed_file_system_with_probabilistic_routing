@@ -1,5 +1,6 @@
 package edu.usfca.cs;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,6 +13,8 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
@@ -43,15 +46,23 @@ public class Utils {
         logger.info(header);
     }
 
-    public static byte[] readFromFile(String filePath, int seek, int chunkSize) {
+    public static byte[] readFromFile(String filePath, int seek, int chunkSize, boolean compress) {
         logger.info("seek:" + seek);
         RandomAccessFile file = null;
         try {
             file = new RandomAccessFile(filePath, "r");
             file.seek(seek);
             byte[] bytes = new byte[chunkSize];
+            if (compress) {
+                bytes = new byte[(int) file.length()];
+            }
 
             file.read(bytes);
+            if (compress) {
+                if (file.length() < chunkSize) {
+                    bytes = decompress(bytes);
+                }
+            }
             file.close();
             return bytes;
         } catch (FileNotFoundException e) {
@@ -59,7 +70,7 @@ public class Utils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return new byte[0];
     }
 
     public static boolean writeChunkIntoFileInStorageNode(String directory,
@@ -69,7 +80,8 @@ public class Utils {
         FileOutputStream outputStream;
         try {
             outputStream = new FileOutputStream(filePath);
-            outputStream.write(storeChunkMsg.getData().toByteArray());
+            byte[] bytes = compressChunk(storeChunkMsg.getData().toByteArray());
+            outputStream.write(bytes);
             logger.debug("Written chunk checksum: "
                     + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
             outputStream.close();
@@ -170,6 +182,24 @@ public class Utils {
             }
             byte[] compressedData = byteStream.toByteArray();
             return compressedData;
+        }
+        return chunk;
+    }
+
+    public static byte[] decompress(byte[] chunk) {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(chunk);
+                GZIPInputStream gis = new GZIPInputStream(byteArrayInputStream)) {
+            byte[] buffer = new byte[1024];
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            int len;
+            while ((len = gis.read(buffer)) > 0) {
+                byteArrayOutputStream.write(buffer, 0, len);
+            }
+            gis.close();
+            byteArrayOutputStream.close();
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return chunk;
     }
@@ -370,6 +400,40 @@ public class Utils {
                 + File.separator + whoamI + File.separator;
 
         System.out.println(parsePathToGetPrimarySnId(directoryPath + "130"));
+    }
+
+    public static void sendDeleteMessageToBackUpNode(int snId) {
+        StorageNode sn = SqlManager.getInstance().getSNInformationById(snId);
+        StorageNode backupSn = SqlManager.getInstance().getSNInformationById(sn.getBackupId());
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
+        List<Integer> idsOfData = new ArrayList<>();
+        idsOfData.add(snId);
+        sn = SqlManager.getInstance().getSourceReplicationSnId(snId);
+        for (int id : sn.getSourceSnIdList()) {
+            idsOfData.add(id);
+        }
+
+        ChannelFuture cf = NetUtils.getInstance(Constants.CONTROLLER)
+                .connect(bootstrap, backupSn.getSnIp(), backupSn.getSnPort());
+        StorageMessages.DeleteBackUp.Builder deleteBackUpBuilder = StorageMessages.DeleteBackUp
+                .newBuilder();
+        deleteBackUpBuilder.addAllListSnId(idsOfData);
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setDeleteBackUp(deleteBackUpBuilder).build();
+        cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
+    }
+
+    public static void deleteDirectory(File file) {
+        File[] contents = file.listFiles();
+        if (contents != null) {
+            for (File f : contents) {
+                deleteDirectory(f);
+            }
+        }
+        file.delete();
     }
 
 }

@@ -74,7 +74,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 + "] PrimarySnId:[" + storeChunkMsg.getPrimarySnId()
                 + "]<<<<<<<<<<<<<<----------------");
         String dataChecksum = Utils.getMd5(storeChunkMsg.getData().toByteArray());
-        logger.info("[SN" + mySnId + "]Receive checksum: " + storeChunkMsg.getChecksum());
+        System.out.println("[SN" + mySnId + "]Receive checksum: " + storeChunkMsg.getChecksum());
         logger.info("[SN" + mySnId + "]dataChecksum: " + dataChecksum);
 
         /**
@@ -189,13 +189,13 @@ public class StorageNodeInboundHandler extends InboundHandler {
         File folder = new File(directoryPath);
         File[] listOfFiles = folder.listFiles();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+        MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
-                .connect(bootstrap, destinationIp, destinationPort);
         for (int i = 0; listOfFiles != null && i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
+                        .connect(bootstrap, destinationIp, destinationPort);
                 File currFile = listOfFiles[i];
                 String fileNameInSystem = currFile.getName();
                 logger.info("File " + fileNameInSystem);
@@ -203,7 +203,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 int chunkId = Integer.parseInt(fileNameInSystem
                         .substring(fileNameInSystem.lastIndexOf("_") + 1));
                 byte[] chunkData = Utils
-                        .readFromFile(currFile.getPath(), 0, (int) currFile.length());
+                        .readFromFile(currFile.getPath(), 0, (int) currFile.length(), true);
                 StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
                         .setFileName(fileName).setChunkId(chunkId).setChunkSize(currFile.length())
                         .setData(ByteString.copyFrom(chunkData))
@@ -244,7 +244,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 StorageMessages.StorageNodeInfo nextSnNode = newSnList.get(0);
                 //Send chunk to SN
                 EventLoopGroup workerGroup = new NioEventLoopGroup();
-                MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
+                MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
                 Bootstrap bootstrap = new Bootstrap().group(workerGroup)
                         .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
                         .handler(pipeline);
@@ -310,7 +310,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
             byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath() + File.separator
                     + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
                                                        0,
-                                                       metaDataOfChunk.getChunksize());
+                                                       metaDataOfChunk.getChunksize(), true);
             ByteString data = ByteString.copyFrom(chunkByteArray);
             //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
             String snReadChecksum = Utils.getMd5(chunkByteArray);
@@ -345,7 +345,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
         } else {
-            logger.info("[SN" + mySnId + "] MetaDataOfChunk is NULL! for chunkId:" + chunkId
+            System.out.println("[SN" + mySnId + "] MetaDataOfChunk is NULL! for chunkId:" + chunkId
                     + " in snId:" + mySnId + "Chunk is not in this SN!");
         }
     }
@@ -356,7 +356,6 @@ public class StorageNodeInboundHandler extends InboundHandler {
      * 3-) Send RecoverChunk(snId,filename,chunkId) message to Controller! 
      * 
      * @param ctx
-     * @param retrieveFile
      * @param chunkId
      * @param mySnId
      */
@@ -446,7 +445,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
             byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath() + File.separator
                     + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
                                                        0,
-                                                       metaDataOfChunk.getChunksize());
+                                                       metaDataOfChunk.getChunksize(), true);
             ByteString data = ByteString.copyFrom(chunkByteArray);
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
@@ -506,7 +505,23 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 */
                 handleHealMyMissingChunk(ctx, healFileName, healChunkId, mySnId);
             }
+        }
+    }
 
+    private void handleDeleteBackUpMsg(StorageMessages.DeleteBackUp deleteBackUpMsg){
+        List<Integer> ids = deleteBackUpMsg.getListSnIdList();
+        logger.info("Working Directory = " + System.getProperty("user.dir"));
+        String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String whoamI = System.getProperty("user.name");
+        directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                + File.separator + whoamI;
+
+        logger.info("Path:" + directoryPath);
+        for(int id : ids){
+            String pathById = directoryPath + File.separator + id;
+            System.out.println("Delete path: "+pathById);
+            File directory = new File(directoryPath);
+            Utils.deleteDirectory(directory);
         }
     }
 
@@ -537,7 +552,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-            System.out.printf("[SN" + mySnId
+            System.out.println("[SN" + mySnId
                     + "] Retrieve File Request came from Client with fileName: "
                     + msg.getRetrieveFile().getFileName() + " - chunkId: "
                     + msg.getRetrieveFile().getChunkId());
@@ -558,6 +573,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                     + "]<<<<<<<<<<<<<<----------------");
 
             helpOtherSnToHealChunk(ctx, mySnId, healMyChunk);
+        } else if(msg.hasDeleteBackUp()){
+            handleDeleteBackUpMsg(msg.getDeleteBackUp());
         }
     }
 

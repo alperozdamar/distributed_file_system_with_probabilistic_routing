@@ -109,12 +109,13 @@ public class SqlManager {
                 storageNode = new StorageNode();
                 do {
                     storageNode.setSnId(resultSet.getInt("snId"));
-                    storageNode.setSnIp(resultSet.getString("snIP"));
+                    storageNode.setSnIp(resultSet.getString("snIp"));
                     storageNode.setSnPort(resultSet.getInt("snPort"));
                     storageNode.setTotalFreeSpace(resultSet.getLong("totalFreeSpace"));
                     storageNode.setTotalStorageRequest(resultSet.getInt("totalStorageReq"));
                     storageNode.setTotalRetrievelRequest(resultSet.getInt("totalRetrievelReq"));
                     storageNode.setStatus(resultSet.getString("status"));
+                    storageNode.setBackupId(resultSet.getInt("backupId"));
                 } while (resultSet.next());
             } else {
                 logger.debug("Storage Node can not be found in DB.");
@@ -398,7 +399,7 @@ public class SqlManager {
                         storageNode = new StorageNode();
                         storageNode.setSnId(snId);
                         storageNode.setStatus(resultSet.getString("status"));
-                        storageNode.setSnIp(resultSet.getString("snIP"));
+                        storageNode.setSnIp(resultSet.getString("snIp"));
                         storageNode.setSnPort(resultSet.getInt("snPort"));
                         storageNode.setTotalFreeSpace(resultSet.getLong("totalFreeSpace"));
                         storageNode.setTotalStorageRequest(resultSet.getInt("totalStorageReq"));
@@ -626,7 +627,7 @@ public class SqlManager {
                 storageNode = new StorageNode();
                 do {
                     storageNode.setSnId(resultSet.getInt("snId"));
-                    storageNode.setSnIp(resultSet.getString("snIP"));
+                    storageNode.setSnIp(resultSet.getString("snIp"));
                     storageNode.setSnPort(resultSet.getInt("snPort"));
                     storageNode.setTotalFreeSpace(resultSet.getLong("totalFreeSpace"));
                     storageNode.setTotalStorageRequest(resultSet.getInt("totalStorageReq"));
