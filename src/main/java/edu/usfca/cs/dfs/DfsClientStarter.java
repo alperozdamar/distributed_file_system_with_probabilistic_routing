@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
@@ -33,6 +34,16 @@ public class DfsClientStarter {
     private int numOfSentChunk = -1;
 
     private String                       fileInfo  = "";
+
+    private HashSet<Integer> retrieveChunkIds = new HashSet<>();
+
+    public HashSet<Integer> getRetrieveChunkIds() {
+        return retrieveChunkIds;
+    }
+
+    public void setRetrieveChunkIds(HashSet<Integer> retrieveChunkIds) {
+        this.retrieveChunkIds = retrieveChunkIds;
+    }
 
     public String getFileInfo() {
         return fileInfo;
@@ -88,8 +99,7 @@ public class DfsClientStarter {
                 .newBuilder().setList(listMsm).build();
         Channel chan = cf.channel();
         chan.write(msgWrapper);
-        chan.flush();
-        chan.closeFuture().syncUninterruptibly();
+        chan.flush().closeFuture().syncUninterruptibly();
     }
 
     private void storeFile(Bootstrap bootstrap) {
@@ -143,6 +153,9 @@ public class DfsClientStarter {
                     .setStoreChunk(storeChunkMsg).build();
             channels[currThread++ % thread].writeAndFlush(msgWrapper).syncUninterruptibly();
         }
+        for (int i = 0; i < thread; i++) {
+            channels[i].closeFuture().syncUninterruptibly();
+        }
     }
 
     private void retrieveFile(Bootstrap bootstrap) {
@@ -161,7 +174,8 @@ public class DfsClientStarter {
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setRetrieveFile(retrieveFileMsg).build();
         Channel chan = cf.channel();
-        chan.writeAndFlush(msgWrapper).syncUninterruptibly();
+        chan.write(msgWrapper);
+        chan.flush().closeFuture().syncUninterruptibly();
     }
 
     public static void main(String[] args) {

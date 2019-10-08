@@ -152,7 +152,7 @@ public class ControllerInboundHandler extends InboundHandler {
                                                         sn.getSnId());
         }
 
-        snMap = SqlManager.getInstance().getAllSNByStatusList(null);
+        snMap = SqlManager.getInstance().getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
 
         for (StorageNode sn : snMap.values()) {
             StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo.newBuilder()
@@ -167,7 +167,6 @@ public class ControllerInboundHandler extends InboundHandler {
             Channel chan = ctx.channel();
             ChannelFuture write = chan.write(msgWrapper);
             chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
         }
 
     }
