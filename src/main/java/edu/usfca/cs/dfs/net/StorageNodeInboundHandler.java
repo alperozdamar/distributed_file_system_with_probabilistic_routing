@@ -307,10 +307,9 @@ public class StorageNodeInboundHandler extends InboundHandler {
             /**
              * TODO: Actually we don't need RandomAccessFile to read chunk. Think about it!
              */
-            byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath() + File.separator
-                    + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
-                                                       0,
-                                                       metaDataOfChunk.getChunksize(), true);
+            byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath()
+                    + File.separator + metaDataOfChunk.getFileName() + "_"
+                    + metaDataOfChunk.getChunkId(), 0, metaDataOfChunk.getChunksize(), true);
             ByteString data = ByteString.copyFrom(chunkByteArray);
             //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
             String snReadChecksum = Utils.getMd5(chunkByteArray);
@@ -366,8 +365,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
          * 1-) Send Error message to Client for this chunkId! 
          */
         StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
-                .newBuilder().setChunkId(chunkId).setFileName(fileName).setData(null)
-                .setSnId(mySnId).setResult(false).build();
+                .newBuilder().setChunkId(chunkId).setFileName(fileName).setSnId(mySnId)
+                .setResult(false).build();
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                 .newBuilder().setRetrieveFileResponse(response).build();
         Channel chan = ctx.channel();
@@ -442,10 +441,9 @@ public class StorageNodeInboundHandler extends InboundHandler {
             logger.info("[SN" + mySnId + "] Retrieve File from Path:" + metaDataOfChunk.getPath());
             logger.info("[SN" + mySnId + "] Receive chunk size: " + metaDataOfChunk.getChunksize());
 
-            byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath() + File.separator
-                    + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
-                                                       0,
-                                                       metaDataOfChunk.getChunksize(), true);
+            byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath()
+                    + File.separator + metaDataOfChunk.getFileName() + "_"
+                    + metaDataOfChunk.getChunkId(), 0, metaDataOfChunk.getChunksize(), true);
             ByteString data = ByteString.copyFrom(chunkByteArray);
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
@@ -508,7 +506,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         }
     }
 
-    private void handleDeleteBackUpMsg(StorageMessages.DeleteBackUp deleteBackUpMsg){
+    private void handleDeleteBackUpMsg(StorageMessages.DeleteBackUp deleteBackUpMsg) {
         List<Integer> ids = deleteBackUpMsg.getListSnIdList();
         logger.info("Working Directory = " + System.getProperty("user.dir"));
         String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
@@ -517,9 +515,9 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 + File.separator + whoamI;
 
         logger.info("Path:" + directoryPath);
-        for(int id : ids){
+        for (int id : ids) {
             String pathById = directoryPath + File.separator + id;
-            System.out.println("Delete path: "+pathById);
+            System.out.println("Delete path: " + pathById);
             File directory = new File(directoryPath);
             Utils.deleteDirectory(directory);
         }
@@ -573,7 +571,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                     + "]<<<<<<<<<<<<<<----------------");
 
             helpOtherSnToHealChunk(ctx, mySnId, healMyChunk);
-        } else if(msg.hasDeleteBackUp()){
+        } else if (msg.hasDeleteBackUp()) {
             handleDeleteBackUpMsg(msg.getDeleteBackUp());
         }
     }
