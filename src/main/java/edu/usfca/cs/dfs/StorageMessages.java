@@ -10163,6 +10163,600 @@ public final class StorageMessages {
 
   }
 
+  public interface DeleteBackUpOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:DeleteBackUp)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated int32 listSnId = 1;</code>
+     */
+    java.util.List<java.lang.Integer> getListSnIdList();
+    /**
+     * <code>repeated int32 listSnId = 1;</code>
+     */
+    int getListSnIdCount();
+    /**
+     * <code>repeated int32 listSnId = 1;</code>
+     */
+    int getListSnId(int index);
+  }
+  /**
+   * Protobuf type {@code DeleteBackUp}
+   */
+  public  static final class DeleteBackUp extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:DeleteBackUp)
+      DeleteBackUpOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use DeleteBackUp.newBuilder() to construct.
+    private DeleteBackUp(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private DeleteBackUp() {
+      listSnId_ = emptyIntList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DeleteBackUp();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DeleteBackUp(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 8: {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                listSnId_ = newIntList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              listSnId_.addInt(input.readInt32());
+              break;
+            }
+            case 10: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                listSnId_ = newIntList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                listSnId_.addInt(input.readInt32());
+              }
+              input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          listSnId_.makeImmutable(); // C
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return edu.usfca.cs.dfs.StorageMessages.internal_static_DeleteBackUp_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return edu.usfca.cs.dfs.StorageMessages.internal_static_DeleteBackUp_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.class, edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder.class);
+    }
+
+    public static final int LISTSNID_FIELD_NUMBER = 1;
+    private com.google.protobuf.Internal.IntList listSnId_;
+    /**
+     * <code>repeated int32 listSnId = 1;</code>
+     */
+    public java.util.List<java.lang.Integer>
+        getListSnIdList() {
+      return listSnId_;
+    }
+    /**
+     * <code>repeated int32 listSnId = 1;</code>
+     */
+    public int getListSnIdCount() {
+      return listSnId_.size();
+    }
+    /**
+     * <code>repeated int32 listSnId = 1;</code>
+     */
+    public int getListSnId(int index) {
+      return listSnId_.getInt(index);
+    }
+    private int listSnIdMemoizedSerializedSize = -1;
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (getListSnIdList().size() > 0) {
+        output.writeUInt32NoTag(10);
+        output.writeUInt32NoTag(listSnIdMemoizedSerializedSize);
+      }
+      for (int i = 0; i < listSnId_.size(); i++) {
+        output.writeInt32NoTag(listSnId_.getInt(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < listSnId_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt32SizeNoTag(listSnId_.getInt(i));
+        }
+        size += dataSize;
+        if (!getListSnIdList().isEmpty()) {
+          size += 1;
+          size += com.google.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        listSnIdMemoizedSerializedSize = dataSize;
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof edu.usfca.cs.dfs.StorageMessages.DeleteBackUp)) {
+        return super.equals(obj);
+      }
+      edu.usfca.cs.dfs.StorageMessages.DeleteBackUp other = (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) obj;
+
+      if (!getListSnIdList()
+          .equals(other.getListSnIdList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getListSnIdCount() > 0) {
+        hash = (37 * hash) + LISTSNID_FIELD_NUMBER;
+        hash = (53 * hash) + getListSnIdList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(edu.usfca.cs.dfs.StorageMessages.DeleteBackUp prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code DeleteBackUp}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:DeleteBackUp)
+        edu.usfca.cs.dfs.StorageMessages.DeleteBackUpOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return edu.usfca.cs.dfs.StorageMessages.internal_static_DeleteBackUp_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return edu.usfca.cs.dfs.StorageMessages.internal_static_DeleteBackUp_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.class, edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder.class);
+      }
+
+      // Construct using edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        listSnId_ = emptyIntList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return edu.usfca.cs.dfs.StorageMessages.internal_static_DeleteBackUp_descriptor;
+      }
+
+      @java.lang.Override
+      public edu.usfca.cs.dfs.StorageMessages.DeleteBackUp getDefaultInstanceForType() {
+        return edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public edu.usfca.cs.dfs.StorageMessages.DeleteBackUp build() {
+        edu.usfca.cs.dfs.StorageMessages.DeleteBackUp result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public edu.usfca.cs.dfs.StorageMessages.DeleteBackUp buildPartial() {
+        edu.usfca.cs.dfs.StorageMessages.DeleteBackUp result = new edu.usfca.cs.dfs.StorageMessages.DeleteBackUp(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) != 0)) {
+          listSnId_.makeImmutable();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.listSnId_ = listSnId_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) {
+          return mergeFrom((edu.usfca.cs.dfs.StorageMessages.DeleteBackUp)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(edu.usfca.cs.dfs.StorageMessages.DeleteBackUp other) {
+        if (other == edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance()) return this;
+        if (!other.listSnId_.isEmpty()) {
+          if (listSnId_.isEmpty()) {
+            listSnId_ = other.listSnId_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureListSnIdIsMutable();
+            listSnId_.addAll(other.listSnId_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        edu.usfca.cs.dfs.StorageMessages.DeleteBackUp parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private com.google.protobuf.Internal.IntList listSnId_ = emptyIntList();
+      private void ensureListSnIdIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          listSnId_ = mutableCopy(listSnId_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated int32 listSnId = 1;</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getListSnIdList() {
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(listSnId_) : listSnId_;
+      }
+      /**
+       * <code>repeated int32 listSnId = 1;</code>
+       */
+      public int getListSnIdCount() {
+        return listSnId_.size();
+      }
+      /**
+       * <code>repeated int32 listSnId = 1;</code>
+       */
+      public int getListSnId(int index) {
+        return listSnId_.getInt(index);
+      }
+      /**
+       * <code>repeated int32 listSnId = 1;</code>
+       */
+      public Builder setListSnId(
+          int index, int value) {
+        ensureListSnIdIsMutable();
+        listSnId_.setInt(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int32 listSnId = 1;</code>
+       */
+      public Builder addListSnId(int value) {
+        ensureListSnIdIsMutable();
+        listSnId_.addInt(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int32 listSnId = 1;</code>
+       */
+      public Builder addAllListSnId(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureListSnIdIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, listSnId_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int32 listSnId = 1;</code>
+       */
+      public Builder clearListSnId() {
+        listSnId_ = emptyIntList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:DeleteBackUp)
+    }
+
+    // @@protoc_insertion_point(class_scope:DeleteBackUp)
+    private static final edu.usfca.cs.dfs.StorageMessages.DeleteBackUp DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new edu.usfca.cs.dfs.StorageMessages.DeleteBackUp();
+    }
+
+    public static edu.usfca.cs.dfs.StorageMessages.DeleteBackUp getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DeleteBackUp>
+        PARSER = new com.google.protobuf.AbstractParser<DeleteBackUp>() {
+      @java.lang.Override
+      public DeleteBackUp parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteBackUp(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DeleteBackUp> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteBackUp> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public edu.usfca.cs.dfs.StorageMessages.DeleteBackUp getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface StorageMessageWrapperOrBuilder extends
       // @@protoc_insertion_point(interface_extends:StorageMessageWrapper)
       com.google.protobuf.MessageOrBuilder {
@@ -10309,6 +10903,19 @@ public final class StorageMessages {
      * <code>.RetrieveFileResponse retrieveFileResponse = 11;</code>
      */
     edu.usfca.cs.dfs.StorageMessages.RetrieveFileResponseOrBuilder getRetrieveFileResponseOrBuilder();
+
+    /**
+     * <code>.DeleteBackUp deleteBackUp = 12;</code>
+     */
+    boolean hasDeleteBackUp();
+    /**
+     * <code>.DeleteBackUp deleteBackUp = 12;</code>
+     */
+    edu.usfca.cs.dfs.StorageMessages.DeleteBackUp getDeleteBackUp();
+    /**
+     * <code>.DeleteBackUp deleteBackUp = 12;</code>
+     */
+    edu.usfca.cs.dfs.StorageMessages.DeleteBackUpOrBuilder getDeleteBackUpOrBuilder();
 
     public edu.usfca.cs.dfs.StorageMessages.StorageMessageWrapper.MsgCase getMsgCase();
   }
@@ -10511,6 +11118,20 @@ public final class StorageMessages {
               msgCase_ = 11;
               break;
             }
+            case 98: {
+              edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder subBuilder = null;
+              if (msgCase_ == 12) {
+                subBuilder = ((edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 12;
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
@@ -10558,6 +11179,7 @@ public final class StorageMessages {
       FILELOCATION(9),
       BACKUP(10),
       RETRIEVEFILERESPONSE(11),
+      DELETEBACKUP(12),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -10584,6 +11206,7 @@ public final class StorageMessages {
           case 9: return FILELOCATION;
           case 10: return BACKUP;
           case 11: return RETRIEVEFILERESPONSE;
+          case 12: return DELETEBACKUP;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -10885,6 +11508,32 @@ public final class StorageMessages {
       return edu.usfca.cs.dfs.StorageMessages.RetrieveFileResponse.getDefaultInstance();
     }
 
+    public static final int DELETEBACKUP_FIELD_NUMBER = 12;
+    /**
+     * <code>.DeleteBackUp deleteBackUp = 12;</code>
+     */
+    public boolean hasDeleteBackUp() {
+      return msgCase_ == 12;
+    }
+    /**
+     * <code>.DeleteBackUp deleteBackUp = 12;</code>
+     */
+    public edu.usfca.cs.dfs.StorageMessages.DeleteBackUp getDeleteBackUp() {
+      if (msgCase_ == 12) {
+         return (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_;
+      }
+      return edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance();
+    }
+    /**
+     * <code>.DeleteBackUp deleteBackUp = 12;</code>
+     */
+    public edu.usfca.cs.dfs.StorageMessages.DeleteBackUpOrBuilder getDeleteBackUpOrBuilder() {
+      if (msgCase_ == 12) {
+         return (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_;
+      }
+      return edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -10931,6 +11580,9 @@ public final class StorageMessages {
       }
       if (msgCase_ == 11) {
         output.writeMessage(11, (edu.usfca.cs.dfs.StorageMessages.RetrieveFileResponse) msg_);
+      }
+      if (msgCase_ == 12) {
+        output.writeMessage(12, (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_);
       }
       unknownFields.writeTo(output);
     }
@@ -10984,6 +11636,10 @@ public final class StorageMessages {
       if (msgCase_ == 11) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(11, (edu.usfca.cs.dfs.StorageMessages.RetrieveFileResponse) msg_);
+      }
+      if (msgCase_ == 12) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(12, (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -11046,6 +11702,10 @@ public final class StorageMessages {
           if (!getRetrieveFileResponse()
               .equals(other.getRetrieveFileResponse())) return false;
           break;
+        case 12:
+          if (!getDeleteBackUp()
+              .equals(other.getDeleteBackUp())) return false;
+          break;
         case 0:
         default:
       }
@@ -11104,6 +11764,10 @@ public final class StorageMessages {
         case 11:
           hash = (37 * hash) + RETRIEVEFILERESPONSE_FIELD_NUMBER;
           hash = (53 * hash) + getRetrieveFileResponse().hashCode();
+          break;
+        case 12:
+          hash = (37 * hash) + DELETEBACKUP_FIELD_NUMBER;
+          hash = (53 * hash) + getDeleteBackUp().hashCode();
           break;
         case 0:
         default:
@@ -11346,6 +12010,13 @@ public final class StorageMessages {
             result.msg_ = retrieveFileResponseBuilder_.build();
           }
         }
+        if (msgCase_ == 12) {
+          if (deleteBackUpBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = deleteBackUpBuilder_.build();
+          }
+        }
         result.msgCase_ = msgCase_;
         onBuilt();
         return result;
@@ -11438,6 +12109,10 @@ public final class StorageMessages {
           }
           case RETRIEVEFILERESPONSE: {
             mergeRetrieveFileResponse(other.getRetrieveFileResponse());
+            break;
+          }
+          case DELETEBACKUP: {
+            mergeDeleteBackUp(other.getDeleteBackUp());
             break;
           }
           case MSG_NOT_SET: {
@@ -12983,6 +13658,142 @@ public final class StorageMessages {
         onChanged();;
         return retrieveFileResponseBuilder_;
       }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          edu.usfca.cs.dfs.StorageMessages.DeleteBackUp, edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder, edu.usfca.cs.dfs.StorageMessages.DeleteBackUpOrBuilder> deleteBackUpBuilder_;
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public boolean hasDeleteBackUp() {
+        return msgCase_ == 12;
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public edu.usfca.cs.dfs.StorageMessages.DeleteBackUp getDeleteBackUp() {
+        if (deleteBackUpBuilder_ == null) {
+          if (msgCase_ == 12) {
+            return (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_;
+          }
+          return edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance();
+        } else {
+          if (msgCase_ == 12) {
+            return deleteBackUpBuilder_.getMessage();
+          }
+          return edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public Builder setDeleteBackUp(edu.usfca.cs.dfs.StorageMessages.DeleteBackUp value) {
+        if (deleteBackUpBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          deleteBackUpBuilder_.setMessage(value);
+        }
+        msgCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public Builder setDeleteBackUp(
+          edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder builderForValue) {
+        if (deleteBackUpBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          deleteBackUpBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public Builder mergeDeleteBackUp(edu.usfca.cs.dfs.StorageMessages.DeleteBackUp value) {
+        if (deleteBackUpBuilder_ == null) {
+          if (msgCase_ == 12 &&
+              msg_ != edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance()) {
+            msg_ = edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.newBuilder((edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 12) {
+            deleteBackUpBuilder_.mergeFrom(value);
+          }
+          deleteBackUpBuilder_.setMessage(value);
+        }
+        msgCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public Builder clearDeleteBackUp() {
+        if (deleteBackUpBuilder_ == null) {
+          if (msgCase_ == 12) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 12) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          deleteBackUpBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder getDeleteBackUpBuilder() {
+        return getDeleteBackUpFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      public edu.usfca.cs.dfs.StorageMessages.DeleteBackUpOrBuilder getDeleteBackUpOrBuilder() {
+        if ((msgCase_ == 12) && (deleteBackUpBuilder_ != null)) {
+          return deleteBackUpBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 12) {
+            return (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_;
+          }
+          return edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DeleteBackUp deleteBackUp = 12;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          edu.usfca.cs.dfs.StorageMessages.DeleteBackUp, edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder, edu.usfca.cs.dfs.StorageMessages.DeleteBackUpOrBuilder> 
+          getDeleteBackUpFieldBuilder() {
+        if (deleteBackUpBuilder_ == null) {
+          if (!(msgCase_ == 12)) {
+            msg_ = edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.getDefaultInstance();
+          }
+          deleteBackUpBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              edu.usfca.cs.dfs.StorageMessages.DeleteBackUp, edu.usfca.cs.dfs.StorageMessages.DeleteBackUp.Builder, edu.usfca.cs.dfs.StorageMessages.DeleteBackUpOrBuilder>(
+                  (edu.usfca.cs.dfs.StorageMessages.DeleteBackUp) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 12;
+        onChanged();;
+        return deleteBackUpBuilder_;
+      }
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -13102,6 +13913,11 @@ public final class StorageMessages {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_BackUp_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_DeleteBackUp_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_DeleteBackUp_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_StorageMessageWrapper_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -13144,20 +13960,21 @@ public final class StorageMessages {
       "\001(\003\022\033\n\023numOfStorageMessage\030\005 \001(\005\022\035\n\025numO" +
       "fRetrievelRequest\030\006 \001(\005\"L\n\006BackUp\022\022\n\nsou" +
       "rceSnId\030\001 \001(\005\022\025\n\rdestinationIp\030\002 \001(\t\022\027\n\017" +
-      "destinationPort\030\003 \001(\005\"\332\003\n\025StorageMessage" +
-      "Wrapper\022!\n\nstoreChunk\030\001 \001(\0132\013.StoreChunk" +
-      "H\000\022%\n\014retrieveFile\030\002 \001(\0132\r.RetrieveFileH" +
-      "\000\022\"\n\014heartBeatMsg\030\003 \001(\0132\n.HeartBeatH\000\022/\n" +
-      "\021HeartBeatResponse\030\004 \001(\0132\022.HeartBeatResp" +
-      "onseH\000\022\025\n\004list\030\005 \001(\0132\005.ListH\000\022%\n\014listRes" +
-      "ponse\030\006 \001(\0132\r.ListResponseH\000\0221\n\022storeChu" +
-      "nkLocation\030\007 \001(\0132\023.StoreChunkLocationH\000\022" +
-      "1\n\022storeChunkResponse\030\010 \001(\0132\023.StoreChunk" +
-      "ResponseH\000\022%\n\014fileLocation\030\t \001(\0132\r.FileL" +
-      "ocationH\000\022\031\n\006backup\030\n \001(\0132\007.BackUpH\000\0225\n\024" +
-      "retrieveFileResponse\030\013 \001(\0132\025.RetrieveFil" +
-      "eResponseH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb\006" +
-      "proto3"
+      "destinationPort\030\003 \001(\005\" \n\014DeleteBackUp\022\020\n" +
+      "\010listSnId\030\001 \003(\005\"\201\004\n\025StorageMessageWrappe" +
+      "r\022!\n\nstoreChunk\030\001 \001(\0132\013.StoreChunkH\000\022%\n\014" +
+      "retrieveFile\030\002 \001(\0132\r.RetrieveFileH\000\022\"\n\014h" +
+      "eartBeatMsg\030\003 \001(\0132\n.HeartBeatH\000\022/\n\021Heart" +
+      "BeatResponse\030\004 \001(\0132\022.HeartBeatResponseH\000" +
+      "\022\025\n\004list\030\005 \001(\0132\005.ListH\000\022%\n\014listResponse\030" +
+      "\006 \001(\0132\r.ListResponseH\000\0221\n\022storeChunkLoca" +
+      "tion\030\007 \001(\0132\023.StoreChunkLocationH\000\0221\n\022sto" +
+      "reChunkResponse\030\010 \001(\0132\023.StoreChunkRespon" +
+      "seH\000\022%\n\014fileLocation\030\t \001(\0132\r.FileLocatio" +
+      "nH\000\022\031\n\006backup\030\n \001(\0132\007.BackUpH\000\0225\n\024retrie" +
+      "veFileResponse\030\013 \001(\0132\025.RetrieveFileRespo" +
+      "nseH\000\022%\n\014deleteBackUp\030\014 \001(\0132\r.DeleteBack" +
+      "UpH\000B\005\n\003msgB\022\n\020edu.usfca.cs.dfsb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -13241,12 +14058,18 @@ public final class StorageMessages {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BackUp_descriptor,
         new java.lang.String[] { "SourceSnId", "DestinationIp", "DestinationPort", });
-    internal_static_StorageMessageWrapper_descriptor =
+    internal_static_DeleteBackUp_descriptor =
       getDescriptor().getMessageTypes().get(13);
+    internal_static_DeleteBackUp_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_DeleteBackUp_descriptor,
+        new java.lang.String[] { "ListSnId", });
+    internal_static_StorageMessageWrapper_descriptor =
+      getDescriptor().getMessageTypes().get(14);
     internal_static_StorageMessageWrapper_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StorageMessageWrapper_descriptor,
-        new java.lang.String[] { "StoreChunk", "RetrieveFile", "HeartBeatMsg", "HeartBeatResponse", "List", "ListResponse", "StoreChunkLocation", "StoreChunkResponse", "FileLocation", "Backup", "RetrieveFileResponse", "Msg", });
+        new java.lang.String[] { "StoreChunk", "RetrieveFile", "HeartBeatMsg", "HeartBeatResponse", "List", "ListResponse", "StoreChunkLocation", "StoreChunkResponse", "FileLocation", "Backup", "RetrieveFileResponse", "DeleteBackUp", "Msg", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

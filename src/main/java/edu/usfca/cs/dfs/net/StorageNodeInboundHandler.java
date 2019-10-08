@@ -72,7 +72,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 + "] PrimarySnId:[" + storeChunkMsg.getPrimarySnId()
                 + "]<<<<<<<<<<<<<<----------------");
         String dataChecksum = Utils.getMd5(storeChunkMsg.getData().toByteArray());
-        logger.info("[SN" + mySnId + "]Receive checksum: " + storeChunkMsg.getChecksum());
+        System.out.println("[SN" + mySnId + "]Receive checksum: " + storeChunkMsg.getChecksum());
         logger.info("[SN" + mySnId + "]dataChecksum: " + dataChecksum);
 
         /**
@@ -187,10 +187,9 @@ public class StorageNodeInboundHandler extends InboundHandler {
         File folder = new File(directoryPath);
         File[] listOfFiles = folder.listFiles();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+        MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, destinationIp, destinationPort);
         for (int i = 0; listOfFiles != null && i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 File currFile = listOfFiles[i];
@@ -200,7 +199,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 int chunkId = Integer.parseInt(fileNameInSystem
                         .substring(fileNameInSystem.lastIndexOf("_") + 1));
                 byte[] chunkData = Utils
-                        .readFromFile(currFile.getPath(), 0, (int) currFile.length());
+                        .readFromFile(currFile.getPath(), 0, (int) currFile.length(), true);
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, destinationIp, destinationPort);
                 StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
                         .setFileName(fileName).setChunkId(chunkId).setChunkSize(currFile.length())
                         .setData(ByteString.copyFrom(chunkData))
@@ -241,7 +241,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 StorageMessages.StorageNodeInfo nextSnNode = newSnList.get(0);
                 //Send chunk to SN
                 EventLoopGroup workerGroup = new NioEventLoopGroup();
-                MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
+                MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
                 Bootstrap bootstrap = new Bootstrap().group(workerGroup)
                         .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
                         .handler(pipeline);
@@ -307,7 +307,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
             byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath() + File.separator
                     + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
                                                        0,
-                                                       metaDataOfChunk.getChunksize());
+                                                       metaDataOfChunk.getChunksize(), true);
             ByteString data = ByteString.copyFrom(chunkByteArray);
             //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
             String snReadChecksum = Utils.getMd5(chunkByteArray);
@@ -332,12 +332,12 @@ public class StorageNodeInboundHandler extends InboundHandler {
             chan.flush();
             write.addListener(ChannelFutureListener.CLOSE);
         } else {
-            logger.info("[SN" + mySnId + "] MetaDataOfChunk is NULL! for chunkId:" + chunkId
+            System.out.println("[SN" + mySnId + "] MetaDataOfChunk is NULL! for chunkId:" + chunkId
                     + " in snId:" + mySnId + "Chunk is not in this SN!");
 
             StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
                     .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
-                    .setData(null).setSnId(mySnId).setResult(false).build();
+                    .setData(ByteString.EMPTY).setSnId(mySnId).setResult(false).build();
             StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                     .newBuilder().setRetrieveFileResponse(response).build();
             Channel chan = ctx.channel();
@@ -374,7 +374,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-            System.out.printf("[SN" + mySnId
+            System.out.println("[SN" + mySnId
                     + "] Retrieve File Request came from Client with fileName: "
                     + msg.getRetrieveFile().getFileName() + " - chunkId: "
                     + msg.getRetrieveFile().getChunkId());

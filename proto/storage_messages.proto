@@ -86,6 +86,10 @@ message BackUp {
     int32 destinationPort = 3;
 }
 
+message DeleteBackUp {
+    repeated int32 listSnId = 1;
+}
+
 message StorageMessageWrapper {
     oneof msg {
         StoreChunk storeChunk = 1;
@@ -99,5 +103,6 @@ message StorageMessageWrapper {
         FileLocation fileLocation=9;
         BackUp backup = 10;
         RetrieveFileResponse retrieveFileResponse=11;
+        DeleteBackUp deleteBackUp = 12;
     }
 }

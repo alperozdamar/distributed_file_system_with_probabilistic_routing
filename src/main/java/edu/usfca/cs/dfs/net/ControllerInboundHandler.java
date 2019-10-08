@@ -7,7 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.google.protobuf.ByteString;
 import edu.usfca.cs.Utils;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,11 +25,6 @@ import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 
 @ChannelHandler.Sharable
 public class ControllerInboundHandler extends InboundHandler {
@@ -216,7 +216,7 @@ public class ControllerInboundHandler extends InboundHandler {
             storageNode.setTotalStorageRequest(heartBeat.getNumOfStorageMessage());
 
             //Receive Heartbeat from STATUS_DOWN node
-            if(storageNode.getStatus().equals(Constants.STATUS_DOWN)){
+            if(storageNode.getStatus().equals(Constants.STATUS_DOWN) || heartBeat.getSnId()==-1){
                 Utils.sendChunkOfSourceSnToDestinationSn(snId, snId);
             }
             storageNode.setStatus(Constants.STATUS_OPERATIONAL);
@@ -293,6 +293,7 @@ public class ControllerInboundHandler extends InboundHandler {
                         //Select backup node in case selected sn is die
                         if (sn == null) {
                             int backupId = sqlManager.getSNInformationById(snId).getBackupId();
+                            System.out.println("[SN]BackupId: "+backupId);
                             sn = sqlManager.getSNInformationById(backupId);
                         }
                         StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
