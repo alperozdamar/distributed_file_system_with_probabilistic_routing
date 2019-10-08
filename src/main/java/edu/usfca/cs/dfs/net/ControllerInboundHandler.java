@@ -220,6 +220,7 @@ public class ControllerInboundHandler extends InboundHandler {
             //Receive Heartbeat from STATUS_DOWN node
             if(storageNode.getStatus().equals(Constants.STATUS_DOWN) || heartBeat.getSnId()==-1){
                 Utils.sendChunkOfSourceSnToDestinationSn(snId, snId);
+                Utils.sendDeleteMessageToBackUpNode(snId);
             }
             storageNode.setStatus(Constants.STATUS_OPERATIONAL);
             SqlManager.getInstance().updateSNInformation(snId, Constants.STATUS_OPERATIONAL);

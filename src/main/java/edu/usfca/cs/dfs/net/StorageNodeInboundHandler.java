@@ -190,10 +190,10 @@ public class StorageNodeInboundHandler extends InboundHandler {
         MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
-                .connect(bootstrap, destinationIp, destinationPort);
         for (int i = 0; listOfFiles != null && i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
+                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
+                        .connect(bootstrap, destinationIp, destinationPort);
                 File currFile = listOfFiles[i];
                 String fileNameInSystem = currFile.getName();
                 logger.info("File " + fileNameInSystem);
@@ -477,6 +477,23 @@ public class StorageNodeInboundHandler extends InboundHandler {
         }
     }
 
+    private void handleDeleteBackUpMsg(StorageMessages.DeleteBackUp deleteBackUpMsg){
+        List<Integer> ids = deleteBackUpMsg.getListSnIdList();
+        logger.info("Working Directory = " + System.getProperty("user.dir"));
+        String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String whoamI = System.getProperty("user.name");
+        directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
+                + File.separator + whoamI;
+
+        logger.info("Path:" + directoryPath);
+        for(int id : ids){
+            String pathById = directoryPath + File.separator + id;
+            System.out.println("Delete path: "+pathById);
+            File directory = new File(directoryPath);
+            Utils.deleteDirectory(directory);
+        }
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
         int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
@@ -525,6 +542,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                     + "]<<<<<<<<<<<<<<----------------");
 
             helpOtherSnToHealChunk(ctx, mySnId, healMyChunk);
+        } else if(msg.hasDeleteBackUp()){
+            handleDeleteBackUpMsg(msg.getDeleteBackUp());
         }
     }
 
