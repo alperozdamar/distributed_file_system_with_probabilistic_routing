@@ -190,6 +190,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
         MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
+        ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
+                .connect(bootstrap, destinationIp, destinationPort);
         for (int i = 0; listOfFiles != null && i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 File currFile = listOfFiles[i];
@@ -200,7 +202,6 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .substring(fileNameInSystem.lastIndexOf("_") + 1));
                 byte[] chunkData = Utils
                         .readFromFile(currFile.getPath(), 0, (int) currFile.length(), true);
-                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE).connect(bootstrap, destinationIp, destinationPort);
                 StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
                         .setFileName(fileName).setChunkId(chunkId).setChunkSize(currFile.length())
                         .setData(ByteString.copyFrom(chunkData))
@@ -319,8 +320,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 logger.debug("[SN" + mySnId + "] Checksum TEST OK! for chunkId:"
                         + retrieveFile.getChunkId());
             } else {
-                logger.debug("[SN" + mySnId + "] PROBLEM with Checksum! for chunkId: "
+                logger.error("[SN" + mySnId + "] PROBLEM with Checksum! for chunkId: "
                         + retrieveFile.getChunkId());
+                logger.error("[SN" + mySnId + "] ChunkId: " + retrieveFile.getChunkId()
+                        + " must be Healed by any other SN.");
+
+                /**
+                * 1-) Send Error message to Client for this chunkId!
+                * 2-) Delete existing chunkId from file system and remove from hashmap.
+                * 3-) Send RecoverChunk(snId,filename,chunkId) message to Controller!
+                */
+                handleHealMyMissingChunk(ctx, retrieveFile.getFileName(), chunkId, mySnId);
+
             }
             StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
                     .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
@@ -334,16 +345,135 @@ public class StorageNodeInboundHandler extends InboundHandler {
         } else {
             System.out.println("[SN" + mySnId + "] MetaDataOfChunk is NULL! for chunkId:" + chunkId
                     + " in snId:" + mySnId + "Chunk is not in this SN!");
+        }
+    }
 
-            StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
-                    .newBuilder().setChunkId(chunkId).setFileName(retrieveFile.getFileName())
-                    .setData(ByteString.EMPTY).setSnId(mySnId).setResult(false).build();
-            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                    .newBuilder().setRetrieveFileResponse(response).build();
-            Channel chan = ctx.channel();
-            ChannelFuture write = chan.write(msgWrapper);
-            chan.flush();
-            write.addListener(ChannelFutureListener.CLOSE);
+    /**
+     * 1-) Send Error message to Client for this chunkId!
+     * 2-) Delete existing chunkId from file system and remove from hashmap.
+     * 3-) Send RecoverChunk(snId,filename,chunkId) message to Controller! 
+     * 
+     * @param ctx
+     * @param chunkId
+     * @param mySnId
+     */
+    private void handleHealMyMissingChunk(ChannelHandlerContext ctx, String fileName, int chunkId,
+                                          int mySnId) {
+
+        /**
+         * 1-) Send Error message to Client for this chunkId! 
+         */
+        StorageMessages.RetrieveFileResponse response = StorageMessages.RetrieveFileResponse
+                .newBuilder().setChunkId(chunkId).setFileName(fileName).setData(null)
+                .setSnId(mySnId).setResult(false).build();
+        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                .newBuilder().setRetrieveFileResponse(response).build();
+        Channel chan = ctx.channel();
+        ChannelFuture write = chan.write(msgWrapper);
+        chan.flush();
+        write.addListener(ChannelFutureListener.CLOSE);
+
+        /**
+         * 2-)  Delete existing chunkId from file system and remove from hashmap.
+         */
+
+        String key = fileName + "_" + chunkId;
+        MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
+                .getFileChunkToMetaDataMap().get(key);
+        if (metaDataOfChunk == null) {
+            logger.error("Already deleted!");
+        }
+        DfsStorageNodeStarter.getInstance().getFileChunkToMetaDataMap().remove(key);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("[SN" + mySnId + "] ChunkId :" + chunkId
+                    + " is deleted from FileChunkToMetaDataMap.");
+        }
+
+        /**
+         * 3-) Send RecoverChunk(snId,filename,chunkId) message to Controller! 
+         */
+        StorageMessages.HealMyChunk healMyChunk = StorageMessages.HealMyChunk.newBuilder()
+                .setHealSnId(mySnId)
+                .setHealSnIp(DfsStorageNodeStarter.getInstance().getStorageNode().getSnIp())
+                .setHealSnPort(DfsStorageNodeStarter.getInstance().getStorageNode().getSnPort())
+                .setChunkId(chunkId).setFileName(fileName).build();
+        msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder().setHealMyChunk(healMyChunk)
+                .build();
+
+        /**
+         * We created a new channel but we may use existing one which we are using for heartbeat. 
+         */
+        String controllerIp = ConfigurationManagerSn.getInstance().getControllerIp();
+        int controllerPort = ConfigurationManagerSn.getInstance().getControllerPort();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        MessagePipeline pipeline = new MessagePipeline(Constants.CLIENT);
+        Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
+        ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
+                .connect(bootstrap,
+                         ConfigurationManagerSn.getInstance().getControllerIp(),
+                         ConfigurationManagerSn.getInstance().getControllerPort());
+        Channel controllerChannel = cf.channel();
+        controllerChannel.write(msgWrapper);
+        controllerChannel.flush();
+
+        logger.info("[SN" + mySnId
+                + "] ---------->>>>>>>> HEAL MY CHUCK MESSAGE To Controller, chunkId[" + chunkId
+                + "], controllerIp[" + controllerIp + "], controllerPort:[" + controllerPort
+                + "] >>>>>>>>>>>--------------");
+
+    }
+
+    private void helpOtherSnToHealChunk(ChannelHandlerContext ctx, int mySnId,
+                                        StorageMessages.HealMyChunk healMyChunk) {
+
+        int healChunkId = healMyChunk.getHealSnId();
+        String healFileName = healMyChunk.getFileName();
+        /**
+         * Retrieve chunk from File System.
+         */
+        String key = healFileName + "_" + healChunkId;
+        MetaDataOfChunk metaDataOfChunk = DfsStorageNodeStarter.getInstance()
+                .getFileChunkToMetaDataMap().get(key);
+        if (metaDataOfChunk != null) {
+            logger.info("[SN" + mySnId + "] Retrieve File from Path:" + metaDataOfChunk.getPath());
+            logger.info("[SN" + mySnId + "] Receive chunk size: " + metaDataOfChunk.getChunksize());
+
+            byte[] chunkByteArray = Utils.readFromFile(metaDataOfChunk.getPath() + File.separator
+                    + metaDataOfChunk.getFileName() + "_" + metaDataOfChunk.getChunkId(),
+                                                       0,
+                                                       metaDataOfChunk.getChunksize(), true);
+            ByteString data = ByteString.copyFrom(chunkByteArray);
+            //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
+            String snReadChecksum = Utils.getMd5(chunkByteArray);
+            String snWriteChecksum = metaDataOfChunk.getChecksum();
+            logger.info("[SN" + mySnId + "]Receive checksum: " + snWriteChecksum);
+            logger.info("[SN" + mySnId + "]dataChecksum: " + snReadChecksum);
+
+            if (snReadChecksum.equalsIgnoreCase(snWriteChecksum)) {
+                logger.debug("[SN" + mySnId + "] Checksum TEST OK! for chunkId:" + healChunkId);
+
+                /**
+                 * Send StoreChunkMessage to other SN...
+                 */
+
+                /**
+                 * TODO:QUESTION???
+                 */
+
+            } else {
+                logger.error("[SN" + mySnId + "] PROBLEM with Checksum! for chunkId: "
+                        + healChunkId);
+                logger.error("[SN" + mySnId + "] ChunkId: " + healChunkId
+                        + " must be Healed by any other SN.");
+                /**
+                * 1-) Send Error message to Client for this chunkId!
+                * 2-) Delete existing chunkId from file system and remove from hashmap.
+                * 3-) Send RecoverChunk(snId,filename,chunkId) message to Controller!
+                */
+                handleHealMyMissingChunk(ctx, healFileName, healChunkId, mySnId);
+            }
         }
     }
 
@@ -383,6 +513,18 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
         } else if (msg.hasBackup()) {
             handleBackupRequest(ctx, msg.getBackup());
+        } else if (msg.hasHealMyChunk()) {
+            StorageMessages.HealMyChunk healMyChunk = msg.getHealMyChunk();
+            /**
+             * Healing Feature
+             */
+            logger.info("[SN" + mySnId
+                    + "] ----------<<<<<<<<<< HEAL MY CHUNK MESSAGE From Controller. Heal SN["
+                    + healMyChunk.getHealSnId() + "] FileName:[" + healMyChunk.getFileName()
+                    + "] MissingChunkId:[" + healMyChunk.getChunkId()
+                    + "]<<<<<<<<<<<<<<----------------");
+
+            helpOtherSnToHealChunk(ctx, mySnId, healMyChunk);
         }
     }
 
