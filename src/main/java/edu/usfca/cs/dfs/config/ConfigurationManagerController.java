@@ -33,7 +33,7 @@ public class ConfigurationManagerController {
     private long                                  seed                                  = defaultHashSeed;
     private int                                   keepAlivePeriodInMilliseconds         = defaultKeepAlivePeriodInMilliseconds;
     private int                                   heartBeatTimeoutInMilliseconds        = defaultHeartBeatTimeoutInMilliseconds;
-    private int fromPort = 0;
+    private int                                   fromPort                              = 0;
 
     private ConfigurationManagerController() {
         readClientConfigFile();
@@ -115,8 +115,7 @@ public class ConfigurationManagerController {
 
             try {
                 String fromPortString = props.getProperty("fromPort").trim();
-                fromPort = (fromPortString == null) ? 0
-                        : Integer.parseInt(fromPortString);
+                fromPort = (fromPortString == null) ? 0 : Integer.parseInt(fromPortString);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -1,13 +1,10 @@
 package edu.usfca.cs.dfs;
 
-import edu.usfca.cs.db.SqlManager;
-import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.StorageMessages.HeartBeat;
-import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
-import edu.usfca.cs.dfs.config.Constants;
-import edu.usfca.cs.dfs.net.MessagePipeline;
-import edu.usfca.cs.dfs.net.ServerMessageRouter;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.concurrent.ScheduledFuture;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,28 +14,31 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.concurrent.ScheduledFuture;
+import edu.usfca.cs.db.SqlManager;
+import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.StorageMessages.HeartBeat;
+import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
+import edu.usfca.cs.dfs.config.ConfigurationManagerController;
+import edu.usfca.cs.dfs.config.Constants;
+import edu.usfca.cs.dfs.net.ServerMessageRouter;
 
 public class DfsControllerStarter {
 
-    private static Logger                                 logger                       = LogManager
+    private static Logger                        logger                       = LogManager
             .getLogger(DfsControllerStarter.class);
-    private static DfsControllerStarter                   instance;
-    private final static Object                           classLock                    = new Object();
-    ServerMessageRouter                                   messageRouter;
-    private HashMap<Integer, ScheduledFuture<?>>          keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
-    private HashMap<Integer, StorageNode>                 storageNodeHashMap           = new HashMap<Integer, StorageNode>();
-    private HashMap<Integer, BloomFilter>                 bloomFilters                 = new HashMap<Integer, BloomFilter>();
-    private StorageMessages.FileMetadata fileMetadata = null;
+    private static DfsControllerStarter          instance;
+    private final static Object                  classLock                    = new Object();
+    ServerMessageRouter                          messageRouter;
+    private HashMap<Integer, ScheduledFuture<?>> keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
+    private HashMap<Integer, StorageNode>        storageNodeHashMap           = new HashMap<Integer, StorageNode>();
+    private HashMap<Integer, BloomFilter>        bloomFilters                 = new HashMap<Integer, BloomFilter>();
+    private StorageMessages.FileMetadata         fileMetadata                 = null;
 
-    public static final int                               MAX_REPLICATION_NUMBER       = 3;
+    public static final int                      MAX_REPLICATION_NUMBER       = 3;
 
-    public static boolean                                 LOG_HEART_BEAT               = false;
+    public static boolean                        LOG_HEART_BEAT               = false;
 
-    private DfsControllerStarter() {
+    protected DfsControllerStarter() {
         //TODO: Create bloom filter when add storage node to controller
         for (int i = 0; i < 12; i++) {
             bloomFilters
@@ -65,28 +65,29 @@ public class DfsControllerStarter {
     }
 
     public static void main(String[] args) throws IOException {
-
         //updateLogger("logs/project1_controller.log", "edu.usfca", "edu.usfca");
-
-        DfsControllerStarter s = new DfsControllerStarter();
+        DfsControllerStarter s = DfsControllerStarter.getInstance(); //Singleton should access like this.
         s.start();
     }
 
     public void start() throws IOException {
 
-        SqlManager.getInstance().deleteAllSNs();
-        SqlManager.getInstance().deleteAllSNsReplications();
+        try {
+            SqlManager.getInstance().deleteAllSNs();
+            SqlManager.getInstance().deleteAllSNsReplications();
 
-        messageRouter = new ServerMessageRouter(Constants.CONTROLLER);
-        System.out.println(ConfigurationManagerController.getInstance().toString());
+            messageRouter = new ServerMessageRouter(Constants.CONTROLLER);
+            System.out.println(ConfigurationManagerController.getInstance().toString());
 
-        messageRouter.listen(ConfigurationManagerController.getInstance().getControllerPort());
-        System.out.println("[Controller] Listening for connections on port :"
-                + ConfigurationManagerController.getInstance().getControllerPort());
-        logger.debug("[Controller] Listening for connections on port :"
-                + ConfigurationManagerController.getInstance().getControllerPort());
-
-        MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+            messageRouter.listen(ConfigurationManagerController.getInstance().getControllerPort());
+            System.out.println("[Controller] Listening for connections on port :"
+                    + ConfigurationManagerController.getInstance().getControllerPort());
+            logger.debug("[Controller] Listening for connections on port :"
+                    + ConfigurationManagerController.getInstance().getControllerPort());
+        } catch (Exception e) {
+            System.err.println("Exception occured in startup:" + e);
+            e.printStackTrace();
+        }
 
     }
 
