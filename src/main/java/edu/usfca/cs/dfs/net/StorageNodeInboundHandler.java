@@ -314,16 +314,16 @@ public class StorageNodeInboundHandler extends InboundHandler {
             //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
-            logger.info("[SN" + mySnId + "]Receive checksum: " + snWriteChecksum);
-            logger.info("[SN" + mySnId + "]dataChecksum: " + snReadChecksum);
+            System.out.println("[SN" + mySnId + "]Receive checksum: " + snWriteChecksum);
+            System.out.println("[SN" + mySnId + "]dataChecksum: " + snReadChecksum);
 
             if (snReadChecksum.equalsIgnoreCase(snWriteChecksum)) {
-                logger.debug("[SN" + mySnId + "] Checksum TEST OK! for chunkId:"
+                System.out.println("[SN" + mySnId + "] Checksum TEST OK! for chunkId:"
                         + retrieveFile.getChunkId());
             } else {
                 logger.error("[SN" + mySnId + "] PROBLEM with Checksum! for chunkId: "
                         + retrieveFile.getChunkId());
-                logger.error("[SN" + mySnId + "] ChunkId: " + retrieveFile.getChunkId()
+                System.out.println("[SN" + mySnId + "] ChunkId: " + retrieveFile.getChunkId()
                         + " must be Healed by any other SN.");
 
                 /**
@@ -491,7 +491,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 controllerChannel.write(msgWrapper);
                 controllerChannel.flush();
 
-                logger.info("[SN" + mySnId + "] ---------->>>>>>>> STORE CHUNK MESSAGE(HEAL) To SN["
+                System.out.println("[SN" + mySnId
+                        + "] ---------->>>>>>>> STORE CHUNK MESSAGE(HEAL) To SN["
                         + healedSnInfo.getSnId() + "], chunkId[" + healChunkId + "], controllerIp["
                         + healMyChunk.getHealSnIp() + "], controllerPort:["
                         + healMyChunk.getHealSnPort() + "] >>>>>>>>>>>--------------");

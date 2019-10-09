@@ -1,27 +1,5 @@
 package edu.usfca.cs;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import javax.xml.bind.DatatypeConverter;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.StorageMessages;
@@ -36,6 +14,20 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.xml.bind.DatatypeConverter;
+import java.io.*;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class Utils {
 
@@ -80,9 +72,14 @@ public class Utils {
         FileOutputStream outputStream;
         try {
             outputStream = new FileOutputStream(filePath);
-            byte[] bytes = compressChunk(storeChunkMsg.getData().toByteArray());
+            byte[] bytes = null;
+            if(storeChunkMsg.getChunkId()!=0){
+                bytes = compressChunk(storeChunkMsg.getData().toByteArray());
+            } else {
+                bytes = storeChunkMsg.getData().toByteArray();
+            }
             outputStream.write(bytes);
-            logger.debug("Written chunk checksum: "
+            logger.info("Written chunk checksum: "
                     + Utils.getMd5(storeChunkMsg.getData().toByteArray()));
             outputStream.close();
 

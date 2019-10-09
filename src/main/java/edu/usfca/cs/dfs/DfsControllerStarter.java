@@ -1,10 +1,13 @@
 package edu.usfca.cs.dfs;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.concurrent.ScheduledFuture;
-
+import edu.usfca.cs.db.SqlManager;
+import edu.usfca.cs.db.model.StorageNode;
+import edu.usfca.cs.dfs.StorageMessages.HeartBeat;
+import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
+import edu.usfca.cs.dfs.config.ConfigurationManagerController;
+import edu.usfca.cs.dfs.config.Constants;
+import edu.usfca.cs.dfs.net.MessagePipeline;
+import edu.usfca.cs.dfs.net.ServerMessageRouter;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,14 +17,10 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 
-import edu.usfca.cs.db.SqlManager;
-import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.StorageMessages.HeartBeat;
-import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
-import edu.usfca.cs.dfs.config.Constants;
-import edu.usfca.cs.dfs.net.MessagePipeline;
-import edu.usfca.cs.dfs.net.ServerMessageRouter;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.concurrent.ScheduledFuture;
 
 public class DfsControllerStarter {
 
@@ -33,7 +32,7 @@ public class DfsControllerStarter {
     private HashMap<Integer, ScheduledFuture<?>>          keepAliveCheckTimerHandleMap = new HashMap<Integer, ScheduledFuture<?>>();
     private HashMap<Integer, StorageNode>                 storageNodeHashMap           = new HashMap<Integer, StorageNode>();
     private HashMap<Integer, BloomFilter>                 bloomFilters                 = new HashMap<Integer, BloomFilter>();
-    private HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap          = new HashMap<>();
+    private StorageMessages.FileMetadata fileMetadata = null;
 
     public static final int                               MAX_REPLICATION_NUMBER       = 3;
 
@@ -172,14 +171,6 @@ public class DfsControllerStarter {
         this.bloomFilters = bloomFilters;
     }
 
-    public HashMap<String, StorageMessages.FileMetadata> getFileMetadataHashMap() {
-        return fileMetadataHashMap;
-    }
-
-    public void setFileMetadataHashMap(HashMap<String, StorageMessages.FileMetadata> fileMetadataHashMap) {
-        this.fileMetadataHashMap = fileMetadataHashMap;
-    }
-
     static void updateLogger(String file_name, String appender_name, String package_name) {
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration configuration = context.getConfiguration();
@@ -212,4 +203,11 @@ public class DfsControllerStarter {
         context.updateLoggers();
     }
 
+    public StorageMessages.FileMetadata getFileMetadata() {
+        return fileMetadata;
+    }
+
+    public void setFileMetadata(StorageMessages.FileMetadata fileMetadata) {
+        this.fileMetadata = fileMetadata;
+    }
 }
