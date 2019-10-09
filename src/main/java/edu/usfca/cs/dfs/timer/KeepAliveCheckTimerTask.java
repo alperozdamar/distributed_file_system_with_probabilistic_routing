@@ -1,27 +1,18 @@
 package edu.usfca.cs.dfs.timer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsControllerStarter;
-import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 import edu.usfca.cs.dfs.config.Constants;
-import edu.usfca.cs.dfs.net.MessagePipeline;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 public class KeepAliveCheckTimerTask implements Runnable {
 
@@ -81,31 +72,13 @@ public class KeepAliveCheckTimerTask implements Runnable {
                     sqlManager.updateSNInformation(snId, Constants.STATUS_DOWN);
                     HashMap<Integer, StorageNode> availableSNs = sqlManager
                             .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
-                    int numOfSn = dfsControllerStarter.getStorageNodeHashMap().size();
-                    int lowerBound = Math.floorMod(snId - 2, numOfSn) == 0 ? numOfSn
-                            : Math.floorMod(snId - 2, numOfSn);
-                    int upperBound = Math.floorMod(snId + 2, numOfSn) == 0 ? numOfSn
-                            : Math.floorMod(snId + 2, numOfSn);
-                    System.out.println("Upper bound:" + upperBound);
-                    System.out.println("Lower bound:" + lowerBound);
-                    if (lowerBound < upperBound) {
-                        for (int i = lowerBound; i <= upperBound; i++) {
-                            System.out.println("Remove: " + i);
-                            availableSNs.remove(i);
-                        }
-                    } else {
-                        for (int i = lowerBound; i <= dfsControllerStarter.getStorageNodeHashMap()
-                                .size(); i++) {
-                            System.out.println("Remove: " + i);
-                            availableSNs.remove(i);
-                        }
-                        for (int i = 1; i <= upperBound; i++) {
-                            System.out.println("Remove: " + i);
-                            availableSNs.remove(i);
-                        }
+                    deleteNeighborSN(availableSNs, snId);
+                    ArrayList<StorageNode> listSnBackUpByThisSn = sqlManager.getSnByBackUpId(snId);
+                    for(StorageNode sn : listSnBackUpByThisSn){
+                        deleteNeighborSN(availableSNs, sn.getSnId());
                     }
                     if (availableSNs.size() == 0) {
-                        System.out.println("No SN to replicate");
+                        System.out.println("[BackUp]No SN to replicate");
                         return;
                     }
                     this.backup(availableSNs);
@@ -117,6 +90,33 @@ public class KeepAliveCheckTimerTask implements Runnable {
             }
         } catch (Exception e) {
             logger.error("Exception occured in HeartBeat:", e);
+        }
+    }
+
+    private void deleteNeighborSN(HashMap<Integer, StorageNode> availableSNs, int snId){
+        DfsControllerStarter dfsControllerStarter = DfsControllerStarter.getInstance();
+        int numOfSn = dfsControllerStarter.getStorageNodeHashMap().size();
+        int lowerBound = Math.floorMod(snId - 2, numOfSn) == 0 ? numOfSn
+                : Math.floorMod(snId - 2, numOfSn);
+        int upperBound = Math.floorMod(snId + 2, numOfSn) == 0 ? numOfSn
+                : Math.floorMod(snId + 2, numOfSn);
+        logger.info("[BackUp]Upper bound:" + upperBound);
+        logger.info("[BackUp]Lower bound:" + lowerBound);
+        if (lowerBound < upperBound) {
+            for (int i = lowerBound; i <= upperBound; i++) {
+                System.out.println("[BackUp]Remove: " + i);
+                availableSNs.remove(i);
+            }
+        } else {
+            for (int i = lowerBound; i <= dfsControllerStarter.getStorageNodeHashMap()
+                    .size(); i++) {
+                System.out.println("[BackUp]Remove: " + i);
+                availableSNs.remove(i);
+            }
+            for (int i = 1; i <= upperBound; i++) {
+                System.out.println("[BackUp]Remove: " + i);
+                availableSNs.remove(i);
+            }
         }
     }
 

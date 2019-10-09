@@ -1,16 +1,15 @@
 package edu.usfca.cs.db;
 
+import edu.usfca.cs.db.model.StorageNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import edu.usfca.cs.db.model.StorageNode;
 
 /**
  * SqlManager is for querying,inserting or updating sql tables. Main class for all SQL operations.
@@ -658,6 +657,58 @@ public class SqlManager {
             }
         }
         return storageNode;
+    }
+
+    public ArrayList<StorageNode> getSnByBackUpId(int backupId){
+        ArrayList<StorageNode> result = new ArrayList<>();
+        Connection connection = null;
+        String sql = "select * from sn_information s where s.backupId = ?";
+        PreparedStatement selectStatement = null;
+        try {
+            connection = DbManager.getInstance().getBds().getConnection();
+            selectStatement = connection.prepareStatement(sql);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Queried backupId:%d",backupId);
+            }
+            selectStatement.setInt(1, backupId);
+            ResultSet resultSet = selectStatement.executeQuery();
+            if (resultSet.next()) {
+                StorageNode storageNode = new StorageNode();
+                do {
+                    storageNode.setSnId(resultSet.getInt("snId"));
+                    storageNode.setSnIp(resultSet.getString("snIp"));
+                    storageNode.setSnPort(resultSet.getInt("snPort"));
+                    storageNode.setTotalFreeSpace(resultSet.getLong("totalFreeSpace"));
+                    storageNode.setTotalStorageRequest(resultSet.getInt("totalStorageReq"));
+                    storageNode.setTotalRetrievelRequest(resultSet.getInt("totalRetrievelReq"));
+                    storageNode.setStatus(resultSet.getString("status"));
+                    storageNode.setBackupId(backupId);
+                    result.add(storageNode);
+                } while (resultSet.next());
+            } else {
+                logger.debug("Storage Node can not be found in DB.");
+            }
+            selectStatement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Error:", e);
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            logger.error("Exception occured:", e);
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (selectStatement != null)
+                    selectStatement.close();
+                if (connection != null)
+                    connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 
 }

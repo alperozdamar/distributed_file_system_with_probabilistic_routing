@@ -1,19 +1,12 @@
 package edu.usfca.cs.dfs;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.concurrent.ScheduledFuture;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
+import edu.usfca.cs.dfs.net.NetUtils;
 import edu.usfca.cs.dfs.net.ServerMessageRouter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -22,6 +15,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.concurrent.ScheduledFuture;
 
 public class DfsStorageNodeStarter {
 
@@ -105,8 +105,8 @@ public class DfsStorageNodeStarter {
             /**
              * SN will connect to the Controller
              */
-            channelFuture = bootstrap
-                    .connect(ConfigurationManagerSn.getInstance().getControllerIp(),
+            channelFuture = NetUtils.getInstance(Constants.STORAGENODE)
+                    .connect(bootstrap, ConfigurationManagerSn.getInstance().getControllerIp(),
                              ConfigurationManagerSn.getInstance().getControllerPort());
 
             StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()

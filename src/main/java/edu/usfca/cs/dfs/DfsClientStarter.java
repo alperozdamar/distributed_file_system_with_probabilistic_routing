@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DfsClientStarter {
 
@@ -96,7 +99,7 @@ public class DfsClientStarter {
                 .newBuilder().setList(listMsm).build();
         Channel chan = cf.channel();
         chan.write(msgWrapper);
-        chan.flush().closeFuture().syncUninterruptibly();
+        chan.flush();
     }
 
     private void storeFile(Bootstrap bootstrap) {
@@ -105,6 +108,10 @@ public class DfsClientStarter {
         System.out.print("Enter your fileName and folder:");
         fileInfo = scanner.next().trim();
         File file = new File(fileInfo);
+        if(!file.exists()){
+            System.out.println("File not found!");
+            return;
+        }
         long chunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
         long fileSize = file.length();
         System.out.format("The size of the file: %d bytes", fileSize);
@@ -122,36 +129,48 @@ public class DfsClientStarter {
                 .setNumOfChunks(numOfChunks).build();
         this.numOfSentChunk = -1;
 
-        int thread = 1;
-        Channel[] channels = new Channel[thread];
-        int currThread = 0;
-        for (int i = 0; i < thread; i++) {
-            channels[i] = NetUtils.getInstance(Constants.CLIENT)
-                    .connect(bootstrap,
-                            ConfigurationManagerClient.getInstance().getControllerIp(),
-                            ConfigurationManagerClient.getInstance().getControllerPort())
-                    .channel();
-        }
-
-        StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
-                .setFileName(file.getName()).setChunkId(0)
-                .setChunkSize(this.metadata.getSerializedSize())
-                .setData(this.metadata.toByteString()).build();
-        StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                .newBuilder().setStoreChunk(storeChunkMsg).build();
-        channels[currThread++ % thread].writeAndFlush(msgWrapper).syncUninterruptibly();
+        int numOfSendThread = 3;
+        ExecutorService executorService = Executors.newFixedThreadPool(numOfSendThread);
+        Channel channel = NetUtils.getInstance(Constants.CLIENT)
+                .connect(bootstrap,
+                        ConfigurationManagerClient.getInstance().getControllerIp(),
+                        ConfigurationManagerClient.getInstance().getControllerPort())
+                .channel();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                StorageMessages.FileMetadata metadata = DfsClientStarter.getInstance().getMetadata();
+                StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder()
+                        .setFileName(file.getName()).setChunkId(0)
+                        .setChunkSize(metadata.getSerializedSize())
+                        .setData(metadata.toByteString()).build();
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                        .newBuilder().setStoreChunk(storeChunkMsg).build();
+                channel.writeAndFlush(msgWrapper).syncUninterruptibly();
+                channel.closeFuture().syncUninterruptibly();
+            }
+        });
 
         //Send actual file from chunk 1
         for (int i = 0; i < numOfChunks; i++) {
-            storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName(file.getName())
-                    .setChunkId(i + 1)
-                    .setChunkSize(i == numOfChunks - 1 ? lastChunkByteSize : chunkSize).build();
-            msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
-                    .setStoreChunk(storeChunkMsg).build();
-            channels[currThread++ % thread].writeAndFlush(msgWrapper).syncUninterruptibly();
+            int currentChunk = i+1;
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    StorageMessages.StoreChunk storeChunkMsg = StorageMessages.StoreChunk.newBuilder().setFileName(file.getName())
+                            .setChunkId(currentChunk)
+                            .setChunkSize(currentChunk == numOfChunks ? lastChunkByteSize : chunkSize).build();
+                    StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
+                            .setStoreChunk(storeChunkMsg).build();
+                    channel.writeAndFlush(msgWrapper);
+                }
+            });
         }
-        for (int i = 0; i < thread; i++) {
-            channels[i].closeFuture().syncUninterruptibly();
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(5, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

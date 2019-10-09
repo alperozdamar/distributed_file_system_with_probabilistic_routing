@@ -28,6 +28,7 @@ public class NetUtils {
     private int toPort = 0;
 
     private NetUtils(String mode) {
+        availablePort = new LinkedList<>();
         switch (mode){
             case Constants.CLIENT:
                 fromPort = Math.max(ConfigurationManagerClient.getInstance().getFromPort(), fromPort);
@@ -60,18 +61,33 @@ public class NetUtils {
         }
     }
 
-    public ChannelFuture connect(Bootstrap bootstrap, String ip, int port) {
+    public synchronized ChannelFuture connect(Bootstrap bootstrap, String ip, int port) {
         SocketAddress destAddr = new InetSocketAddress(ip, port);
-        System.out.println("Available port size:"+availablePort.size());
-        int sourcePort = availablePort.poll();
-        SocketAddress sourceAddr = new InetSocketAddress(sourceHostName, sourcePort);
-        ChannelFuture cf = bootstrap.connect(destAddr, sourceAddr);
+        int sourcePort = 0;
+        ChannelFuture cf= null;
+        while(cf==null) {
+            try {
+                if(availablePort.size()>0){
+//            System.out.println("[NetUtils] Size: "+ availablePort.size());
+                    sourcePort = availablePort.poll();
+                    logger.info("Connect from port: %d to port: %d\n",sourcePort, port);
+                } else {
+                    logger.error("[NetUtils] Out of port");
+                }
+                SocketAddress sourceAddr = new InetSocketAddress(sourceHostName, sourcePort);
+                cf = bootstrap.connect(destAddr, sourceAddr);
+            } catch (Exception e) {
+                cf = null;
+                continue;
+            }
+        }
         cf.syncUninterruptibly();
         return cf;
     }
 
     public void releasePort(int port){
         if(port<toPort && port>=fromPort) {
+            logger.info("Release port: %d\n",port);
             availablePort.add(port);
         }
     }

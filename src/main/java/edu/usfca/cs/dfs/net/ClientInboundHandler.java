@@ -47,9 +47,7 @@ public class ClientInboundHandler extends InboundHandler {
     public void channelInactive(ChannelHandlerContext ctx) {
         /* A channel has been disconnected */
         InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-        InetSocketAddress localAaddr = (InetSocketAddress) ctx.channel().localAddress();
         logger.info("Connection lost: " + addr);
-        NetUtils.getInstance(Constants.CLIENT).releasePort(localAaddr.getPort());
     }
 
     @Override
@@ -81,7 +79,7 @@ public class ClientInboundHandler extends InboundHandler {
                                  (int) chunkLocationMsg.getChunkSize(), false);
         }
         logger.info("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
-        System.out.println("[Client] Chunk checksum: " + getMd5(chunk));
+        logger.info("[Client] Chunk checksum: " + getMd5(chunk));
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
                 .newBuilder().setFileName(chunkLocationMsg.getFileName())
@@ -97,10 +95,11 @@ public class ClientInboundHandler extends InboundHandler {
         chan.flush();
         write.syncUninterruptibly();
         dfsClientStarter.setNumOfSentChunk(dfsClientStarter.getNumOfSentChunk()+1);
+        workerGroup.shutdownGracefully();
         if(dfsClientStarter.getNumOfSentChunk()==dfsClientStarter.getMetadata().getNumOfChunks()){
+            System.out.println("Finish send chunk");
             ctx.close();
         }
-        workerGroup.shutdownGracefully();
     }
 
     private void handleStoreChunkResponseMsg(ChannelHandlerContext ctx,
@@ -109,7 +108,7 @@ public class ClientInboundHandler extends InboundHandler {
          * TODO:
          * For now for testing...
          */
-        logger.info("[Client]This is Store Chunk Message Response...");
+        System.out.println("[Client]This is Store Chunk Message Response...");
 
         if (storeChunkResponseMsg.getStatus()) {
             logger.info("[Client] Chunk stored successfully, chunkId:"
@@ -147,7 +146,7 @@ public class ClientInboundHandler extends InboundHandler {
 //        workerGroup.shutdownGracefully();
         executorService.shutdown();
         try {
-            executorService.awaitTermination(1, TimeUnit.MINUTES);
+            executorService.awaitTermination(5, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -158,7 +157,7 @@ public class ClientInboundHandler extends InboundHandler {
                                              StorageMessages.StoreChunkLocation chunkLocation) {
         dfsClientStarter.getRetrieveChunkIds().add(chunkLocation.getChunkId());
         for (StorageNodeInfo sn : chunkLocation.getSnInfoList()) {
-            System.out.println("[Client]SN Ip: " + sn.getSnIp() + " - Port: " + sn.getSnPort());
+            logger.info("[Client]SN Ip: " + sn.getSnIp() + " - Port: " + sn.getSnPort());
             if(!dfsClientStarter.getRetrieveChunkIds().contains(chunkLocation.getChunkId())){
                 break;
             }
@@ -210,7 +209,7 @@ public class ClientInboundHandler extends InboundHandler {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        logger.info("[Client]Received sth!");
+        System.out.println("[Client]Received sth!");
         if (msg.hasStoreChunkLocation()) {
             handleStoreChunkLocationMsg(ctx, msg.getStoreChunkLocation());
 
@@ -251,5 +250,14 @@ public class ClientInboundHandler extends InboundHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        InetSocketAddress localAaddr = (InetSocketAddress) ctx.channel().localAddress();
+        if(localAaddr!=null){
+            NetUtils.getInstance(Constants.CLIENT).releasePort(localAaddr.getPort());
+        }
+        super.channelUnregistered(ctx);
     }
 }

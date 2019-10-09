@@ -1,15 +1,15 @@
 package edu.usfca.cs.dfs.net;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServerMessageRouter {
 
@@ -22,7 +22,7 @@ public class ServerMessageRouter {
 
     public ServerMessageRouter(String mode) {
         bossGroup = new NioEventLoopGroup();
-        workerGroup = new NioEventLoopGroup(4);
+        workerGroup = new NioEventLoopGroup(10);
 
         pipeline = new MessagePipeline(mode);
 
