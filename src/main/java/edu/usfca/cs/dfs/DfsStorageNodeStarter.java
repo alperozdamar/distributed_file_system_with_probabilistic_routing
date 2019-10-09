@@ -2,18 +2,15 @@ package edu.usfca.cs.dfs;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledFuture;
 
-import edu.usfca.cs.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
@@ -56,7 +53,7 @@ public class DfsStorageNodeStarter {
         }
     }
 
-    private void deleteStorageDirectory(){
+    private void deleteStorageDirectory() {
 
         String directoryPath = null;
         try {
@@ -109,8 +106,8 @@ public class DfsStorageNodeStarter {
              * SN will connect to the Controller
              */
             channelFuture = bootstrap
-                    .connect(ConfigurationManagerClient.getInstance().getControllerIp(),
-                             ConfigurationManagerClient.getInstance().getControllerPort());
+                    .connect(ConfigurationManagerSn.getInstance().getControllerIp(),
+                             ConfigurationManagerSn.getInstance().getControllerPort());
 
             StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
                     .setSnId(storageNode.getSnId()).setSnIp(storageNode.getSnIp())
