@@ -281,8 +281,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
     private void handleBackupRequest(ChannelHandlerContext ctx, StorageMessages.BackUp backUpMsg) {
         int mySnId = DfsStorageNodeStarter.getInstance().getStorageNode().getSnId();
         logger.info("[SN" + mySnId + "]Send data of %s to backup node port %s!\n",
-                          backUpMsg.getSourceSnId(),
-                          backUpMsg.getDestinationPort());
+                    backUpMsg.getSourceSnId(),
+                    backUpMsg.getDestinationPort());
         String destinationIp = backUpMsg.getDestinationIp();
         int destinationPort = backUpMsg.getDestinationPort();
         int sourceId = backUpMsg.getSourceSnId();
@@ -508,6 +508,10 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 */
                 handleHealMyMissingChunk(ctx, healFileName, healChunkId, mySnId);
             }
+        } else {
+            logger.warn("[SN" + mySnId + "] I can't heal this SnId:" + healMyChunk.getHealSnId()
+                    + ". Because I don't have this chunkId:" + healChunkId + ",for fileName:"
+                    + healFileName + ".So ignoring this message!");
         }
     }
 
@@ -554,8 +558,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-            logger.info("[SN" + mySnId
-                    + "] Retrieve File Request came from Client with fileName: "
+            logger.info("[SN" + mySnId + "] Retrieve File Request came from Client with fileName: "
                     + msg.getRetrieveFile().getFileName() + " - chunkId: "
                     + msg.getRetrieveFile().getChunkId());
             handleFileRetrieve(ctx, msg);

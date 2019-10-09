@@ -7,12 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import com.google.protobuf.ByteString;
-import edu.usfca.cs.Utils;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +20,16 @@ import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 @ChannelHandler.Sharable
 public class ControllerInboundHandler extends InboundHandler {
@@ -217,7 +221,8 @@ public class ControllerInboundHandler extends InboundHandler {
             storageNode.setTotalStorageRequest(heartBeat.getNumOfStorageMessage());
 
             //Receive Heartbeat from STATUS_DOWN node
-            if(storageNode.getStatus().equals(Constants.STATUS_DOWN) || heartBeat.getSnId()==-1){
+            if (storageNode.getStatus().equals(Constants.STATUS_DOWN)
+                    || heartBeat.getSnId() == -1) {
                 Utils.sendChunkOfSourceSnToDestinationSn(snId, snId);
                 Utils.sendDeleteMessageToBackUpNode(snId);
             }
@@ -297,7 +302,7 @@ public class ControllerInboundHandler extends InboundHandler {
                         //Select backup node in case selected sn is die
                         if (sn == null) {
                             int backupId = sqlManager.getSNInformationById(snId).getBackupId();
-                            System.out.println("[SN]BackupId: "+backupId);
+                            System.out.println("[SN]BackupId: " + backupId);
                             sn = sqlManager.getSNInformationById(backupId);
                         }
                         StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
@@ -360,6 +365,27 @@ public class ControllerInboundHandler extends InboundHandler {
                     int backupId = sqlManager.getSNInformationById(snId).getBackupId();
                     sn = sqlManager.getSNInformationById(backupId);
                 }
+
+                /**
+                 * Means that chunk can be in this SN so tell that SN to heal the missing chunk.
+                 * Controller will basically proxy healMyChunk to that SN.
+                 */
+                EventLoopGroup workerGroup = new NioEventLoopGroup();
+                MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+                Bootstrap bootstrap = new Bootstrap().group(workerGroup)
+                        .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
+                        .handler(pipeline);
+                ChannelFuture cf = NetUtils.getInstance(Constants.CONTROLLER)
+                        .connect(bootstrap, sn.getSnIp(), sn.getSnPort());
+                Channel controllerChannel = cf.channel();
+                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
+                        .newBuilder().setHealMyChunk(healMyChunk).build();
+                controllerChannel.write(msgWrapper);
+                controllerChannel.flush();
+
+                logger.info("[Controller] ---------->>>>>>>> PROXY HealMyChunk MESSAGE To  snId["
+                        + sn.getSnId() + "], for HEALING this snId[" + healMyChunk.getHealSnId()
+                        + "], for chunkId:[" + missingChunkId + "] >>>>>>>>>>>--------------");
             }
         }
         if (!available) {//TODO: chunk have no data in SN, return not found
