@@ -1,6 +1,5 @@
 package edu.usfca.cs.dfs.net;
 
-import edu.usfca.cs.dfs.DfsClientStarter;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
 import edu.usfca.cs.dfs.config.ConfigurationManagerController;
 import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
@@ -12,10 +11,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 
 public class NetUtils {
 
@@ -65,6 +62,7 @@ public class NetUtils {
 
     public ChannelFuture connect(Bootstrap bootstrap, String ip, int port) {
         SocketAddress destAddr = new InetSocketAddress(ip, port);
+        System.out.println("Available port size:"+availablePort.size());
         int sourcePort = availablePort.poll();
         SocketAddress sourceAddr = new InetSocketAddress(sourceHostName, sourcePort);
         ChannelFuture cf = bootstrap.connect(destAddr, sourceAddr);

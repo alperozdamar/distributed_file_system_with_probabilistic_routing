@@ -1,19 +1,6 @@
 package edu.usfca.cs.dfs.net;
 
-import static edu.usfca.cs.Utils.getMd5;
-
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.protobuf.ByteString;
-
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
@@ -23,15 +10,20 @@ import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static edu.usfca.cs.Utils.getMd5;
 
 @ChannelHandler.Sharable
 public class StorageNodeInboundHandler extends InboundHandler {
@@ -314,16 +306,16 @@ public class StorageNodeInboundHandler extends InboundHandler {
             //logger.info("[SN] Test.Data:" + new String(chunkByteArray));
             String snReadChecksum = Utils.getMd5(chunkByteArray);
             String snWriteChecksum = metaDataOfChunk.getChecksum();
-            logger.info("[SN" + mySnId + "]Receive checksum: " + snWriteChecksum);
-            logger.info("[SN" + mySnId + "]dataChecksum: " + snReadChecksum);
+            System.out.println("[SN" + mySnId + "]Receive checksum: " + snWriteChecksum);
+            System.out.println("[SN" + mySnId + "]dataChecksum: " + snReadChecksum);
 
             if (snReadChecksum.equalsIgnoreCase(snWriteChecksum)) {
-                logger.debug("[SN" + mySnId + "] Checksum TEST OK! for chunkId:"
+                System.out.println("[SN" + mySnId + "] Checksum TEST OK! for chunkId:"
                         + retrieveFile.getChunkId());
             } else {
                 logger.error("[SN" + mySnId + "] PROBLEM with Checksum! for chunkId: "
                         + retrieveFile.getChunkId());
-                logger.error("[SN" + mySnId + "] ChunkId: " + retrieveFile.getChunkId()
+                System.out.println("[SN" + mySnId + "] ChunkId: " + retrieveFile.getChunkId()
                         + " must be Healed by any other SN.");
 
                 /**
@@ -491,7 +483,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 controllerChannel.write(msgWrapper);
                 controllerChannel.flush();
 
-                logger.info("[SN" + mySnId + "] ---------->>>>>>>> STORE CHUNK MESSAGE(HEAL) To SN["
+                System.out.println("[SN" + mySnId + "] ---------->>>>>>>> STORE CHUNK MESSAGE(HEAL) To SN["
                         + healedSnInfo.getSnId() + "], chunkId[" + healChunkId + "], controllerIp["
                         + healMyChunk.getHealSnIp() + "], controllerPort:["
                         + healMyChunk.getHealSnPort() + "] >>>>>>>>>>>--------------");
@@ -554,7 +546,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .cancelHeartBeatTimer(DfsStorageNodeStarter.getInstance());
             }
         } else if (msg.hasRetrieveFile()) {
-            logger.info("[SN" + mySnId
+            System.out.println("[SN" + mySnId
                     + "] Retrieve File Request came from Client with fileName: "
                     + msg.getRetrieveFile().getFileName() + " - chunkId: "
                     + msg.getRetrieveFile().getChunkId());

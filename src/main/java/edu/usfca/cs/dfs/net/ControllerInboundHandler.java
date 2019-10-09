@@ -1,23 +1,6 @@
 package edu.usfca.cs.dfs.net;
 
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import com.google.protobuf.ByteString;
-import edu.usfca.cs.Utils;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.protobuf.InvalidProtocolBufferException;
-
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
@@ -26,6 +9,15 @@ import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.net.InetSocketAddress;
+import java.util.*;
 
 @ChannelHandler.Sharable
 public class ControllerInboundHandler extends InboundHandler {
@@ -64,17 +56,6 @@ public class ControllerInboundHandler extends InboundHandler {
         logger.info("[Controller]Storing file name: " + fileName + " - Chunk Id:"
                 + storeChunkMsg.getChunkId());
 
-        if (storeChunkMsg.getChunkId() == 0) { //Metadata chunk
-            try {
-                StorageMessages.FileMetadata fileMetadata = StorageMessages.FileMetadata
-                        .parseFrom(storeChunkMsg.getData());
-
-                DfsControllerStarter.getInstance().getFileMetadataHashMap()
-                        .put(storeChunkMsg.getFileName(), fileMetadata);
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            }
-        }
         ChannelFuture write = null;
         SqlManager sqlManager = SqlManager.getInstance();
         HashMap<Integer, StorageNode> listSNMap = sqlManager
@@ -264,12 +245,82 @@ public class ControllerInboundHandler extends InboundHandler {
         write.addListener(ChannelFutureListener.CLOSE_ON_FAILURE); // I keep connection open for heart beats...
     }
 
+    private StorageMessages.FileMetadata getFileMetadata(String fileName){
+        System.out.printf("[Controller] Get file metadata!\n");
+        DfsControllerStarter dfsControllerStarter = DfsControllerStarter.getInstance();
+        dfsControllerStarter.setFileMetadata(null);
+        int chunkId = 0;
+        SqlManager sqlManager = SqlManager.getInstance();
+        /**
+         * Find SNs contain chunk zero
+         */
+        HashMap<Integer, StorageNode> listSN = sqlManager
+                .getAllSNByStatusList(Constants.STATUS_OPERATIONAL);
+        boolean available = false;
+        List<StorageMessages.StorageNodeInfo> selectedSn = new ArrayList<>();
+        for (Map.Entry<Integer, BloomFilter> snBloomFilter : DfsControllerStarter
+                .getInstance().getBloomFilters().entrySet()) {
+            int snId = snBloomFilter.getKey();
+            System.out.printf("[Controller] Check SN: %d!\n", snId);
+            BloomFilter bloomFilter = snBloomFilter.getValue();
+            if (bloomFilter.get((fileName + chunkId).getBytes())) {
+                StorageNode sn = listSN.get(snId);
+                //Select backup node in case selected sn is die
+                if (sn == null) {
+                    int backupId = sqlManager.getSNInformationById(snId).getBackupId();
+                    System.out.println("[SN]BackupId: "+backupId);
+                    sn = sqlManager.getSNInformationById(backupId);
+                }
+                if(sn!=null){
+                    available = true;
+                    StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
+                            .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort())
+                            .build();
+                    selectedSn.add(snInfo);
+                }
+            }
+        }
+
+        /**
+         * Send retrieve file msg to SN, synchronously until found one.
+         */
+        if(available){
+            System.out.printf("Someone may contain metadata\n");
+            StorageMessages.RetrieveFile retrieveFileMsg = StorageMessages.RetrieveFile.newBuilder()
+                    .setFileName(fileName)
+                    .setChunkId(chunkId).build();
+            StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper.newBuilder()
+                    .setRetrieveFile(retrieveFileMsg).build();
+
+            EventLoopGroup workerGroup = new NioEventLoopGroup();
+            MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
+
+            Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+                    .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
+            for(StorageMessages.StorageNodeInfo snInfo : selectedSn){
+                if(dfsControllerStarter.getFileMetadata()==null) {
+                    ChannelFuture cf = NetUtils.getInstance(Constants.CONTROLLER)
+                            .connect(bootstrap, snInfo.getSnIp(), snInfo.getSnPort());
+                    Channel chan = cf.channel();
+                    chan.write(msgWrapper);
+                    chan.flush().closeFuture().syncUninterruptibly();
+                } else {
+                    System.out.println("All ready have metadata!");
+                }
+            }
+        } else {
+            System.out.printf("No one contain metadata\n");
+        }
+        return dfsControllerStarter.getFileMetadata();
+    }
+
     private void handleRetrieveFile(ChannelHandlerContext ctx,
                                     StorageMessages.RetrieveFile retrieveFileMsg) {
         String fileName = retrieveFileMsg.getFileName();
         logger.info("[Controller]Retrieve all chunk location for file:" + fileName);
-        StorageMessages.FileMetadata fileMetadata = DfsControllerStarter.getInstance()
-                .getFileMetadataHashMap().get(fileName);
+
+        //TODO: Ask SN for chunk 0
+        StorageMessages.FileMetadata fileMetadata = this.getFileMetadata(fileName);
 
         if (fileMetadata != null) {
 
@@ -292,7 +343,6 @@ public class ControllerInboundHandler extends InboundHandler {
                     int snId = snBloomFilter.getKey();
                     BloomFilter bloomFilter = snBloomFilter.getValue();
                     if (bloomFilter.get((fileName + i).getBytes())) {
-                        available = true;
                         StorageNode sn = listSN.get(snId);
                         //Select backup node in case selected sn is die
                         if (sn == null) {
@@ -300,10 +350,13 @@ public class ControllerInboundHandler extends InboundHandler {
                             System.out.println("[SN]BackupId: "+backupId);
                             sn = sqlManager.getSNInformationById(backupId);
                         }
-                        StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
-                                .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort())
-                                .build();
-                        chunkLocationBuilder.addSnInfo(snInfo);
+                        if(sn!=null){
+                            available = true;
+                            StorageMessages.StorageNodeInfo snInfo = StorageMessages.StorageNodeInfo
+                                    .newBuilder().setSnIp(sn.getSnIp()).setSnPort(sn.getSnPort())
+                                    .build();
+                            chunkLocationBuilder.addSnInfo(snInfo);
+                        }
                     }
                 }
                 if (!available) {//TODO: chunk have no data in SN, return not found
@@ -337,8 +390,8 @@ public class ControllerInboundHandler extends InboundHandler {
         int missingChunkId = healMyChunk.getChunkId();
         logger.info("[Controller] Retrieve chunk locations for file:" + fileName + ", chunkId:"
                 + missingChunkId);
-        StorageMessages.FileMetadata fileMetadata = DfsControllerStarter.getInstance()
-                .getFileMetadataHashMap().get(fileName);
+//        StorageMessages.FileMetadata fileMetadata = DfsControllerStarter.getInstance()
+//                .getFileMetadataHashMap().get(fileName);
 
         SqlManager sqlManager = SqlManager.getInstance();
         HashMap<Integer, StorageNode> listSN = sqlManager
@@ -374,6 +427,21 @@ public class ControllerInboundHandler extends InboundHandler {
              */
         }
 
+    }
+
+    private void handleRetrieveFileResponse(ChannelHandlerContext ctx, StorageMessages.RetrieveFileResponse retrieveFileResponseMsg){
+        System.out.println("[Controller]Handle retrieve file response!");
+        if(retrieveFileResponseMsg.getChunkId()==0){//Handle chunk zero
+            System.out.printf("Receive from: %d: ", retrieveFileResponseMsg.getSnId());
+            try {
+                StorageMessages.FileMetadata metadata = StorageMessages.FileMetadata.parseFrom(retrieveFileResponseMsg.getData());
+                System.out.printf("File chunk number: %d", metadata.getNumOfChunks());
+                DfsControllerStarter.getInstance().setFileMetadata(metadata);
+            } catch (InvalidProtocolBufferException e) {
+                logger.error(e);
+            }
+        }
+        ctx.close();
     }
 
     @Override
@@ -420,6 +488,8 @@ public class ControllerInboundHandler extends InboundHandler {
 
             askForMissingChunk(healMyChunk);
 
+        } else if (msg.hasRetrieveFileResponse()){
+            handleRetrieveFileResponse(ctx,msg.getRetrieveFileResponse());
         }
 
     }

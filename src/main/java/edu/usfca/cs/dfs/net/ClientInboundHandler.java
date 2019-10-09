@@ -1,25 +1,6 @@
 package edu.usfca.cs.dfs.net;
 
-import static edu.usfca.cs.Utils.getMd5;
-import static edu.usfca.cs.Utils.readFromFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import io.netty.channel.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.protobuf.ByteString;
-
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.DfsClientStarter;
 import edu.usfca.cs.dfs.StorageMessages;
@@ -27,8 +8,23 @@ import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
 import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
 import edu.usfca.cs.dfs.config.Constants;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static edu.usfca.cs.Utils.getMd5;
+import static edu.usfca.cs.Utils.readFromFile;
 
 @ChannelHandler.Sharable
 public class ClientInboundHandler extends InboundHandler {
@@ -85,7 +81,7 @@ public class ClientInboundHandler extends InboundHandler {
                                  (int) chunkLocationMsg.getChunkSize(), false);
         }
         logger.info("[Client] Primary SN Id is: " + chunkLocationMsg.getPrimarySnId());
-        logger.info("[Client] Chunk checksum: " + getMd5(chunk));
+        System.out.println("[Client] Chunk checksum: " + getMd5(chunk));
         ByteString data = ByteString.copyFrom(chunk);
         StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
                 .newBuilder().setFileName(chunkLocationMsg.getFileName())
@@ -162,7 +158,7 @@ public class ClientInboundHandler extends InboundHandler {
                                              StorageMessages.StoreChunkLocation chunkLocation) {
         dfsClientStarter.getRetrieveChunkIds().add(chunkLocation.getChunkId());
         for (StorageNodeInfo sn : chunkLocation.getSnInfoList()) {
-            logger.info("[Client]SN Ip: " + sn.getSnIp() + " - Port: " + sn.getSnPort());
+            System.out.println("[Client]SN Ip: " + sn.getSnIp() + " - Port: " + sn.getSnPort());
             if(!dfsClientStarter.getRetrieveChunkIds().contains(chunkLocation.getChunkId())){
                 break;
             }
