@@ -1,42 +1,43 @@
 package edu.usfca.cs.dfs.config;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Singleton Configuration Manager for Project1.
  * 
  */
-public class ConfigurationManagerController {
+public class ConfigManagerController {
 
-    private static Logger                         logger                                = LogManager
-            .getLogger(ConfigurationManagerController.class);
-    private final int                             defaultFilterLength                   = 1000;
-    private final int                             defaultHashTime                       = 3;
-    private final int                             defaultHashSeed                       = 3;
-    private final int                             defaultControllerPort                 = 8080;
-    private final int                             defaultKeepAlivePeriodInMilliseconds  = 10000;
-    private final int                             defaultHeartBeatTimeoutInMilliseconds = 60000;
+    private static Logger                  logger                                = LogManager
+            .getLogger(ConfigManagerController.class);
+    private final int                      defaultFilterLength                   = 1000;
+    private final int                      defaultHashTime                       = 3;
+    private final int                      defaultHashSeed                       = 3;
+    private final int                      defaultControllerPort                 = 8080;
+    private final int                      defaultKeepAlivePeriodInMilliseconds  = 10000;
+    private final int                      defaultHeartBeatTimeoutInMilliseconds = 60000;
 
-    public static final String                    PROJECT_1_CONTROLLER_CONFIG_FILE      = "config"
+    public static final String             PROJECT_1_CONTROLLER_CONFIG_FILE      = "config"
             + File.separator + "project1_controller.properties";
-    private static ConfigurationManagerController instance;
-    private final static Object                   classLock                             = new Object();
-    private String                                controllerIp                          = "";
-    private int                                   controllerPort                        = defaultControllerPort;
-    private int                                   filterLength                          = defaultFilterLength;
-    private int                                   hashTime                              = defaultHashTime;
-    private long                                  seed                                  = defaultHashSeed;
-    private int                                   keepAlivePeriodInMilliseconds         = defaultKeepAlivePeriodInMilliseconds;
-    private int                                   heartBeatTimeoutInMilliseconds        = defaultHeartBeatTimeoutInMilliseconds;
-    private int                                   fromPort                              = 0;
-    private String myIp = "";
+    private static ConfigManagerController instance;
+    private final static Object            classLock                             = new Object();
+    private String                         controllerIp                          = "";
+    private int                            controllerPort                        = defaultControllerPort;
+    private int                            filterLength                          = defaultFilterLength;
+    private int                            hashTime                              = defaultHashTime;
+    private long                           seed                                  = defaultHashSeed;
+    private int                            keepAlivePeriodInMilliseconds         = defaultKeepAlivePeriodInMilliseconds;
+    private int                            heartBeatTimeoutInMilliseconds        = defaultHeartBeatTimeoutInMilliseconds;
+    private int                            fromPort                              = 0;
+    private String                         myIp                                  = "";
+    private int                            myPortRange                           = 200;
 
-    private ConfigurationManagerController() {
+    private ConfigManagerController() {
         readClientConfigFile();
     }
 
@@ -45,10 +46,10 @@ public class ConfigurationManagerController {
      *  
      * @return
      */
-    public static ConfigurationManagerController getInstance() {
+    public static ConfigManagerController getInstance() {
         synchronized (classLock) {
             if (instance == null) {
-                instance = new ConfigurationManagerController();
+                instance = new ConfigManagerController();
             }
             return instance;
         }
@@ -124,6 +125,15 @@ public class ConfigurationManagerController {
             try {
                 myIp = props.getProperty("myIp").trim();
             } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                String myPortRangeString = props.getProperty("myPortRange").trim();
+                myPortRange = (myPortRangeString == null) ? 200
+                        : Integer.parseInt(myPortRangeString);
+            } catch (Exception e) {
+                myPortRange = 200;
                 e.printStackTrace();
             }
 
@@ -207,13 +217,22 @@ public class ConfigurationManagerController {
         this.myIp = myIp;
     }
 
+    public int getMyPortRange() {
+        return myPortRange;
+    }
+
+    public void setMyPortRange(int myPortRange) {
+        this.myPortRange = myPortRange;
+    }
+
     @Override
     public String toString() {
-        return "ConfigurationManagerController [controllerIp=" + controllerIp + ", controllerPort="
+        return "ConfigManagerController [controllerIp=" + controllerIp + ", controllerPort="
                 + controllerPort + ", filterLength=" + filterLength + ", hashTime=" + hashTime
                 + ", seed=" + seed + ", keepAlivePeriodInMilliseconds="
                 + keepAlivePeriodInMilliseconds + ", heartBeatTimeoutInMilliseconds="
-                + heartBeatTimeoutInMilliseconds + "]";
+                + heartBeatTimeoutInMilliseconds + ", fromPort=" + fromPort + ", myIp=" + myIp
+                + ", myPortRange=" + myPortRange + "]";
     }
 
 }

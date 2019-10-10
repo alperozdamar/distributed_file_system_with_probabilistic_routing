@@ -5,7 +5,7 @@ import edu.usfca.cs.Utils;
 import edu.usfca.cs.dfs.DfsClientStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
-import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
+import edu.usfca.cs.dfs.config.ConfigManagerClient;
 import edu.usfca.cs.dfs.config.Constants;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -69,7 +69,7 @@ public class ClientInboundHandler extends InboundHandler {
         ChannelFuture cf = NetUtils.getInstance(Constants.CLIENT).connect(bootstrap, firstNode.getSnIp(), firstNode.getSnPort());
 
         //Read chunk from file base on chunkId
-        long configChunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+        long configChunkSize = ConfigManagerClient.getInstance().getChunkSizeInBytes();
         byte[] chunk = null;
         if (chunkLocationMsg.getChunkId() == 0) {//metadata chunk
             chunk = dfsClientStarter.getMetadata().toByteArray();
@@ -190,7 +190,7 @@ public class ClientInboundHandler extends InboundHandler {
              */
             byte[] data = retrieveFileResponse.getData().toByteArray();
             long seek = (retrieveFileResponse.getChunkId() - 1)
-                    * ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+                    * ConfigManagerClient.getInstance().getChunkSizeInBytes();
             logger.info("[Client] Writing into File System with fileName:"
                     + retrieveFileResponse.getFileName() + "ChunkId:"
                     + retrieveFileResponse.getChunkId() + " seek:" + seek + " ,Data Size:"

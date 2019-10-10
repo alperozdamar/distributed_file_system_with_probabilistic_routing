@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.ConfigManagerSn;
 import io.netty.channel.Channel;
 
 public class HeartBeatSenderTimerTask implements Runnable {
@@ -29,8 +29,8 @@ public class HeartBeatSenderTimerTask implements Runnable {
              */
             StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
                     .setSnId(storageNode.getSnId())
-                    .setSnIp(ConfigurationManagerSn.getInstance().getMyIp())
-                    .setSnPort(ConfigurationManagerSn.getInstance().getSnPort())
+                    .setSnIp(ConfigManagerSn.getInstance().getMyIp())
+                    .setSnPort(ConfigManagerSn.getInstance().getSnPort())
                     .setTotalFreeSpaceInBytes(DfsStorageNodeStarter.getInstance()
                             .calculateTotalFreeSpaceInBytes())
                     .setNumOfRetrievelRequest((int) DfsStorageNodeStarter.getInstance()

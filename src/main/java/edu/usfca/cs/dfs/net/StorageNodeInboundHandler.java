@@ -6,7 +6,7 @@ import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StorageNodeInfo;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.ConfigManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.bootstrap.Bootstrap;
@@ -144,7 +144,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
         String directoryPath = null;
         try {
             logger.info("Working Directory = " + System.getProperty("user.dir"));
-            directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
             String whoamI = System.getProperty("user.name");
             directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                     + File.separator + whoamI + File.separator + snId;
@@ -174,7 +174,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
 
     private void sendAllFileInFileSystemByNodeId(int snId, String destinationIp,
                                                  int destinationPort) {
-        String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
         String whoamI = System.getProperty("user.name");
         directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                 + File.separator + whoamI + File.separator + snId;
@@ -402,16 +402,16 @@ public class StorageNodeInboundHandler extends InboundHandler {
         /**
          * We created a new channel but we may use existing one which we are using for heartbeat. 
          */
-        String controllerIp = ConfigurationManagerSn.getInstance().getControllerIp();
-        int controllerPort = ConfigurationManagerSn.getInstance().getControllerPort();
+        String controllerIp = ConfigManagerSn.getInstance().getControllerIp();
+        int controllerPort = ConfigManagerSn.getInstance().getControllerPort();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
         ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
                 .connect(bootstrap,
-                         ConfigurationManagerSn.getInstance().getControllerIp(),
-                         ConfigurationManagerSn.getInstance().getControllerPort());
+                         ConfigManagerSn.getInstance().getControllerIp(),
+                         ConfigManagerSn.getInstance().getControllerPort());
         Channel controllerChannel = cf.channel();
         controllerChannel.write(msgWrapper);
         controllerChannel.flush();
@@ -477,8 +477,8 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .handler(pipeline);
                 ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
                         .connect(bootstrap,
-                                 ConfigurationManagerSn.getInstance().getControllerIp(),
-                                 ConfigurationManagerSn.getInstance().getControllerPort());
+                                 ConfigManagerSn.getInstance().getControllerIp(),
+                                 ConfigManagerSn.getInstance().getControllerPort());
                 Channel controllerChannel = cf.channel();
                 controllerChannel.write(msgWrapper);
                 controllerChannel.flush();
@@ -511,7 +511,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
     private void handleDeleteBackUpMsg(StorageMessages.DeleteBackUp deleteBackUpMsg) {
         List<Integer> ids = deleteBackUpMsg.getListSnIdList();
         logger.info("Working Directory = " + System.getProperty("user.dir"));
-        String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
         String whoamI = System.getProperty("user.name");
         directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                 + File.separator + whoamI;

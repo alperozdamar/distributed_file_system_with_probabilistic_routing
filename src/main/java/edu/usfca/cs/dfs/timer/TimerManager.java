@@ -9,13 +9,13 @@ import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.dfs.DfsControllerStarter;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.ConfigManagerController;
+import edu.usfca.cs.dfs.config.ConfigManagerSn;
 
 public class TimerManager {
 
     private static Logger                     logger    = LogManager.getLogger(TimerManager.class);
-    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(ConfigurationManagerSn
+    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(ConfigManagerSn
             .getInstance().getThreadNumOfScheduledPoolExecutor());
     private static final TimerManager         instance  = new TimerManager();
 
@@ -38,7 +38,7 @@ public class TimerManager {
         ScheduledFuture timerHandle = scheduler
                 .scheduleAtFixedRate(new KeepAliveCheckTimerTask(snId),
                                      5,
-                                     ConfigurationManagerController.getInstance()
+                                     ConfigManagerController.getInstance()
                                              .getKeepAlivePeriodInMilliseconds(),
                                      TimeUnit.MILLISECONDS);
         DfsControllerStarter.getInstance().setKeepAliveCheckTimerHandle(timerHandle, snId);
@@ -59,7 +59,7 @@ public class TimerManager {
         ScheduledFuture timerHandle = scheduler
                 .scheduleAtFixedRate(new HeartBeatSenderTimerTask(),
                                      10,
-                                     ConfigurationManagerSn.getInstance()
+                                     ConfigManagerSn.getInstance()
                                              .getHeartBeatPeriodInMilliseconds(),
                                      TimeUnit.MILLISECONDS);
         DfsStorageNodeStarter.getInstance().setHeartBeatSenderTimerHandle(timerHandle);

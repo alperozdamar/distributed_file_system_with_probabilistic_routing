@@ -11,24 +11,25 @@ import org.apache.logging.log4j.Logger;
  * Singleton Configuration Manager for Project1.
  * 
  */
-public class ConfigurationManagerSn {
+public class ConfigManagerSn {
 
-    private static Logger                 logger                           = LogManager
-            .getLogger(ConfigurationManagerSn.class);
-    public static final String            PROJECT_1_SN_CONFIG_FILE         = "config"
-            + File.separator + "project1_sn.properties";
-    private static ConfigurationManagerSn instance;
-    private final static Object           classLock                        = new Object();
-    private String                        controllerIp                     = "";
-    private int                           controllerPort                   = 9090;
-    private int                           snPort                           = 9090;
-    private int                           threadNumOfScheduledPoolExecutor = 10;
-    private int                           heartBeatPeriodInMilliseconds    = 5000;
-    private String                        storeLocation                    = "bigdata";
-    private String                        myIp;
-    private int fromPort = 0;
+    private static Logger          logger                           = LogManager
+            .getLogger(ConfigManagerSn.class);
+    public static final String     PROJECT_1_SN_CONFIG_FILE         = "config" + File.separator
+            + "project1_sn.properties";
+    private static ConfigManagerSn instance;
+    private final static Object    classLock                        = new Object();
+    private String                 controllerIp                     = "";
+    private int                    controllerPort                   = 9090;
+    private int                    snPort                           = 9090;
+    private int                    threadNumOfScheduledPoolExecutor = 10;
+    private int                    heartBeatPeriodInMilliseconds    = 5000;
+    private String                 storeLocation                    = "bigdata";
+    private String                 myIp;
+    private int                    fromPort                         = 0;
+    private int                    myPortRange                      = 200;
 
-    private ConfigurationManagerSn() {
+    private ConfigManagerSn() {
         readConfigFile();
     }
 
@@ -37,10 +38,10 @@ public class ConfigurationManagerSn {
      *  
      * @return
      */
-    public static ConfigurationManagerSn getInstance() {
+    public static ConfigManagerSn getInstance() {
         synchronized (classLock) {
             if (instance == null) {
-                instance = new ConfigurationManagerSn();
+                instance = new ConfigManagerSn();
             }
             return instance;
         }
@@ -114,11 +115,20 @@ public class ConfigurationManagerSn {
 
             try {
                 String fromPortString = props.getProperty("fromPort").trim();
-                fromPort = (fromPortString == null) ? 0
-                        : Integer.parseInt(fromPortString);
+                fromPort = (fromPortString == null) ? 0 : Integer.parseInt(fromPortString);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            try {
+                String myPortRangeString = props.getProperty("myPortRange").trim();
+                myPortRange = (myPortRangeString == null) ? 200
+                        : Integer.parseInt(myPortRangeString);
+            } catch (Exception e) {
+                myPortRange = 200;
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_SN_CONFIG_FILE);
@@ -183,15 +193,6 @@ public class ConfigurationManagerSn {
         this.storeLocation = storeLocation;
     }
 
-    @Override
-    public String toString() {
-        return "ConfigurationManagerSn [controllerIp=" + controllerIp + ", controllerPort="
-                + controllerPort + ", snPort=" + snPort + ", threadNumOfScheduledPoolExecutor="
-                + threadNumOfScheduledPoolExecutor + ", heartBeatPeriodInMilliseconds="
-                + heartBeatPeriodInMilliseconds + ", storeLocation=" + storeLocation + ", myIp="
-                + myIp + "]";
-    }
-
     public int getFromPort() {
         return fromPort;
     }
@@ -199,4 +200,22 @@ public class ConfigurationManagerSn {
     public void setFromPort(int fromPort) {
         this.fromPort = fromPort;
     }
+
+    public int getMyPortRange() {
+        return myPortRange;
+    }
+
+    public void setMyPortRange(int myPortRange) {
+        this.myPortRange = myPortRange;
+    }
+
+    @Override
+    public String toString() {
+        return "ConfigManagerSn [controllerIp=" + controllerIp + ", controllerPort="
+                + controllerPort + ", snPort=" + snPort + ", threadNumOfScheduledPoolExecutor="
+                + threadNumOfScheduledPoolExecutor + ", heartBeatPeriodInMilliseconds="
+                + heartBeatPeriodInMilliseconds + ", storeLocation=" + storeLocation + ", myIp="
+                + myIp + ", fromPort=" + fromPort + ", myPortRange=" + myPortRange + "]";
+    }
+
 }

@@ -10,7 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
+import edu.usfca.cs.dfs.config.ConfigManagerController;
 
 /**
  * This DB Manager stores db configuration parameters and DB datasource. 
@@ -56,7 +56,7 @@ public class DbManager {
     public void readConfigFile() {
         try {
             Properties props = new Properties();
-            props.load(new FileInputStream(ConfigurationManagerController.PROJECT_1_CONTROLLER_CONFIG_FILE));
+            props.load(new FileInputStream(ConfigManagerController.PROJECT_1_CONTROLLER_CONFIG_FILE));
             dbUsername = props.getProperty("DB_USERNAME");
             if (dbUsername == null) {
                 throw new IOException("DB_USERNAME parameter is not an appropriate value");

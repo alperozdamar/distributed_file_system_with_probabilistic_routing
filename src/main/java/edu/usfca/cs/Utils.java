@@ -4,7 +4,7 @@ import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.StorageMessages;
 import edu.usfca.cs.dfs.StorageMessages.StoreChunk;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.ConfigManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
 import edu.usfca.cs.dfs.net.NetUtils;
@@ -236,7 +236,7 @@ public class Utils {
 
     public static void sendAllFileInFileSystemByNodeId(int snId) {
         String directoryPath = null;
-        directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
         String whoamI = System.getProperty("user.name");
         directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                 + File.separator + whoamI + File.separator + snId;
@@ -336,7 +336,7 @@ public class Utils {
 
             logger.debug("Parsing path for primary Sn id.");
 
-            String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            String directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
             String whoamI = System.getProperty("user.name");
             directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                     + File.separator + whoamI + File.separator;
@@ -357,7 +357,7 @@ public class Utils {
 
     public static void main(String[] args) {
 
-        String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+        String directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
         String whoamI = System.getProperty("user.name");
         directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                 + File.separator + whoamI + File.separator;

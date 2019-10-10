@@ -1,34 +1,35 @@
 package edu.usfca.cs.dfs.config;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Singleton Configuration Manager for Project1.
  * 
  */
-public class ConfigurationManagerClient {
+public class ConfigManagerClient {
 
-    private static Logger                     logger                       = LogManager
-            .getLogger(ConfigurationManagerClient.class);
+    private static Logger              logger                       = LogManager
+            .getLogger(ConfigManagerClient.class);
 
-    private static final String               PROJECT_1_CLIENT_CONFIG_FILE = "config"
-            + File.separator + "project1_client.properties";
+    private static final String        PROJECT_1_CLIENT_CONFIG_FILE = "config" + File.separator
+            + "project1_client.properties";
 
-    private static ConfigurationManagerClient instance;
-    private final static Object               classLock                    = new Object();
+    private static ConfigManagerClient instance;
+    private final static Object        classLock                    = new Object();
 
-    private String                            controllerIp                 = "";
-    private int                               controllerPort               = 9090;
-    private long                              chunkSizeInBytes;
-    private String myIp = "";
-    private int fromPort = 0;
+    private String                     controllerIp                 = "";
+    private int                        controllerPort               = 9090;
+    private long                       chunkSizeInBytes;
+    private String                     myIp                         = "";
+    private int                        fromPort                     = 0;
+    private int                        myPortRange                  = 200;
 
-    private ConfigurationManagerClient() {
+    private ConfigManagerClient() {
         readClientConfigFile();
     }
 
@@ -37,10 +38,10 @@ public class ConfigurationManagerClient {
      *  
      * @return
      */
-    public static ConfigurationManagerClient getInstance() {
+    public static ConfigManagerClient getInstance() {
         synchronized (classLock) {
             if (instance == null) {
-                instance = new ConfigurationManagerClient();
+                instance = new ConfigManagerClient();
             }
             return instance;
         }
@@ -86,9 +87,17 @@ public class ConfigurationManagerClient {
 
             try {
                 String fromPortString = props.getProperty("fromPort").trim();
-                fromPort = (fromPortString == null) ? 0
-                        : Integer.parseInt(fromPortString);
+                fromPort = (fromPortString == null) ? 0 : Integer.parseInt(fromPortString);
             } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                String myPortRangeString = props.getProperty("myPortRange").trim();
+                myPortRange = (myPortRangeString == null) ? 200
+                        : Integer.parseInt(myPortRangeString);
+            } catch (Exception e) {
+                myPortRange = 200;
                 e.printStackTrace();
             }
 
@@ -98,12 +107,6 @@ public class ConfigurationManagerClient {
             // e.printStackTrace(); //professor doesn't want stackTrace.
             e.getMessage();
         }
-    }
-
-    @Override
-    public String toString() {
-        return "ConfigurationManagerClient [controllerIp=" + controllerIp + ", controllerPort="
-                + controllerPort + ", chunkSizeInBytes=" + chunkSizeInBytes + "]";
     }
 
     public String getControllerIp() {
@@ -144,5 +147,20 @@ public class ConfigurationManagerClient {
 
     public void setMyIp(String myIp) {
         this.myIp = myIp;
+    }
+
+    public int getMyPortRange() {
+        return myPortRange;
+    }
+
+    public void setMyPortRange(int myPortRange) {
+        this.myPortRange = myPortRange;
+    }
+
+    @Override
+    public String toString() {
+        return "ConfigManagerClient [controllerIp=" + controllerIp + ", controllerPort="
+                + controllerPort + ", chunkSizeInBytes=" + chunkSizeInBytes + ", myIp=" + myIp
+                + ", fromPort=" + fromPort + ", myPortRange=" + myPortRange + "]";
     }
 }

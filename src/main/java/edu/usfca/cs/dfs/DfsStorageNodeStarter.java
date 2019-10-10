@@ -3,7 +3,7 @@ package edu.usfca.cs.dfs;
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.db.model.StorageNode;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.ConfigManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
 import edu.usfca.cs.dfs.net.NetUtils;
@@ -36,7 +36,7 @@ public class DfsStorageNodeStarter {
     private HashMap<String, MetaDataOfChunk> fileChunkToMetaDataMap = new HashMap<String, MetaDataOfChunk>(); //key:fileName_chunkId 
 
     private DfsStorageNodeStarter() {
-        ConfigurationManagerSn.getInstance();
+        ConfigManagerSn.getInstance();
     }
 
     /**
@@ -58,7 +58,7 @@ public class DfsStorageNodeStarter {
         String directoryPath = null;
         try {
             logger.info("Working Directory = " + System.getProperty("user.dir"));
-            directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
             String whoamI = System.getProperty("user.name");
             directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                     + File.separator + whoamI;
@@ -80,8 +80,8 @@ public class DfsStorageNodeStarter {
             storageNode = new StorageNode(-1,
                                           null,
                                           null,
-                                          ConfigurationManagerSn.getInstance().getMyIp(),
-                                          ConfigurationManagerSn.getInstance().getSnPort(),
+                                          ConfigManagerSn.getInstance().getMyIp(),
+                                          ConfigManagerSn.getInstance().getSnPort(),
                                           calculateTotalFreeSpaceInBytes(),
                                           Constants.STATUS_OPERATIONAL,
                                           -1);
@@ -93,9 +93,9 @@ public class DfsStorageNodeStarter {
             //System.out.println("System IP Address : " + (myLocalIp.getHostAddress()).trim());
 
             messageRouter = new ServerMessageRouter(Constants.STORAGENODE);
-            messageRouter.listen(ConfigurationManagerSn.getInstance().getSnPort());
+            messageRouter.listen(ConfigManagerSn.getInstance().getSnPort());
             System.out.println("[SN] Listening for connections on port :"
-                    + ConfigurationManagerSn.getInstance().getSnPort());
+                    + ConfigManagerSn.getInstance().getSnPort());
             MessagePipeline pipeline = new MessagePipeline(Constants.STORAGENODE);
             EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -106,8 +106,8 @@ public class DfsStorageNodeStarter {
              * SN will connect to the Controller
              */
             channelFuture = NetUtils.getInstance(Constants.STORAGENODE)
-                    .connect(bootstrap, ConfigurationManagerSn.getInstance().getControllerIp(),
-                             ConfigurationManagerSn.getInstance().getControllerPort());
+                    .connect(bootstrap, ConfigManagerSn.getInstance().getControllerIp(),
+                             ConfigManagerSn.getInstance().getControllerPort());
 
             StorageMessages.HeartBeat heartBeat = StorageMessages.HeartBeat.newBuilder()
                     .setSnId(storageNode.getSnId()).setSnIp(storageNode.getSnIp())

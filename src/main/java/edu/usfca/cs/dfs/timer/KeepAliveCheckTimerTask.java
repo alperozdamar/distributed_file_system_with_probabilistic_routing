@@ -4,7 +4,7 @@ import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsControllerStarter;
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
+import edu.usfca.cs.dfs.config.ConfigManagerController;
 import edu.usfca.cs.dfs.config.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +22,7 @@ public class KeepAliveCheckTimerTask implements Runnable {
 
     public KeepAliveCheckTimerTask(int snId) {
         this.snId = snId;
-        this.timeOut = ConfigurationManagerController.getInstance()
+        this.timeOut = ConfigManagerController.getInstance()
                 .getHeartBeatTimeoutInMilliseconds();
     }
 

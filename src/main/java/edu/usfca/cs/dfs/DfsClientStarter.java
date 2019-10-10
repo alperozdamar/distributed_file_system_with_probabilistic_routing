@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import edu.usfca.cs.Utils;
-import edu.usfca.cs.dfs.config.ConfigurationManagerClient;
+import edu.usfca.cs.dfs.config.ConfigManagerClient;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.MessagePipeline;
 import edu.usfca.cs.dfs.net.NetUtils;
@@ -89,12 +89,12 @@ public class DfsClientStarter {
 
     private void listStorageNode(Bootstrap bootstrap) {
         System.out.println("Client will be connected to Controller<"
-                + ConfigurationManagerClient.getInstance().getControllerIp() + ":"
-                + ConfigurationManagerClient.getInstance().getControllerPort() + ">");
+                + ConfigManagerClient.getInstance().getControllerIp() + ":"
+                + ConfigManagerClient.getInstance().getControllerPort() + ">");
         ChannelFuture cf = NetUtils.getInstance(Constants.CLIENT)
                 .connect(bootstrap,
-                         ConfigurationManagerClient.getInstance().getControllerIp(),
-                         ConfigurationManagerClient.getInstance().getControllerPort());
+                         ConfigManagerClient.getInstance().getControllerIp(),
+                         ConfigManagerClient.getInstance().getControllerPort());
         //Create LIST message
         StorageMessages.List listMsm = StorageMessages.List.newBuilder().build();
         StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
@@ -114,7 +114,7 @@ public class DfsClientStarter {
             System.out.println("File not found!");
             return;
         }
-        long chunkSize = ConfigurationManagerClient.getInstance().getChunkSizeInBytes();
+        long chunkSize = ConfigManagerClient.getInstance().getChunkSizeInBytes();
         long fileSize = file.length();
         System.out.println("The size of the file: " + fileSize + " bytes");
         System.out.println("\nThe size of chunks: " + chunkSize + " bytes");
@@ -135,8 +135,8 @@ public class DfsClientStarter {
         ExecutorService executorService = Executors.newFixedThreadPool(numOfSendThread);
         Channel channel = NetUtils.getInstance(Constants.CLIENT)
                 .connect(bootstrap,
-                         ConfigurationManagerClient.getInstance().getControllerIp(),
-                         ConfigurationManagerClient.getInstance().getControllerPort())
+                         ConfigManagerClient.getInstance().getControllerIp(),
+                         ConfigManagerClient.getInstance().getControllerPort())
                 .channel();
         executorService.execute(new Runnable() {
 
@@ -189,8 +189,8 @@ public class DfsClientStarter {
 
         ChannelFuture cf = NetUtils.getInstance(Constants.CLIENT)
                 .connect(bootstrap,
-                         ConfigurationManagerClient.getInstance().getControllerIp(),
-                         ConfigurationManagerClient.getInstance().getControllerPort());
+                         ConfigManagerClient.getInstance().getControllerIp(),
+                         ConfigManagerClient.getInstance().getControllerPort());
         StorageMessages.RetrieveFile retrieveFileMsg = StorageMessages.RetrieveFile.newBuilder()
                 .setFileName(fileName).build();
 
@@ -202,9 +202,9 @@ public class DfsClientStarter {
     }
 
     public static void main(String[] args) {
-        ConfigurationManagerClient.getInstance();
+        ConfigManagerClient.getInstance();
         System.out.println("Client is started with these parameters: "
-                + ConfigurationManagerClient.getInstance().toString());
+                + ConfigManagerClient.getInstance().toString());
         DfsClientStarter dfsClient = DfsClientStarter.getInstance();
 
         /**

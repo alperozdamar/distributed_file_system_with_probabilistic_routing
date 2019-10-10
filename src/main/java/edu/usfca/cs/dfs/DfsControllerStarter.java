@@ -18,7 +18,7 @@ import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.StorageMessages.HeartBeat;
 import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
+import edu.usfca.cs.dfs.config.ConfigManagerController;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.net.ServerMessageRouter;
 
@@ -43,10 +43,10 @@ public class DfsControllerStarter {
         for (int i = 0; i < 12; i++) {
             bloomFilters
                     .put(i + 1,
-                         new BloomFilter(ConfigurationManagerController.getInstance()
+                         new BloomFilter(ConfigManagerController.getInstance()
                                  .getFilterLength(),
-                                         ConfigurationManagerController.getInstance().getHashTime(),
-                                         ConfigurationManagerController.getInstance().getSeed()));
+                                         ConfigManagerController.getInstance().getHashTime(),
+                                         ConfigManagerController.getInstance().getSeed()));
         }
     }
 
@@ -77,13 +77,13 @@ public class DfsControllerStarter {
             SqlManager.getInstance().deleteAllSNsReplications();
 
             messageRouter = new ServerMessageRouter(Constants.CONTROLLER);
-            System.out.println(ConfigurationManagerController.getInstance().toString());
+            System.out.println(ConfigManagerController.getInstance().toString());
 
-            messageRouter.listen(ConfigurationManagerController.getInstance().getControllerPort());
+            messageRouter.listen(ConfigManagerController.getInstance().getControllerPort());
             System.out.println("[Controller] Listening for connections on port :"
-                    + ConfigurationManagerController.getInstance().getControllerPort());
+                    + ConfigManagerController.getInstance().getControllerPort());
             logger.debug("[Controller] Listening for connections on port :"
-                    + ConfigurationManagerController.getInstance().getControllerPort());
+                    + ConfigManagerController.getInstance().getControllerPort());
         } catch (Exception e) {
             System.err.println("Exception occured in startup:" + e);
             e.printStackTrace();
@@ -121,10 +121,10 @@ public class DfsControllerStarter {
             storageNodeHashMap.put(newSnId, storageNode);
             bloomFilters
                     .put(newSnId,
-                         new BloomFilter(ConfigurationManagerController.getInstance()
+                         new BloomFilter(ConfigManagerController.getInstance()
                                  .getFilterLength(),
-                                         ConfigurationManagerController.getInstance().getHashTime(),
-                                         ConfigurationManagerController.getInstance().getSeed()));
+                                         ConfigManagerController.getInstance().getHashTime(),
+                                         ConfigManagerController.getInstance().getSeed()));
             composeRingReplication(newSnId);
         } else {
             return false;

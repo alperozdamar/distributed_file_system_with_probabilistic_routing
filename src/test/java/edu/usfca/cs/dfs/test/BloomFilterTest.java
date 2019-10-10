@@ -6,16 +6,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import edu.usfca.cs.dfs.bloomfilter.BloomFilter;
-import edu.usfca.cs.dfs.config.ConfigurationManagerController;
+import edu.usfca.cs.dfs.config.ConfigManagerController;
 
 public class BloomFilterTest {
 
     @Test
     public void testPutsAndGets() {
         System.out.println("******************* TEST #1 **************B*");
-        BloomFilter bf = new BloomFilter(ConfigurationManagerController.getInstance().getFilterLength(),
-                                         ConfigurationManagerController.getInstance().getHashTime(),
-                                         ConfigurationManagerController.getInstance().getSeed());
+        BloomFilter bf = new BloomFilter(ConfigManagerController.getInstance().getFilterLength(),
+                                         ConfigManagerController.getInstance().getHashTime(),
+                                         ConfigManagerController.getInstance().getSeed());
         String randomString = generateRandomString();
         for (int i = 0; i < 100; i++) {
             bf.put(randomString.getBytes());
@@ -51,9 +51,9 @@ public class BloomFilterTest {
 
     @Test
     public void testFalsePositiveFunction() {
-        BloomFilter bf = new BloomFilter(ConfigurationManagerController.getInstance().getFilterLength(),
-                                         ConfigurationManagerController.getInstance().getHashTime(),
-                                         ConfigurationManagerController.getInstance().getSeed());
+        BloomFilter bf = new BloomFilter(ConfigManagerController.getInstance().getFilterLength(),
+                                         ConfigManagerController.getInstance().getHashTime(),
+                                         ConfigManagerController.getInstance().getSeed());
         System.out.println("******************* TEST #2 ****************");
         String randomString = generateRandomString();
         for (int i = 0; i < 100; i++) {

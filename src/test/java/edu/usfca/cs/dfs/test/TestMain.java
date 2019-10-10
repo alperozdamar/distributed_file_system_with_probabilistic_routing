@@ -9,7 +9,7 @@ import edu.usfca.cs.db.DbManager;
 import edu.usfca.cs.db.SqlManager;
 import edu.usfca.cs.db.model.StorageNode;
 import edu.usfca.cs.dfs.DfsControllerStarter;
-import edu.usfca.cs.dfs.config.ConfigurationManagerSn;
+import edu.usfca.cs.dfs.config.ConfigManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 
 public class TestMain {
@@ -38,7 +38,7 @@ public class TestMain {
              * bigdata/whoamI/primaryId/ data
              * 
              */
-            String directoryPath = ConfigurationManagerSn.getInstance().getStoreLocation();
+            String directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
 
             String whoamI = System.getProperty("user.name");
 
