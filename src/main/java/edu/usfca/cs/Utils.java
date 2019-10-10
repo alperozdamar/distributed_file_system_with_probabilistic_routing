@@ -234,24 +234,6 @@ public class Utils {
         return entropy;
     }
 
-    public static void sendAllFileInFileSystemByNodeId(int snId) {
-        String directoryPath = null;
-        directoryPath = ConfigManagerSn.getInstance().getStoreLocation();
-        String whoamI = System.getProperty("user.name");
-        directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
-                + File.separator + whoamI + File.separator + snId;
-        File folder = new File(directoryPath);
-        File[] listOfFiles = folder.listFiles();
-        for (int i = 0; i < listOfFiles.length; i++) {
-            if (listOfFiles[i].isFile()) {
-                logger.info("File " + listOfFiles[i].getName());
-
-            } else if (listOfFiles[i].isDirectory()) {
-                logger.info("Directory " + listOfFiles[i].getName());
-            }
-        }
-    }
-
     public static void writeDataIntoClientFileSystem(String filePath, byte[] data, long seek)
             throws IOException {
         RandomAccessFile file = new RandomAccessFile(filePath, "rw");

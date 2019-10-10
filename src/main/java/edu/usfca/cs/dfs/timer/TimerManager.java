@@ -1,22 +1,20 @@
 package edu.usfca.cs.dfs.timer;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import edu.usfca.cs.dfs.DfsControllerStarter;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
 import edu.usfca.cs.dfs.config.ConfigManagerController;
 import edu.usfca.cs.dfs.config.ConfigManagerSn;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class TimerManager {
 
     private static Logger                     logger    = LogManager.getLogger(TimerManager.class);
-    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(ConfigManagerSn
-            .getInstance().getThreadNumOfScheduledPoolExecutor());
+    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(20);
     private static final TimerManager         instance  = new TimerManager();
 
     public static TimerManager getInstance() {
