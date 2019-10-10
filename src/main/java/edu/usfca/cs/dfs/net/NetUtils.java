@@ -32,13 +32,16 @@ public class NetUtils {
         switch (mode){
             case Constants.CLIENT:
                 fromPort = Math.max(ConfigurationManagerClient.getInstance().getFromPort(), fromPort);
-                sourceHostName = ConfigurationManagerClient.getInstance().getControllerIp();
+                sourceHostName = ConfigurationManagerClient.getInstance().getMyIp();
+                break;
             case Constants.CONTROLLER:
                 fromPort = Math.max(ConfigurationManagerController.getInstance().getFromPort(), fromPort);
-                sourceHostName = ConfigurationManagerController.getInstance().getControllerIp();
+                sourceHostName = ConfigurationManagerController.getInstance().getMyIp();
+                break;
             case Constants.STORAGENODE:
                 fromPort = Math.max(ConfigurationManagerSn.getInstance().getFromPort(), fromPort);
-                sourceHostName = ConfigurationManagerSn.getInstance().getControllerIp();
+                sourceHostName = ConfigurationManagerSn.getInstance().getMyIp();
+                break;
         }
 
         for(int i=fromPort;i<fromPort+100;i++){

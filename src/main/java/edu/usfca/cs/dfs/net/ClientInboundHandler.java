@@ -209,7 +209,7 @@ public class ClientInboundHandler extends InboundHandler {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, StorageMessages.StorageMessageWrapper msg) {
-        System.out.println("[Client]Received sth!");
+        logger.info("[Client]Received sth!");
         if (msg.hasStoreChunkLocation()) {
             handleStoreChunkLocationMsg(ctx, msg.getStoreChunkLocation());
 

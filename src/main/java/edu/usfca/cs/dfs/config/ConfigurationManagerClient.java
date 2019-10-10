@@ -1,11 +1,11 @@
 package edu.usfca.cs.dfs.config;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Singleton Configuration Manager for Project1.
@@ -25,6 +25,7 @@ public class ConfigurationManagerClient {
     private String                            controllerIp                 = "";
     private int                               controllerPort               = 9090;
     private long                              chunkSizeInBytes;
+    private String myIp = "";
     private int fromPort = 0;
 
     private ConfigurationManagerClient() {
@@ -74,6 +75,12 @@ public class ConfigurationManagerClient {
                         : Long.parseLong(chunkSizeInBytesString);
             } catch (Exception e) {
                 chunkSizeInBytes = 1024;
+                e.printStackTrace();
+            }
+
+            try {
+                myIp = props.getProperty("myIp").trim();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -129,5 +136,13 @@ public class ConfigurationManagerClient {
 
     public void setFromPort(int fromPort) {
         this.fromPort = fromPort;
+    }
+
+    public String getMyIp() {
+        return myIp;
+    }
+
+    public void setMyIp(String myIp) {
+        this.myIp = myIp;
     }
 }

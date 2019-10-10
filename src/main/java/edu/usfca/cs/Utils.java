@@ -20,6 +20,8 @@ import org.apache.logging.log4j.Logger;
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -262,70 +264,35 @@ public class Utils {
         file.close();
     }
 
-    //    public static void compareCheckSum(String sourceFile, String destinationFile)
-    //            throws NoSuchAlgorithmException, IOException {
-    //        //String checksum = "5EB63BBBE01EEED093CB22BB8F5ACDC3";
-    //
-    //        logger.info("GeneratingChecksum.... Please Wait!");
-    //
-    //        MessageDigest md = MessageDigest.getInstance("MD5");
-    //        md.update(Files.readAllBytes(Paths.get(sourceFile)));
-    //        byte[] digest = md.digest();
-    //        String sourceChecksum = DatatypeConverter.printHexBinary(digest).toUpperCase();
-    //
-    //        MessageDigest md2 = MessageDigest.getInstance("MD5");
-    //        md2.update(Files.readAllBytes(Paths.get(destinationFile)));
-    //        byte[] digest2 = md2.digest();
-    //        String destChecksum = DatatypeConverter.printHexBinary(digest2).toUpperCase();
-    //
-    //        if (sourceChecksum.equals(destChecksum)) {
-    //            logger.info("[SUCCESS]Files are identical!!!");
-    //        } else {
-    //            logger.info("[PROBLEM] Md5 not matched!!! Problem in transfering files...");
-    //        }
-    //        logger.info("SrceCheckSum=" + sourceChecksum);
-    //        logger.info("DestCheckSum=" + destChecksum);
-    //    }
-
     public static void sendChunkOfSourceSnToDestinationSn(int sourceSnId, int destinationSnId) {
         SqlManager sqlManager = SqlManager.getInstance();
         //Backup data of current node
         //Send current down SN data to backup ID
-        StorageNode sourceNode = sqlManager.getSNReplication(sourceSnId);
+        ArrayList<Integer> sourceIdList = new ArrayList<>();
         StorageNode destinationNode = sqlManager.getSNInformationById(destinationSnId);
-        ArrayList<Integer> replicateIdList = sourceNode.getReplicateSnIdList();
+
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
 
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true).handler(pipeline);
-        for (int replicateId : replicateIdList) {
-            StorageNode snNode = sqlManager.getSNInformationById(replicateId);
-            if (snNode.getStatus().equals("DOWN")) {
-                continue;
-            } else {
-                ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
-                        .connect(bootstrap, snNode.getSnIp(), snNode.getSnPort());
-                StorageMessages.BackUp backUpMsg = StorageMessages.BackUp.newBuilder()
-                        .setDestinationIp(destinationNode.getSnIp())
-                        .setDestinationPort(destinationNode.getSnPort()).setSourceSnId(sourceSnId)
-                        .build();
-                StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
-                        .newBuilder().setBackup(backUpMsg).build();
-                System.out.printf("Request data of %d send to replica: %d\n",
-                                  sourceSnId,
-                                  replicateId);
-                cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
-                break;
-            }
-        }
 
+        sourceIdList.add(sourceSnId);
         //Source of replication
         //Send replicate data of current down SN to backup ID
-        sourceNode = sqlManager.getSourceReplicationSnId(sourceSnId);
-        ArrayList<Integer> sourceIdList = sourceNode.getSourceSnIdList();
+        StorageNode sourceNode = sqlManager.getSourceReplicationSnId(sourceSnId);
+        sourceIdList.addAll(sourceNode.getSourceSnIdList());
+
+        //If downNode is backup of any node?
+        ArrayList<StorageNode> sourceOfBackUpSNs = sqlManager.getSnByBackUpId(sourceSnId);
+        for(StorageNode sn : sourceOfBackUpSNs){
+            sourceIdList.add(sn.getSnId());
+            sourceNode = sqlManager.getSourceReplicationSnId(sn.getSnId());
+            sourceIdList.addAll(sourceNode.getSourceSnIdList());
+        }
+
+        //Check if downNode is backup of any node?
         for (int sourceId : sourceIdList) {
-            System.out.println("Source Id: " + sourceId);
             sourceNode = sqlManager.getSNInformationById(sourceId);
             String fromIp = "";
             int fromPort = 0;
@@ -354,11 +321,10 @@ public class Utils {
                         .build();
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                         .newBuilder().setBackup(backUpMsg).build();
-                System.out
-                        .printf("Request data of %d send to source port %d\n", sourceId, fromPort);
+                logger.info("[Controller][BackUp]Request data of %d send to source port %d\n", sourceId, fromPort);
                 cf.channel().writeAndFlush(msgWrapper).syncUninterruptibly();
             } else {
-                System.out.printf("[Controller][BackUp] All source of data %d down!\n", sourceId);
+                logger.info("[Controller][BackUp] All source of data %d down!\n", sourceId);
             }
         }
 
@@ -396,12 +362,27 @@ public class Utils {
         directoryPath = System.getProperty("user.dir") + File.separator + directoryPath
                 + File.separator + whoamI + File.separator;
 
+        InetAddress ip;
+        String hostname;
+        try {
+            ip = InetAddress.getLocalHost();
+            hostname = ip.getHostAddress();
+            System.out.println("Your current IP address : " + ip);
+            System.out.println("Your current Hostname : " + hostname);
+
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
         System.out.println(parsePathToGetPrimarySnId(directoryPath + "130"));
     }
 
     public static void sendDeleteMessageToBackUpNode(int snId) {
         StorageNode sn = SqlManager.getInstance().getSNInformationById(snId);
         StorageNode backupSn = SqlManager.getInstance().getSNInformationById(sn.getBackupId());
+        if(backupSn == null || backupSn.getStatus().equals(Constants.STATUS_DOWN)){
+            return;
+        }
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         MessagePipeline pipeline = new MessagePipeline(Constants.CONTROLLER);
         Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)

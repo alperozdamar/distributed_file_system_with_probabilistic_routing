@@ -1,11 +1,11 @@
 package edu.usfca.cs.dfs.config;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Singleton Configuration Manager for Project1.
@@ -34,6 +34,7 @@ public class ConfigurationManagerController {
     private int                                   keepAlivePeriodInMilliseconds         = defaultKeepAlivePeriodInMilliseconds;
     private int                                   heartBeatTimeoutInMilliseconds        = defaultHeartBeatTimeoutInMilliseconds;
     private int                                   fromPort                              = 0;
+    private String myIp = "";
 
     private ConfigurationManagerController() {
         readClientConfigFile();
@@ -120,6 +121,12 @@ public class ConfigurationManagerController {
                 e.printStackTrace();
             }
 
+            try {
+                myIp = props.getProperty("myIp").trim();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             System.err.println("Exception occured while parsing Configuration File:"
                     + PROJECT_1_CONTROLLER_CONFIG_FILE);
@@ -190,6 +197,14 @@ public class ConfigurationManagerController {
 
     public void setFromPort(int fromPort) {
         this.fromPort = fromPort;
+    }
+
+    public String getMyIp() {
+        return myIp;
+    }
+
+    public void setMyIp(String myIp) {
+        this.myIp = myIp;
     }
 
     @Override
