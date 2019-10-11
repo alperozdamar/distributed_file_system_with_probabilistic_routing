@@ -1,6 +1,19 @@
 package edu.usfca.cs.dfs.net;
 
+import static edu.usfca.cs.Utils.getMd5;
+
+import java.io.File;
+import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.protobuf.ByteString;
+
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
@@ -10,20 +23,15 @@ import edu.usfca.cs.dfs.config.ConfigManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import static edu.usfca.cs.Utils.getMd5;
 
 @ChannelHandler.Sharable
 public class StorageNodeInboundHandler extends InboundHandler {
@@ -462,10 +470,10 @@ public class StorageNodeInboundHandler extends InboundHandler {
                 StorageMessages.StoreChunk.Builder storeChunkMsgBuilder = StorageMessages.StoreChunk
                         .newBuilder().setFileName(healFileName).setPrimarySnId(primarySnId) //?? get from hashmap
                         .setChunkId(healChunkId).setData(data).setChecksum(getMd5(chunkByteArray));
-                StorageMessages.StorageNodeInfo healedSnInfo = StorageMessages.StorageNodeInfo
-                        .newBuilder().setSnIp(healMyChunk.getHealSnIp())
-                        .setSnPort(healMyChunk.getHealSnPort()).build();
-                storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(healedSnInfo);
+                //                StorageMessages.StorageNodeInfo healedSnInfo = StorageMessages.StorageNodeInfo
+                //                        .newBuilder().setSnIp(healMyChunk.getHealSnIp())
+                //                        .setSnPort(healMyChunk.getHealSnPort()).build();
+                //                storeChunkMsgBuilder = storeChunkMsgBuilder.addSnInfo(healedSnInfo);
 
                 StorageMessages.StorageMessageWrapper msgWrapper = StorageMessages.StorageMessageWrapper
                         .newBuilder().setStoreChunk(storeChunkMsgBuilder).build();
@@ -476,17 +484,14 @@ public class StorageNodeInboundHandler extends InboundHandler {
                         .channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
                         .handler(pipeline);
                 ChannelFuture cf = NetUtils.getInstance(Constants.STORAGENODE)
-                        .connect(bootstrap,
-                                 ConfigManagerSn.getInstance().getControllerIp(),
-                                 ConfigManagerSn.getInstance().getControllerPort());
+                        .connect(bootstrap, healMyChunk.getHealSnIp(), healMyChunk.getHealSnPort());
                 Channel controllerChannel = cf.channel();
                 controllerChannel.write(msgWrapper);
                 controllerChannel.flush();
 
-                logger.info("[SN" + mySnId
-                        + "] ---------->>>>>>>> STORE CHUNK MESSAGE(HEAL) To SN["
-                        + healedSnInfo.getSnId() + "], chunkId[" + healChunkId + "], controllerIp["
-                        + healMyChunk.getHealSnIp() + "], controllerPort:["
+                logger.info("[SN" + mySnId + "] ---------->>>>>>>> STORE CHUNK MESSAGE(HEAL) To SN["
+                        + healMyChunk.getHealSnId() + "], chunkId[" + healChunkId
+                        + "], controllerIp[" + healMyChunk.getHealSnIp() + "], controllerPort:["
                         + healMyChunk.getHealSnPort() + "] >>>>>>>>>>>--------------");
 
             } else {
