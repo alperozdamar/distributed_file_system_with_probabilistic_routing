@@ -1,19 +1,6 @@
 package edu.usfca.cs.dfs.net;
 
-import static edu.usfca.cs.Utils.getMd5;
-
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.protobuf.ByteString;
-
 import edu.usfca.cs.Utils;
 import edu.usfca.cs.db.model.MetaDataOfChunk;
 import edu.usfca.cs.dfs.DfsStorageNodeStarter;
@@ -23,15 +10,20 @@ import edu.usfca.cs.dfs.config.ConfigManagerSn;
 import edu.usfca.cs.dfs.config.Constants;
 import edu.usfca.cs.dfs.timer.TimerManager;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static edu.usfca.cs.Utils.getMd5;
 
 @ChannelHandler.Sharable
 public class StorageNodeInboundHandler extends InboundHandler {
@@ -434,7 +426,7 @@ public class StorageNodeInboundHandler extends InboundHandler {
     private void helpOtherSnToHealChunk(ChannelHandlerContext ctx, int mySnId,
                                         StorageMessages.HealMyChunk healMyChunk) {
 
-        int healChunkId = healMyChunk.getHealSnId();
+        int healChunkId = healMyChunk.getChunkId();
         String healFileName = healMyChunk.getFileName();
         /**
          * Retrieve chunk from File System.
